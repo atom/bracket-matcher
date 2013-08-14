@@ -1,4 +1,19 @@
 {
+  "name": "bracket-matcher",
+  "version": "0.0.0",
   "main": "./lib/bracket-matcher",
-  "description": "Highlight the matching bracket for the `(){}[]` character under the cursor.\n\nMove the cursor to the matching bracket with `ctrl-j`."
+  "description": "Highlight the matching bracket for the `(){}[]` character under the cursor.\n\nMove the cursor to the matching bracket with `ctrl-j`.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/atom/bracket-matcher.git"
+  },
+  "bugs": {
+    "url": "https://github.com/atom/bracket-matcher/issues"
+  },
+  "engines": {
+    "atom": "*"
+  },
+  "publishConfig": {
+    "registry": "https://atom.iriscouch.com/registry/_design/app/_rewrite"
+  }
 }
