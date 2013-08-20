@@ -236,7 +236,7 @@ describe "bracket matching", ->
 
     describe "when inserting a quote", ->
       describe "when a word character is before the cursor", ->
-        it "does not automatically insert closing quote", ->
+        it "does not automatically insert the closing quote", ->
           editSession.buffer.setText("abc")
           editSession.setCursorBufferPosition([0, 3])
           editSession.insertText '"'
@@ -247,8 +247,25 @@ describe "bracket matching", ->
           editSession.insertText '\''
           expect(buffer.lineForRow(0)).toBe "abc\'"
 
+      describe "when a quote is before the cursor", ->
+        it "does not automatically insert the closing quote", ->
+          editSession.buffer.setText("''")
+          editSession.setCursorBufferPosition([0, 3])
+          editSession.insertText "'"
+          expect(buffer.lineForRow(0)).toBe "'''"
+
+          editSession.buffer.setText('""')
+          editSession.setCursorBufferPosition([0, 3])
+          editSession.insertText '"'
+          expect(buffer.lineForRow(0)).toBe '"""'
+
+          editSession.buffer.setText("''")
+          editSession.setCursorBufferPosition([0, 3])
+          editSession.insertText '"'
+          expect(buffer.lineForRow(0)).toBe "''\"\""
+
       describe "when a non word character is before the cursor", ->
-        it "automatically insert closing quote", ->
+        it "automatically inserts the closing quote", ->
           editSession.buffer.setText("ab@")
           editSession.setCursorBufferPosition([0, 3])
           editSession.insertText '"'
@@ -256,7 +273,7 @@ describe "bracket matching", ->
           expect(editSession.getCursorBufferPosition()).toEqual [0, 4]
 
       describe "when the cursor is on an empty line", ->
-        it "automatically insert closing quote", ->
+        it "automatically inserts the closing quote", ->
           editSession.buffer.setText("")
           editSession.setCursorBufferPosition([0, 0])
           editSession.insertText '"'

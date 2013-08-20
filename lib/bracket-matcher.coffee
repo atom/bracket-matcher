@@ -164,8 +164,9 @@ module.exports =
 
       hasWordAfterCursor = /\w/.test(nextCharacter)
       hasWordBeforeCursor = /\w/.test(previousCharacter)
+      hasQuoteBeforeCursor = previousCharacter is text[0]
 
-      autoCompleteOpeningBracket = @isOpeningBracket(text) and not hasWordAfterCursor and not (@isQuote(text) and hasWordBeforeCursor)
+      autoCompleteOpeningBracket = @isOpeningBracket(text) and not hasWordAfterCursor and not (@isQuote(text) and (hasWordBeforeCursor or hasQuoteBeforeCursor))
       skipOverExistingClosingBracket = false
       if @isClosingBracket(text) and nextCharacter == text
         if bracketMarker = _.find(@bracketMarkers, (marker) => marker.isValid() and marker.getBufferRange().end.isEqual(cursorBufferPosition))
