@@ -1,5 +1,4 @@
-_ = require 'underscore'
-{$$} = require 'space-pen'
+{_, $$} = require 'atom-api'
 {Range} = require 'telepath'
 
 module.exports =
