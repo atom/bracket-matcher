@@ -1,4 +1,4 @@
-{RootView} = require 'atom-api'
+{RootView} = require 'atom'
 
 describe "bracket matching", ->
   [editor, editSession, buffer] = []
