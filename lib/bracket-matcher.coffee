@@ -21,7 +21,7 @@ module.exports =
   pairHighlighted: false
 
   activate: ->
-    rootView.eachEditor (editor) => @subscribeToEditor(editor) if editor.attached
+    rootView.eachEditor (editor) => @subscribeToEditor(editor) if editor.attached and editor.getPane()?
     rootView.eachEditSession (editSession) => @subscribeToEditSession(editSession)
 
   subscribeToEditor: (editor) ->
