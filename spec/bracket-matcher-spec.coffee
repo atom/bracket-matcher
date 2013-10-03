@@ -1,13 +1,19 @@
 {RootView} = require 'atom'
 
+path = require 'path'
+
 describe "bracket matching", ->
   [editor, editSession, buffer] = []
 
   beforeEach ->
     window.rootView = new RootView
+    window.rootView.attachToDom()
+
+    project.setPath(path.join(__dirname, 'fixtures'))
+
     rootView.open('sample.js')
+
     atom.activatePackage('bracket-matcher')
-    rootView.attachToDom()
     editor = rootView.getActiveView()
     editSession = editor.activeEditSession
     buffer = editSession.buffer
