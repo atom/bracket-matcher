@@ -11,7 +11,7 @@ describe "bracket matching", ->
 
     project.setPath(path.join(__dirname, 'fixtures'))
 
-    rootView.open('sample.js')
+    rootView.openSync('sample.js')
 
     atom.activatePackage('bracket-matcher')
     editor = rootView.getActiveView()
