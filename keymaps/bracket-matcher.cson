@@ -1,2 +1,2 @@
 '.editor':
-  'ctrl-j': 'editor:go-to-matching-bracket'
+  'ctrl-m': 'editor:go-to-matching-bracket'
