@@ -92,7 +92,7 @@ module.exports =
     @invertedPairedCharacters
 
   isOpeningBracket: (string) ->
-    @pairedCharacters[string]?
+    @pairedCharacters.hasOwnProperty(string)
 
   isClosingBracket: (string) ->
-    @getInvertedPairedCharacters()[string]?
+    @getInvertedPairedCharacters().hasOwnProperty(string)
