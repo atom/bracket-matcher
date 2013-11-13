@@ -26,6 +26,7 @@ class BracketMatcherView extends View
       @goToMatchingPair()
 
     @editor.underlayer.append(this)
+    @updateMatch()
 
   updateMatch: ->
     if @pairHighlighted
