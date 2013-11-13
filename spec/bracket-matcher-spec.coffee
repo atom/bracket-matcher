@@ -9,8 +9,6 @@ describe "bracket matching", ->
     window.rootView = new RootView
     window.rootView.attachToDom()
 
-    project.setPath(path.join(__dirname, 'fixtures'))
-
     rootView.openSync('sample.js')
 
     atom.activatePackage('bracket-matcher')
