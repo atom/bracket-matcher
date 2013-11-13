@@ -20,8 +20,9 @@ class BracketMatcherView extends View
   initialize: (@editor) ->
     @pairHighlighted = false
 
-    @subscribe @editor, 'cursor:moved', =>
+    @subscribe @editor.getCursor(), 'moved', =>
       @updateMatch()
+
     @subscribeToCommand @editor, 'editor:go-to-matching-bracket', =>
       @goToMatchingPair()
 
