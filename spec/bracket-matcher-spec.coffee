@@ -6,13 +6,13 @@ describe "bracket matching", ->
   [editor, editSession, buffer] = []
 
   beforeEach ->
-    window.rootView = new RootView
-    window.rootView.attachToDom()
+    atom.rootView = new RootView
+    atom.rootView.attachToDom()
 
-    rootView.openSync('sample.js')
+    atom.rootView.openSync('sample.js')
 
-    atom.activatePackage('bracket-matcher')
-    editor = rootView.getActiveView()
+    atom.packages.activatePackage('bracket-matcher')
+    editor = atom.rootView.getActiveView()
     editSession = editor.activeEditSession
     buffer = editSession.buffer
 

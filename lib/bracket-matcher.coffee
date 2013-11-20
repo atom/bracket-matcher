@@ -10,10 +10,11 @@ module.exports =
     "'": "'"
 
   activate: ->
-    rootView.eachEditor (editor) =>
+    atom.rootView.eachEditor (editor) =>
       new BracketMatcherView(editor) if editor.attached and editor.getPane()?
 
-    rootView.eachEditSession (editSession) => @subscribeToEditSession(editSession)
+    atom.project.eachEditSession (editSession) =>
+      @subscribeToEditSession(editSession)
 
   subscribeToEditSession: (editSession) ->
     @bracketMarkers = []
