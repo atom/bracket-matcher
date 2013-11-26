@@ -1,4 +1,4 @@
-{RootView} = require 'atom'
+{WorkspaceView} = require 'atom'
 
 path = require 'path'
 
@@ -6,13 +6,13 @@ describe "bracket matching", ->
   [editor, editSession, buffer] = []
 
   beforeEach ->
-    atom.rootView = new RootView
-    atom.rootView.attachToDom()
+    atom.workspaceView = new WorkspaceView
+    atom.workspaceView.attachToDom()
 
-    atom.rootView.openSync('sample.js')
+    atom.workspaceView.openSync('sample.js')
 
     atom.packages.activatePackage('bracket-matcher')
-    editor = atom.rootView.getActiveView()
+    editor = atom.workspaceView.getActiveView()
     editSession = editor.activeEditSession
     buffer = editSession.buffer
 
