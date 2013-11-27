@@ -10,10 +10,10 @@ module.exports =
     "'": "'"
 
   activate: ->
-    atom.workspaceView.eachEditor (editor) =>
+    atom.workspaceView.eachEditorView (editor) =>
       new BracketMatcherView(editor) if editor.attached and editor.getPane()?
 
-    atom.project.eachEditSession (editSession) =>
+    atom.project.eachEditor (editSession) =>
       @subscribeToEditSession(editSession)
 
   subscribeToEditSession: (editSession) ->

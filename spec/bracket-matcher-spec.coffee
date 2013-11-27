@@ -13,7 +13,7 @@ describe "bracket matching", ->
 
     atom.packages.activatePackage('bracket-matcher')
     editor = atom.workspaceView.getActiveView()
-    editSession = editor.activeEditSession
+    editSession = editor.editor
     buffer = editSession.buffer
 
   describe "matching bracket highlighting", ->
