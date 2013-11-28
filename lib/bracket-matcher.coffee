@@ -10,24 +10,25 @@ module.exports =
     "'": "'"
 
   activate: ->
-    atom.workspaceView.eachEditorView (editor) =>
-      new BracketMatcherView(editor) if editor.attached and editor.getPane()?
+    atom.workspaceView.eachEditorView (editorView) =>
+      if editorView.attached and editorView.getPane()?
+        new BracketMatcherView(editorView)
 
-    atom.project.eachEditor (editSession) =>
-      @subscribeToEditSession(editSession)
+    atom.project.eachEditor (editor) =>
+      @subscribeToEditor(editor)
 
-  subscribeToEditSession: (editSession) ->
+  subscribeToEditor: (editor) ->
     @bracketMarkers = []
 
-    _.adviseBefore editSession, 'insertText', (text) =>
-      return true if editSession.hasMultipleCursors()
+    _.adviseBefore editor, 'insertText', (text) =>
+      return true if editor.hasMultipleCursors()
 
-      cursorBufferPosition = editSession.getCursorBufferPosition()
-      previousCharacter = editSession.getTextInBufferRange([cursorBufferPosition.add([0, -1]), cursorBufferPosition])
-      nextCharacter = editSession.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0,1])])
+      cursorBufferPosition = editor.getCursorBufferPosition()
+      previousCharacter = editor.getTextInBufferRange([cursorBufferPosition.add([0, -1]), cursorBufferPosition])
+      nextCharacter = editor.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0,1])])
 
-      if @isOpeningBracket(text) and not editSession.getSelection().isEmpty()
-        @wrapSelectionInBrackets(editSession, text)
+      if @isOpeningBracket(text) and not editor.getSelection().isEmpty()
+        @wrapSelectionInBrackets(editor, text)
         return false
 
       hasWordAfterCursor = /\w/.test(nextCharacter)
@@ -43,32 +44,32 @@ module.exports =
       if skipOverExistingClosingBracket
         bracketMarker.destroy()
         _.remove(@bracketMarkers, bracketMarker)
-        editSession.moveCursorRight()
+        editor.moveCursorRight()
         false
       else if autoCompleteOpeningBracket
-        editSession.insertText(text + @pairedCharacters[text])
-        editSession.moveCursorLeft()
+        editor.insertText(text + @pairedCharacters[text])
+        editor.moveCursorLeft()
         range = [cursorBufferPosition, cursorBufferPosition.add([0, text.length])]
-        @bracketMarkers.push editSession.markBufferRange(range)
+        @bracketMarkers.push editor.markBufferRange(range)
         false
 
-    _.adviseBefore editSession, 'backspace', =>
-      return if editSession.hasMultipleCursors()
-      return unless editSession.getSelection().isEmpty()
+    _.adviseBefore editor, 'backspace', =>
+      return if editor.hasMultipleCursors()
+      return unless editor.getSelection().isEmpty()
 
-      cursorBufferPosition = editSession.getCursorBufferPosition()
-      previousCharacter = editSession.getTextInBufferRange([cursorBufferPosition.add([0, -1]), cursorBufferPosition])
-      nextCharacter = editSession.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0,1])])
+      cursorBufferPosition = editor.getCursorBufferPosition()
+      previousCharacter = editor.getTextInBufferRange([cursorBufferPosition.add([0, -1]), cursorBufferPosition])
+      nextCharacter = editor.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0,1])])
       if @pairedCharacters[previousCharacter] is nextCharacter
-        editSession.transact =>
-          editSession.moveCursorLeft()
-          editSession.delete()
-          editSession.delete()
+        editor.transact =>
+          editor.moveCursorLeft()
+          editor.delete()
+          editor.delete()
         false
 
-  wrapSelectionInBrackets: (editSession, bracket) ->
+  wrapSelectionInBrackets: (editor, bracket) ->
     pair = @pairedCharacters[bracket]
-    editSession.mutateSelectedText (selection) =>
+    editor.mutateSelectedText (selection) =>
       return if selection.isEmpty()
 
       range = selection.getBufferRange()
