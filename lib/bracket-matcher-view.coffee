@@ -80,12 +80,12 @@ class BracketMatcherView extends View
 
   moveHighlightView: (view, bufferPosition, pixelPosition) ->
     view.bufferPosition = bufferPosition
-    view.css
-      display: 'block'
-      top: pixelPosition.top
-      left: pixelPosition.left
-      width: @editor.charWidth
-      height: @editor.lineHeight
+    [element] = view
+    element.style.display = 'block'
+    element.style.top = "#{pixelPosition.top}px"
+    element.style.left = "#{pixelPosition.left}px"
+    element.style.width = "#{@editor.charWidth}px"
+    element.style.height = "#{@editor.lineHeight}px"
 
   moveHighlightViews: (bufferRange) ->
     {start, end} = Range.fromObject(bufferRange)
