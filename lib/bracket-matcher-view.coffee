@@ -17,16 +17,17 @@ class BracketMatcherView extends View
       @div class: 'bracket-matcher', style: 'display: none', outlet: 'startView'
       @div class: 'bracket-matcher', style: 'display: none', outlet: 'endView'
 
-  initialize: (@editor) ->
+  initialize: (@editorView) ->
+    {@editor} = @editorView
     @pairHighlighted = false
 
     @subscribe @editor.getCursor(), 'moved', =>
       @updateMatch()
 
-    @subscribeToCommand @editor, 'editor:go-to-matching-bracket', =>
+    @subscribeToCommand @editorView, 'editor:go-to-matching-bracket', =>
       @goToMatchingPair()
 
-    @editor.underlayer.append(this)
+    @editorView.underlayer.append(this)
     @updateMatch()
 
   updateMatch: ->
@@ -51,7 +52,7 @@ class BracketMatcherView extends View
       @pairHighlighted = true
 
   findMatchingEndPair: (startPairPosition, startPair, endPair) ->
-    scanRange = new Range(startPairPosition.translate([0, 1]), @editor.getEofPosition())
+    scanRange = new Range(startPairPosition.translate([0, 1]), @editor.buffer.getEndPosition())
     regex = new RegExp("[#{_.escapeRegExp(startPair + endPair)}]", 'g')
     endPairPosition = null
     unpairedCount = 0
@@ -89,8 +90,8 @@ class BracketMatcherView extends View
 
   moveHighlightViews: (bufferRange) ->
     {start, end} = Range.fromObject(bufferRange)
-    startPixelPosition = @editor.pixelPositionForBufferPosition(start)
-    endPixelPosition = @editor.pixelPositionForBufferPosition(end)
+    startPixelPosition = @editorView.pixelPositionForBufferPosition(start)
+    endPixelPosition = @editorView.pixelPositionForBufferPosition(end)
     @moveHighlightView(@startView, start, startPixelPosition)
     @moveHighlightView(@endView, end, endPixelPosition)
 
@@ -107,7 +108,7 @@ class BracketMatcherView extends View
 
   goToMatchingPair: ->
     return unless @pairHighlighted
-    return unless @editor.underlayer.isVisible()
+    return unless @editorView.underlayer.isVisible()
 
     position = @editor.getCursorBufferPosition()
     previousPosition = position.translate([0, -1])

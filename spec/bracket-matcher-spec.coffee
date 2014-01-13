@@ -19,47 +19,47 @@ describe "bracket matching", ->
   describe "matching bracket highlighting", ->
     describe "when the cursor is before a starting pair", ->
       it "highlights the starting pair and ending pair", ->
-        editorView.moveCursorToEndOfLine()
-        editorView.moveCursorLeft()
+        editor.moveCursorToEndOfLine()
+        editor.moveCursorLeft()
         expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
         expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editorView.pixelPositionForBufferPosition([0,28])
         expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editorView.pixelPositionForBufferPosition([12,0])
 
     describe "when the cursor is after a starting pair", ->
       it "highlights the starting pair and ending pair", ->
-        editorView.moveCursorToEndOfLine()
+        editor.moveCursorToEndOfLine()
         expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
         expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editorView.pixelPositionForBufferPosition([0,28])
         expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editorView.pixelPositionForBufferPosition([12,0])
 
     describe "when the cursor is before an ending pair", ->
       it "highlights the starting pair and ending pair", ->
-        editorView.moveCursorToBottom()
-        editorView.moveCursorLeft()
-        editorView.moveCursorLeft()
+        editor.moveCursorToBottom()
+        editor.moveCursorLeft()
+        editor.moveCursorLeft()
         expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
         expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editorView.pixelPositionForBufferPosition([12,0])
         expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editorView.pixelPositionForBufferPosition([0,28])
 
     describe "when the cursor is after an ending pair", ->
       it "highlights the starting pair and ending pair", ->
-        editorView.moveCursorToBottom()
-        editorView.moveCursorLeft()
+        editor.moveCursorToBottom()
+        editor.moveCursorLeft()
         expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
         expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editorView.pixelPositionForBufferPosition([12,0])
         expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editorView.pixelPositionForBufferPosition([0,28])
 
     describe "when the cursor is moved off a pair", ->
       it "removes the starting pair and ending pair highlights", ->
-        editorView.moveCursorToEndOfLine()
+        editor.moveCursorToEndOfLine()
         expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
-        editorView.moveCursorToBeginningOfLine()
+        editor.moveCursorToBeginningOfLine()
         expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 0
 
     describe "pair balancing", ->
       describe "when a second starting pair preceeds the first ending pair", ->
         it "advances to the second ending pair", ->
-          editorView.setCursorBufferPosition([8,42])
+          editor.setCursorBufferPosition([8,42])
           expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
           expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editorView.pixelPositionForBufferPosition([8,42])
           expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editorView.pixelPositionForBufferPosition([8,54])
@@ -67,28 +67,28 @@ describe "bracket matching", ->
   describe "when editor:go-to-matching-bracket is triggered", ->
     describe "when the cursor is before the starting pair", ->
       it "moves the cursor to after the ending pair", ->
-        editorView.moveCursorToEndOfLine()
-        editorView.moveCursorLeft()
+        editor.moveCursorToEndOfLine()
+        editor.moveCursorLeft()
         editorView.trigger "editor:go-to-matching-bracket"
-        expect(editorView.getCursorBufferPosition()).toEqual [12, 1]
+        expect(editor.getCursorBufferPosition()).toEqual [12, 1]
 
     describe "when the cursor is after the starting pair", ->
       it "moves the cursor to before the ending pair", ->
-        editorView.moveCursorToEndOfLine()
+        editor.moveCursorToEndOfLine()
         editorView.trigger "editor:go-to-matching-bracket"
-        expect(editorView.getCursorBufferPosition()).toEqual [12, 0]
+        expect(editor.getCursorBufferPosition()).toEqual [12, 0]
 
     describe "when the cursor is before the ending pair", ->
       it "moves the cursor to after the starting pair", ->
-        editorView.setCursorBufferPosition([12, 0])
+        editor.setCursorBufferPosition([12, 0])
         editorView.trigger "editor:go-to-matching-bracket"
-        expect(editorView.getCursorBufferPosition()).toEqual [0, 29]
+        expect(editor.getCursorBufferPosition()).toEqual [0, 29]
 
     describe "when the cursor is after the ending pair", ->
       it "moves the cursor to before the starting pair", ->
-        editorView.setCursorBufferPosition([12, 1])
+        editor.setCursorBufferPosition([12, 1])
         editorView.trigger "editor:go-to-matching-bracket"
-        expect(editorView.getCursorBufferPosition()).toEqual [0, 28]
+        expect(editor.getCursorBufferPosition()).toEqual [0, 28]
 
   describe "matching bracket insertion", ->
     beforeEach ->
