@@ -25,6 +25,11 @@ describe "bracket matching", ->
         expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editorView.pixelPositionForBufferPosition([0,28])
         expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editorView.pixelPositionForBufferPosition([12,0])
 
+        expect(editorView.underlayer.find('.bracket-matcher:first').width()).toBeGreaterThan 0
+        expect(editorView.underlayer.find('.bracket-matcher:last').width()).toBeGreaterThan 0
+        expect(editorView.underlayer.find('.bracket-matcher:first').height()).toBeGreaterThan 0
+        expect(editorView.underlayer.find('.bracket-matcher:last').height()).toBeGreaterThan 0
+
     describe "when the cursor is after a starting pair", ->
       it "highlights the starting pair and ending pair", ->
         editor.moveCursorToEndOfLine()
