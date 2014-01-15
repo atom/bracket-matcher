@@ -24,7 +24,7 @@ class BracketMatcherView extends View
     @subscribe @editor.getCursor(), 'moved', =>
       @updateMatch()
 
-    @subscribeToCommand @editorView, 'editor:go-to-matching-bracket', =>
+    @subscribeToCommand @editorView, 'bracket-matcher:go-to-matching-bracket', =>
       @goToMatchingPair()
 
     @editorView.underlayer.append(this)

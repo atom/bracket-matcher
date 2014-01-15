@@ -64,30 +64,30 @@ describe "bracket matching", ->
           expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editorView.pixelPositionForBufferPosition([8,42])
           expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editorView.pixelPositionForBufferPosition([8,54])
 
-  describe "when editor:go-to-matching-bracket is triggered", ->
+  describe "when bracket-matcher:go-to-matching-bracket is triggered", ->
     describe "when the cursor is before the starting pair", ->
       it "moves the cursor to after the ending pair", ->
         editor.moveCursorToEndOfLine()
         editor.moveCursorLeft()
-        editorView.trigger "editor:go-to-matching-bracket"
+        editorView.trigger "bracket-matcher:go-to-matching-bracket"
         expect(editor.getCursorBufferPosition()).toEqual [12, 1]
 
     describe "when the cursor is after the starting pair", ->
       it "moves the cursor to before the ending pair", ->
         editor.moveCursorToEndOfLine()
-        editorView.trigger "editor:go-to-matching-bracket"
+        editorView.trigger "bracket-matcher:go-to-matching-bracket"
         expect(editor.getCursorBufferPosition()).toEqual [12, 0]
 
     describe "when the cursor is before the ending pair", ->
       it "moves the cursor to after the starting pair", ->
         editor.setCursorBufferPosition([12, 0])
-        editorView.trigger "editor:go-to-matching-bracket"
+        editorView.trigger "bracket-matcher:go-to-matching-bracket"
         expect(editor.getCursorBufferPosition()).toEqual [0, 29]
 
     describe "when the cursor is after the ending pair", ->
       it "moves the cursor to before the starting pair", ->
         editor.setCursorBufferPosition([12, 1])
-        editorView.trigger "editor:go-to-matching-bracket"
+        editorView.trigger "bracket-matcher:go-to-matching-bracket"
         expect(editor.getCursorBufferPosition()).toEqual [0, 28]
 
   describe "matching bracket insertion", ->
