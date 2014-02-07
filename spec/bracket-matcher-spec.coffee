@@ -11,10 +11,13 @@ describe "bracket matching", ->
 
     atom.workspaceView.openSync('sample.js')
 
-    atom.packages.activatePackage('bracket-matcher')
-    editorView = atom.workspaceView.getActiveView()
-    {editor} = editorView
-    {buffer} = editor
+    waitsForPromise ->
+      atom.packages.activatePackage('bracket-matcher')
+
+    runs ->
+      editorView = atom.workspaceView.getActiveView()
+      {editor} = editorView
+      {buffer} = editor
 
   describe "matching bracket highlighting", ->
     describe "when the cursor is before a starting pair", ->
