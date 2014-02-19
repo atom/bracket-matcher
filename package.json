@@ -6,5 +6,8 @@
   "repository": "https://github.com/atom/bracket-matcher",
   "engines": {
     "atom": "*"
+  },
+  "dependencies": {
+    "underscore-plus": "1.x"
   }
 }

@@ -1,4 +1,5 @@
-{_, Range, View} = require 'atom'
+_ = require 'underscore-plus'
+{Range, View} = require 'atom'
 
 startPairMatches =
   '(': ')'

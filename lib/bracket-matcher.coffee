@@ -1,4 +1,4 @@
-{_} = require 'atom'
+_ = require 'underscore-plus'
 BracketMatcherView = require './bracket-matcher-view'
 
 module.exports =
