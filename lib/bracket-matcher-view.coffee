@@ -83,6 +83,22 @@ class BracketMatcherView extends View
         stop() if unpairedCount < 0
     startPairPosition
 
+  findAnyStartPair: (endPairPosition) ->
+    scanRange = new Range([0, 0], endPairPosition)
+    startPair = '{'
+    endPair = '}'
+    regex = new RegExp("[#{_.escapeRegExp(startPair + endPair)}]", 'g')
+    startPosition = null
+    unpairedCount = 0
+    @editor.backwardsScanInBufferRange regex, scanRange, ({match, range, stop}) =>
+      if match[0] is endPair
+        unpairedCount++
+      else if match[0] is startPair
+        unpairedCount--
+        startPosition = range.start
+        stop() if unpairedCount < 0
+    startPosition
+
   moveHighlightView: (view, bufferPosition, pixelPosition) ->
     view.bufferPosition = bufferPosition
     [element] = view
@@ -111,7 +127,7 @@ class BracketMatcherView extends View
       {}
 
   goToMatchingPair: ->
-    return unless @pairHighlighted
+    return @goToEnclosingPair() unless @pairHighlighted
     return unless @editorView.underlayer.isVisible()
 
     position = @editor.getCursorBufferPosition()
@@ -127,3 +143,12 @@ class BracketMatcherView extends View
       @editor.setCursorBufferPosition(startPosition.translate([0, 1]))
     else if previousPosition.isEqual(endPosition)
       @editor.setCursorBufferPosition(startPosition)
+
+  goToEnclosingPair: ->
+    return if @pairHighlighted
+    return unless @editorView.underlayer.isVisible()
+    position = @editor.getCursorBufferPosition()
+    return unless position
+    matchPosition = @findAnyStartPair(position)
+    if matchPosition
+      @editor.setCursorBufferPosition(matchPosition)
