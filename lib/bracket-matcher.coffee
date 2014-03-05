@@ -61,9 +61,10 @@ module.exports =
       previousCharacter = editor.getTextInBufferRange([cursorBufferPosition.add([0, -1]), cursorBufferPosition])
       nextCharacter = editor.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0,1])])
       if @pairedCharacters[previousCharacter] is nextCharacter
-        editor.insertText "\n\n"
-        editor.moveCursorUp()
-        editor.autoIndentSelectedRows()
+        editor.transact =>
+          editor.insertText "\n\n"
+          editor.moveCursorUp()
+          editor.autoIndentSelectedRows()
         false
 
     _.adviseBefore editor, 'backspace', =>

@@ -301,15 +301,23 @@ describe "bracket matching", ->
           expect(buffer.lineForRow(0)).toBe "\"\""
           expect(editor.getCursorBufferPosition()).toEqual [0, 1]
 
-    describe "when return is pressed after automatic insertion", ->
-      it "correctly triggers autoindent", ->
+    describe "when return is pressed in matching pair", ->
+      it "puts cursor on autoindented empty line", ->
         editor.insertText 'void main() '
         editor.insertText '{'
         expect(buffer.lineForRow(0)).toBe 'void main() {}'
         editor.insertNewline()
-        expect(editor.getCursorBufferPosition().toArray()[0]).toEqual 1
+        expect(editor.getCursorBufferPosition()).toEqual [1, 0] #atom.config.getInt('editor.tabLength')]
         expect(buffer.lineForRow(2)).toBe '}'
 
+      describe "when undo is triggered", ->
+        it "removes both newlines", ->
+          editor.insertText 'void main() '
+          editor.insertText '{'
+          editor.insertNewline()
+          editor.undo()
+          expect(buffer.lineForRow(0)).toBe 'void main() {}'
+          
   describe "matching bracket deletion", ->
     it "deletes the end bracket when it directly proceeds a begin bracket that is being backspaced", ->
       buffer.setText("")
