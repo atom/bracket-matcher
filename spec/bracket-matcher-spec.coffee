@@ -301,6 +301,15 @@ describe "bracket matching", ->
           expect(buffer.lineForRow(0)).toBe "\"\""
           expect(editor.getCursorBufferPosition()).toEqual [0, 1]
 
+    describe "when return is pressed after automatic insertion", ->
+      it "correctly triggers autoindent", ->
+        editor.insertText 'void main() '
+        editor.insertText '{'
+        expect(buffer.lineForRow(0)).toBe 'void main() {}'
+        editor.insertNewline()
+        expect(editor.getCursorBufferPosition().toArray()[0]).toEqual 1
+        expect(buffer.lineForRow(2)).toBe '}'
+
   describe "matching bracket deletion", ->
     it "deletes the end bracket when it directly proceeds a begin bracket that is being backspaced", ->
       buffer.setText("")
