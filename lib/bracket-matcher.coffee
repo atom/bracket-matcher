@@ -53,6 +53,19 @@ module.exports =
         @bracketMarkers.push editor.markBufferRange(range)
         false
 
+    _.adviseBefore editor, 'insertNewline', =>
+      return if editor.hasMultipleCursors()
+      return unless editor.getSelection().isEmpty()
+
+      cursorBufferPosition = editor.getCursorBufferPosition()
+      previousCharacter = editor.getTextInBufferRange([cursorBufferPosition.add([0, -1]), cursorBufferPosition])
+      nextCharacter = editor.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0,1])])
+      if @pairedCharacters[previousCharacter] is nextCharacter
+        editor.insertText "\n\n"
+        editor.moveCursorUp()
+        editor.autoIndentSelectedRows()
+        false
+
     _.adviseBefore editor, 'backspace', =>
       return if editor.hasMultipleCursors()
       return unless editor.getSelection().isEmpty()
