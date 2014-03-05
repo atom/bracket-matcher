@@ -113,11 +113,25 @@ describe "bracket matching", ->
           editor.setCursorBufferPosition([11, 2])
           editorView.trigger "bracket-matcher:go-to-matching-bracket"
           expect(editor.getCursorBufferPosition()).toEqual [0, 28]
+
       describe "when within a `()` pair", ->
         it "moves the cursor to before the enclosing brace", ->
           editor.setCursorBufferPosition([2, 14])
           editorView.trigger "bracket-matcher:go-to-matching-bracket"
           expect(editor.getCursorBufferPosition()).toEqual [2, 7]
+
+  describe "when bracket-matcher:go-to-enclosing-bracket is triggered", ->
+    describe "when within a `{}` pair", ->
+      it "moves the cursor to before the enclosing brace", ->
+        editor.setCursorBufferPosition([11, 2])
+        editorView.trigger "bracket-matcher:go-to-enclosing-bracket"
+        expect(editor.getCursorBufferPosition()).toEqual [0, 28]
+
+    describe "when within a `()` pair", ->
+      it "moves the cursor to before the enclosing brace", ->
+        editor.setCursorBufferPosition([2, 14])
+        editorView.trigger "bracket-matcher:go-to-enclosing-bracket"
+        expect(editor.getCursorBufferPosition()).toEqual [2, 7]
 
   describe "matching bracket insertion", ->
     beforeEach ->
