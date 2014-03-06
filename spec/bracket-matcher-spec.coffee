@@ -14,6 +14,9 @@ describe "bracket matching", ->
     waitsForPromise ->
       atom.packages.activatePackage('bracket-matcher')
 
+    waitsForPromise ->
+      atom.packages.activatePackage('language-javascript')
+
     runs ->
       editorView = atom.workspaceView.getActiveView()
       {editor} = editorView
@@ -307,7 +310,8 @@ describe "bracket matching", ->
         editor.insertText '{'
         expect(buffer.lineForRow(0)).toBe 'void main() {}'
         editor.insertNewline()
-        expect(editor.getCursorBufferPosition()).toEqual [1, 0] #atom.config.getInt('editor.tabLength')]
+        expect(editor.getCursorBufferPosition()).toEqual [1, 2]
+        expect(buffer.lineForRow(1)).toBe '  '
         expect(buffer.lineForRow(2)).toBe '}'
 
       describe "when undo is triggered", ->
@@ -317,7 +321,7 @@ describe "bracket matching", ->
           editor.insertNewline()
           editor.undo()
           expect(buffer.lineForRow(0)).toBe 'void main() {}'
-          
+
   describe "matching bracket deletion", ->
     it "deletes the end bracket when it directly proceeds a begin bracket that is being backspaced", ->
       buffer.setText("")
