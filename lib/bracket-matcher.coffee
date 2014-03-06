@@ -64,7 +64,8 @@ module.exports =
         editor.transact =>
           editor.insertText "\n\n"
           editor.moveCursorUp()
-          editor.autoIndentSelectedRows()
+          cursorRow = editor.getCursorBufferPosition().row
+          editor.autoIndentBufferRows(cursorRow, cursorRow + 1)
         false
 
     _.adviseBefore editor, 'backspace', =>

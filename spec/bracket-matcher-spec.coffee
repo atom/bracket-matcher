@@ -314,6 +314,14 @@ describe "bracket matching", ->
         expect(buffer.lineForRow(1)).toBe '  '
         expect(buffer.lineForRow(2)).toBe '}'
 
+        editor.setText '  void main() '
+        editor.insertText '{'
+        expect(buffer.lineForRow(0)).toBe '  void main() {}'
+        editor.insertNewline()
+        expect(editor.getCursorBufferPosition()).toEqual [1, 4]
+        expect(buffer.lineForRow(1)).toBe '    '
+        expect(buffer.lineForRow(2)).toBe '  }'
+
       describe "when undo is triggered", ->
         it "removes both newlines", ->
           editor.insertText 'void main() '
