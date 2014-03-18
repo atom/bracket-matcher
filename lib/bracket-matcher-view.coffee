@@ -88,9 +88,9 @@ class BracketMatcherView extends View
 
   findAnyStartPair: (cursorPosition) ->
     scanRange = new Range([0, 0], cursorPosition)
-    startPair = _.escapeRegExp(_.keys(startPairMatches).join('|'))
-    endPair = _.escapeRegExp(_.keys(endPairMatches).join('|'))
-    combinedRegExp = new RegExp("[#{startPair}|#{endPair}]", 'g')
+    startPair = _.escapeRegExp(_.keys(startPairMatches).join(''))
+    endPair = _.escapeRegExp(_.keys(endPairMatches).join(''))
+    combinedRegExp = new RegExp("[#{startPair}#{endPair}]", 'g')
     startPairRegExp = new RegExp("[#{startPair}]", 'g')
     endPairRegExp = new RegExp("[#{endPair}]", 'g')
     startPosition = null
