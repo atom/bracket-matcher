@@ -31,6 +31,9 @@ class BracketMatcherView extends View
     @subscribeToCommand @editorView, 'bracket-matcher:go-to-matching-bracket', =>
       @goToMatchingPair()
 
+    @subscribeToCommand @editorView, 'bracket-matcher:go-to-enclosing-bracket', =>
+      @goToEnclosingPair()
+
     @editorView.underlayer.append(this)
     @updateMatch()
 
@@ -83,6 +86,24 @@ class BracketMatcherView extends View
         stop() if unpairedCount < 0
     startPairPosition
 
+  findAnyStartPair: (cursorPosition) ->
+    scanRange = new Range([0, 0], cursorPosition)
+    startPair = _.escapeRegExp(_.keys(startPairMatches).join('|'))
+    endPair = _.escapeRegExp(_.keys(endPairMatches).join('|'))
+    combinedRegExp = new RegExp("[#{startPair}|#{endPair}]", 'g')
+    startPairRegExp = new RegExp("[#{startPair}]", 'g')
+    endPairRegExp = new RegExp("[#{endPair}]", 'g')
+    startPosition = null
+    unpairedCount = 0
+    @editor.backwardsScanInBufferRange combinedRegExp, scanRange, ({match, range, stop}) =>
+      if match[0].match(endPairRegExp)
+        unpairedCount++
+      else if match[0].match(startPairRegExp)
+        unpairedCount--
+        startPosition = range.start
+        stop() if unpairedCount < 0
+     startPosition
+
   moveHighlightView: (view, bufferPosition, pixelPosition) ->
     view.bufferPosition = bufferPosition
     [element] = view
@@ -111,7 +132,7 @@ class BracketMatcherView extends View
       {}
 
   goToMatchingPair: ->
-    return unless @pairHighlighted
+    return @goToEnclosingPair() unless @pairHighlighted
     return unless @editorView.underlayer.isVisible()
 
     position = @editor.getCursorBufferPosition()
@@ -127,3 +148,11 @@ class BracketMatcherView extends View
       @editor.setCursorBufferPosition(startPosition.translate([0, 1]))
     else if previousPosition.isEqual(endPosition)
       @editor.setCursorBufferPosition(startPosition)
+
+  goToEnclosingPair: ->
+    return if @pairHighlighted
+    return unless @editorView.underlayer.isVisible()
+    position = @editor.getCursorBufferPosition()
+    matchPosition = @findAnyStartPair(position)
+    if matchPosition
+      @editor.setCursorBufferPosition(matchPosition)
