@@ -67,6 +67,14 @@ describe "bracket matching", ->
         editor.moveCursorToBeginningOfLine()
         expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 0
 
+    describe "when the pair moves", ->
+      it "repositions the highlights", ->
+        editor.moveCursorToEndOfLine()
+        editor.moveCursorLeft()
+        expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
+        editor.backspaceToBeginningOfLine()
+        expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
+
     describe "when the font size changes", ->
       it "repositions the highlights", ->
         editor.moveCursorToBottom()

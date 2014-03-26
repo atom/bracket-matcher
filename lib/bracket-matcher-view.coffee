@@ -25,6 +25,9 @@ class BracketMatcherView extends View
     @subscribe atom.config.observe 'editor.fontSize', =>
       @updateMatch()
 
+    @subscribe @editor.getBuffer(), 'changed', =>
+      @updateMatch()
+
     @subscribe @editor.getCursor(), 'moved', =>
       @updateMatch()
 
