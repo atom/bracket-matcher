@@ -338,7 +338,23 @@ describe "bracket matching", ->
           expect(buffer.lineForRow(0)).toBe "\"\""
           expect(editor.getCursorBufferPosition()).toEqual [0, 1]
 
-    describe "when return is pressed in matching pair", ->
+      describe "when the select option to Editor::insertText is true", ->
+        it "does not automatically insert the closing quote", ->
+          editor.buffer.setText("")
+          editor.setCursorBufferPosition([0, 0])
+          editor.insertText '"', select: true
+          expect(buffer.lineForRow(0)).toBe '"'
+          expect(editor.getCursorBufferPosition()).toEqual [0, 1]
+
+      describe "when the undo option to Editor::insertText is 'skip'", ->
+        it "does not automatically insert the closing quote", ->
+          editor.buffer.setText("")
+          editor.setCursorBufferPosition([0, 0])
+          editor.insertText '"', undo: 'skip'
+          expect(buffer.lineForRow(0)).toBe '"'
+          expect(editor.getCursorBufferPosition()).toEqual [0, 1]
+
+    describe "when return is pressed inside a matching pair", ->
       it "puts cursor on autoindented empty line", ->
         editor.insertText 'void main() '
         editor.insertText '{'

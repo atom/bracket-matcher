@@ -20,7 +20,8 @@ module.exports =
   subscribeToEditor: (editor) ->
     @bracketMarkers = []
 
-    _.adviseBefore editor, 'insertText', (text) =>
+    _.adviseBefore editor, 'insertText', (text, options) =>
+      return true if options?.select or options?.undo is 'skip'
       return true if editor.hasMultipleCursors()
 
       cursorBufferPosition = editor.getCursorBufferPosition()
