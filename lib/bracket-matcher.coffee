@@ -17,6 +17,8 @@ module.exports =
     atom.project.eachEditor (editor) =>
       @subscribeToEditor(editor)
 
+    atom.workspaceView.command "bracket-matcher:remove-brackets", (e) => @removeBrackets(e)
+
   subscribeToEditor: (editor) ->
     @bracketMarkers = []
 
@@ -52,13 +54,11 @@ module.exports =
         false
 
     _.adviseBefore editor, 'insertNewline', =>
+      selection = editor.getSelection()
       return if editor.hasMultipleCursors()
       return unless editor.getSelection().isEmpty()
 
-      cursorBufferPosition = editor.getCursorBufferPosition()
-      previousCharacter = editor.getTextInBufferRange([cursorBufferPosition.add([0, -1]), cursorBufferPosition])
-      nextCharacter = editor.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0,1])])
-      if @pairedCharacters[previousCharacter] is nextCharacter
+      if @selectionIsWrappedByMatchingBrackets(selection)
         editor.transact =>
           editor.insertText "\n\n"
           editor.moveCursorUp()
@@ -67,20 +67,44 @@ module.exports =
         false
 
     _.adviseBefore editor, 'backspace', =>
+      selection = editor.getSelection()
       return if editor.hasMultipleCursors()
-      return unless editor.getSelection().isEmpty()
+      return unless selection.isEmpty()
 
-      cursorBufferPosition = editor.getCursorBufferPosition()
-      previousCharacter = editor.getTextInBufferRange([cursorBufferPosition.add([0, -1]), cursorBufferPosition])
-      nextCharacter = editor.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0,1])])
-      if @pairedCharacters[previousCharacter] is nextCharacter
+      if @selectionIsWrappedByMatchingBrackets(selection)
         editor.transact =>
           editor.moveCursorLeft()
           editor.delete()
           editor.delete()
         false
 
+  removeBrackets: (e) ->
+
+    editor = atom.workspace.activePaneItem
+    editor.mutateSelectedText (selection) =>
+
+      if selection.isEmpty()
+        e.abortKeyBinding()
+        return
+
+      unless @selectionIsWrappedByMatchingBrackets(selection)
+        e.abortKeyBinding()
+        return
+
+      range = selection.getBufferRange()
+      options = isReversed: selection.isReversed()
+      selectionStart = range.start
+      if range.start.row is range.end.row
+        selectionEnd = range.end.add([0, -2])
+      else
+        selectionEnd = range.end.add([0, -1])
+
+      text = selection.getText()
+      selection.insertText(text.substring(1,text.length - 1))
+      selection.setBufferRange([selectionStart, selectionEnd], options)
+
   wrapSelectionInBrackets: (editor, bracket) ->
+
     pair = @pairedCharacters[bracket]
     selectionWrapped = false
     editor.mutateSelectedText (selection) ->
@@ -115,3 +139,12 @@ module.exports =
 
   isClosingBracket: (string) ->
     @getInvertedPairedCharacters().hasOwnProperty(string)
+
+  isCloseCharacter: (string) ->
+    @closeCharacter == string
+
+  selectionIsWrappedByMatchingBrackets: (selection) ->
+    selectedText = selection.getText()
+    firstCharacter = selectedText[0]
+    lastCharacter = selectedText[ selectedText.length - 1 ]
+    @pairedCharacters[firstCharacter] is lastCharacter

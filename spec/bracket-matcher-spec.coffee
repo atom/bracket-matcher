@@ -193,6 +193,43 @@ describe "bracket matching", ->
         editorView.trigger "bracket-matcher:select-inside-brackets"
         expect(editor.getSelectedBufferRange()).toEqual [[4, 29], [7, 4]]
 
+  describe "matching bracket deletion", ->
+    beforeEach ->
+      editor.buffer.setText("")
+
+    describe "when selection is not a matching pair of brackets", ->
+      it "does not change the text", ->
+        editor.insertText("\"woah(")
+        editor.selectAll()
+        editorView.trigger "bracket-matcher:remove-brackets"
+        expect(editor.buffer.getText()).toBe "\"woah("
+
+    describe "when selecting a matching pair of brackets", ->
+      describe "on the same line", ->
+        beforeEach ->
+          editor.buffer.setText("it \"does something\", :meta => true")
+          editor.setSelectedBufferRange([[0, 3],[0,19]])
+          editorView.trigger "bracket-matcher:remove-brackets"
+
+        it "removes the brackets", ->
+          expect(editor.buffer.getText()).toBe "it does something, :meta => true"
+
+        it "selects the newly unbracketed text", ->
+          expect(editor.getSelectedText()).toBe "does something"
+
+      describe "on separate lines", ->
+        beforeEach ->
+          editor.buffer.setText("it (\"does something\" do\nend)")
+          editor.setSelectedBufferRange([[0, 3],[1,4]])
+          console.log(editor.getSelectedText())
+          editorView.trigger "bracket-matcher:remove-brackets"
+
+        it "removes the brackets", ->
+          expect(editor.buffer.getText()).toBe "it \"does something\" do\nend"
+
+        it "selects the newly unbracketed text", ->
+          expect(editor.getSelectedText()).toBe "\"does something\" do\nend"
+
   describe "matching bracket insertion", ->
     beforeEach ->
       editor.buffer.setText("")
