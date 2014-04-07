@@ -72,13 +72,16 @@ class BracketMatcherView extends View
     regex = new RegExp("[#{_.escapeRegExp(startPair + endPair)}]", 'g')
     endPairPosition = null
     unpairedCount = 0
-    @editor.scanInBufferRange regex, scanRange, ({match, range, stop}) =>
-      if match[0] is startPair
-        unpairedCount++
-      else if match[0] is endPair
-        unpairedCount--
-        endPairPosition = range.start
-        stop() if unpairedCount < 0
+    @editor.scanInBufferRange regex, scanRange, ({match, range, stop}) ->
+      switch match[0]
+        when startPair
+          unpairedCount++
+        when endPair
+          unpairedCount--
+          if unpairedCount < 0
+            endPairPosition = range.start
+            stop()
+
     endPairPosition
 
   findMatchingStartPair: (endPairPosition, startPair, endPair) ->
@@ -86,13 +89,15 @@ class BracketMatcherView extends View
     regex = new RegExp("[#{_.escapeRegExp(startPair + endPair)}]", 'g')
     startPairPosition = null
     unpairedCount = 0
-    @editor.backwardsScanInBufferRange regex, scanRange, ({match, range, stop}) =>
-      if match[0] is endPair
-        unpairedCount++
-      else if match[0] is startPair
-        unpairedCount--
-        startPairPosition = range.start
-        stop() if unpairedCount < 0
+    @editor.backwardsScanInBufferRange regex, scanRange, ({match, range, stop}) ->
+      switch match[0]
+        when startPair
+          unpairedCount--
+          if unpairedCount < 0
+            startPairPosition = range.start
+            stop()
+        when endPair
+          unpairedCount++
     startPairPosition
 
   findAnyStartPair: (cursorPosition) ->
