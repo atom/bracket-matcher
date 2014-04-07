@@ -322,6 +322,26 @@ describe "bracket matching", ->
         expect(editor.getSelectedBufferRange()).toEqual [[0, 1], [1, 4]]
         expect(editor.getSelection().isReversed()).toBeTruthy()
 
+      describe "when there are multiple selections", ->
+        it "wraps each selection with brackets", ->
+          editor.setText "a b\nb c\nc b"
+          editor.setSelectedBufferRanges [
+            [[0, 2], [0, 3]]
+            [[1, 0], [1, 1]]
+            [[2, 2], [2, 3]]
+          ]
+
+          editor.insertText '"'
+          expect(editor.getSelectedBufferRanges()).toEqual [
+            [[0, 3], [0, 4]]
+            [[1, 1], [1, 2]]
+            [[2, 3], [2, 4]]
+          ]
+
+          expect(buffer.lineForRow(0)).toBe 'a "b"'
+          expect(buffer.lineForRow(1)).toBe '"b" c'
+          expect(buffer.lineForRow(2)).toBe 'c "b"'
+
     describe "when inserting a quote", ->
       describe "when a word character is before the cursor", ->
         it "does not automatically insert the closing quote", ->

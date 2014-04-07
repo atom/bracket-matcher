@@ -22,15 +22,12 @@ module.exports =
 
     _.adviseBefore editor, 'insertText', (text, options) =>
       return true if options?.select or options?.undo is 'skip'
+      return false if @isOpeningBracket(text) and @wrapSelectionInBrackets(editor, text)
       return true if editor.hasMultipleCursors()
 
       cursorBufferPosition = editor.getCursorBufferPosition()
       previousCharacter = editor.getTextInBufferRange([cursorBufferPosition.add([0, -1]), cursorBufferPosition])
       nextCharacter = editor.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0,1])])
-
-      if @isOpeningBracket(text) and not editor.getSelection().isEmpty()
-        @wrapSelectionInBrackets(editor, text)
-        return false
 
       hasWordAfterCursor = /\w/.test(nextCharacter)
       hasWordBeforeCursor = /\w/.test(previousCharacter)
@@ -85,9 +82,11 @@ module.exports =
 
   wrapSelectionInBrackets: (editor, bracket) ->
     pair = @pairedCharacters[bracket]
-    editor.mutateSelectedText (selection) =>
+    selectionWrapped = false
+    editor.mutateSelectedText (selection) ->
       return if selection.isEmpty()
 
+      selectionWrapped = true
       range = selection.getBufferRange()
       options = isReversed: selection.isReversed()
       selection.insertText("#{bracket}#{selection.getText()}#{pair}")
@@ -97,6 +96,8 @@ module.exports =
       else
         selectionEnd = range.end
       selection.setBufferRange([selectionStart, selectionEnd], options)
+
+    selectionWrapped
 
   isQuote: (string) ->
     /'|"/.test(string)
