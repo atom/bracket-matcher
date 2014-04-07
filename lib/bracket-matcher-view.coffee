@@ -11,6 +11,10 @@ endPairMatches =
   ']': '['
   '}': '{'
 
+pairRegexes = {}
+for startPair, endPair of startPairMatches
+  pairRegexes[startPair] = new RegExp("[#{_.escapeRegExp(startPair + endPair)}]", 'g')
+
 module.exports =
 class BracketMatcherView extends View
   @content: ->
@@ -69,10 +73,9 @@ class BracketMatcherView extends View
 
   findMatchingEndPair: (startPairPosition, startPair, endPair) ->
     scanRange = new Range(startPairPosition.translate([0, 1]), @editor.buffer.getEndPosition())
-    regex = new RegExp("[#{_.escapeRegExp(startPair + endPair)}]", 'g')
     endPairPosition = null
     unpairedCount = 0
-    @editor.scanInBufferRange regex, scanRange, ({match, range, stop}) ->
+    @editor.scanInBufferRange pairRegexes[startPair], scanRange, ({match, range, stop}) ->
       switch match[0]
         when startPair
           unpairedCount++
@@ -86,10 +89,9 @@ class BracketMatcherView extends View
 
   findMatchingStartPair: (endPairPosition, startPair, endPair) ->
     scanRange = new Range([0, 0], endPairPosition)
-    regex = new RegExp("[#{_.escapeRegExp(startPair + endPair)}]", 'g')
     startPairPosition = null
     unpairedCount = 0
-    @editor.backwardsScanInBufferRange regex, scanRange, ({match, range, stop}) ->
+    @editor.backwardsScanInBufferRange pairRegexes[startPair], scanRange, ({match, range, stop}) ->
       switch match[0]
         when startPair
           unpairedCount--
