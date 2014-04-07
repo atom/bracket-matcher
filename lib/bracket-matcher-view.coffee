@@ -47,6 +47,9 @@ class BracketMatcherView extends View
     @subscribeToCommand @editorView, 'bracket-matcher:go-to-enclosing-bracket', =>
       @goToEnclosingPair()
 
+    @subscribeToCommand @editorView, 'bracket-matcher:select-inside-brackets', =>
+      @selectInsidePair()
+
     @editorView.underlayer.append(this)
     @updateMatch()
 
@@ -172,3 +175,18 @@ class BracketMatcherView extends View
     matchPosition = @findAnyStartPair(position)
     if matchPosition
       @editor.setCursorBufferPosition(matchPosition)
+
+  selectInsidePair: ->
+    return unless @editorView.underlayer.isVisible()
+
+    if @pairHighlighted
+      startPosition = @startView.bufferPosition
+      endPosition = @endView.bufferPosition
+    else
+      if startPosition = @findAnyStartPair(@editor.getCursorBufferPosition())
+        startPair = @editor.getTextInRange(Range.fromPointWithDelta(startPosition, 0, 1))
+        endPosition = @findMatchingEndPair(startPosition, startPair, startPairMatches[startPair])
+
+    if startPosition? and endPosition?
+      rangeToSelect = new Range(startPosition, endPosition).translate([0, 1], [0, 0])
+      @editor.setSelectedBufferRange(rangeToSelect)

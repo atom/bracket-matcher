@@ -5,6 +5,7 @@
       'label': 'Bracket Matcher'
       'submenu': [
         { 'label': 'Go To Matching Bracket', 'command': 'bracket-matcher:go-to-matching-bracket' }
+        { 'label': 'Select Inside Brackets', 'command': 'bracket-matcher:select-inside-brackets' }
       ]
     ]
   }

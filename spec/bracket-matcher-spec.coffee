@@ -174,6 +174,25 @@ describe "bracket matching", ->
         editorView.trigger "bracket-matcher:go-to-enclosing-bracket"
         expect(editor.getCursorBufferPosition()).toEqual [2, 7]
 
+  describe "when bracket-match:select-inside-brackets is triggered", ->
+    describe "when the cursor on the left side of a bracket", ->
+      it "selects the text inside the brackets", ->
+        editor.setCursorBufferPosition([0,28])
+        editorView.trigger "bracket-matcher:select-inside-brackets"
+        expect(editor.getSelectedBufferRange()).toEqual [[0, 29], [12, 0]]
+
+    describe "when the cursor on the right side of a brack", ->
+      it "selects the text inside the brackets", ->
+        editor.setCursorBufferPosition([1,30])
+        editorView.trigger "bracket-matcher:select-inside-brackets"
+        expect(editor.getSelectedBufferRange()).toEqual [[1, 30], [9, 2]]
+
+    describe "when the cursor is inside the brackets", ->
+      it "selects the text for the closest outer brackets", ->
+        editor.setCursorBufferPosition([6,6])
+        editorView.trigger "bracket-matcher:select-inside-brackets"
+        expect(editor.getSelectedBufferRange()).toEqual [[4, 29], [7, 4]]
+
   describe "matching bracket insertion", ->
     beforeEach ->
       editor.buffer.setText("")
