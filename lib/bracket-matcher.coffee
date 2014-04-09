@@ -54,11 +54,13 @@ module.exports =
         false
 
     _.adviseBefore editor, 'insertNewline', =>
-      selection = editor.getSelection()
       return if editor.hasMultipleCursors()
       return unless editor.getSelection().isEmpty()
 
-      if @selectionIsWrappedByMatchingBrackets(selection)
+      cursorBufferPosition = editor.getCursorBufferPosition()
+      previousCharacter = editor.getTextInBufferRange([cursorBufferPosition.add([0, -1]), cursorBufferPosition])
+      nextCharacter = editor.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0,1])])
+      if @pairedCharacters[previousCharacter] is nextCharacter
         editor.transact =>
           editor.insertText "\n\n"
           editor.moveCursorUp()
@@ -67,11 +69,13 @@ module.exports =
         false
 
     _.adviseBefore editor, 'backspace', =>
-      selection = editor.getSelection()
       return if editor.hasMultipleCursors()
-      return unless selection.isEmpty()
+      return unless editor.getSelection().isEmpty()
 
-      if @selectionIsWrappedByMatchingBrackets(selection)
+      cursorBufferPosition = editor.getCursorBufferPosition()
+      previousCharacter = editor.getTextInBufferRange([cursorBufferPosition.add([0, -1]), cursorBufferPosition])
+      nextCharacter = editor.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0,1])])
+      if @pairedCharacters[previousCharacter] is nextCharacter
         editor.transact =>
           editor.moveCursorLeft()
           editor.delete()
@@ -144,6 +148,7 @@ module.exports =
     @closeCharacter == string
 
   selectionIsWrappedByMatchingBrackets: (selection) ->
+    return false if selection.isEmpty()
     selectedText = selection.getText()
     firstCharacter = selectedText[0]
     lastCharacter = selectedText[ selectedText.length - 1 ]
