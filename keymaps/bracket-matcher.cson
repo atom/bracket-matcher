@@ -1,4 +1,4 @@
 '.editor':
   'ctrl-m': 'bracket-matcher:go-to-matching-bracket'
   'ctrl-cmd-m': 'bracket-matcher:select-inside-brackets'
-  ']': 'bracket-matcher:remove-brackets'
+  'ctrl-]': 'bracket-matcher:remove-brackets'
