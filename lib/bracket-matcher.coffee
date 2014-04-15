@@ -14,7 +14,7 @@ module.exports =
       if editorView.attached and editorView.getPane()?
         new BracketMatcherView(editorView)
 
-    atom.project.eachEditor (editor) =>
+    atom.workspace.eachEditor (editor) =>
       @subscribeToEditor(editor)
 
   subscribeToEditor: (editor) ->
