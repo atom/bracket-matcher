@@ -10,7 +10,7 @@ describe "bracket matching", ->
     atom.workspaceView.attachToDom()
 
     atom.workspaceView.openSync('sample.js')
-    atom.config.set 'bracket-matcher.createAndSwallowBrackets', true
+    atom.config.set 'bracket-matcher.autocompleteBrackets', true
 
     waitsForPromise ->
       atom.packages.activatePackage('bracket-matcher')
@@ -211,9 +211,9 @@ describe "bracket matching", ->
 
         expect(editor.buffer.getText()).toBe "a(b"
 
-    describe "when create and swallow brackets configuration is disabled", ->
+    describe "when autocompleteBrackets configuration is disabled", ->
       it "does not insert a matching bracket", ->
-        atom.config.set 'bracket-matcher.createAndSwallowBrackets', false
+        atom.config.set 'bracket-matcher.autocompleteBrackets', false
         editor.buffer.setText("}")
         editor.setCursorBufferPosition([0, 0])
         editor.insertText '{'

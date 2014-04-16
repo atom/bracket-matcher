@@ -10,7 +10,7 @@ module.exports =
     "'": "'"
 
   configDefaults:
-    createAndSwallowBrackets: true
+    autocompleteBrackets: true
 
   activate: ->
     atom.workspaceView.eachEditorView (editorView) =>
@@ -36,7 +36,7 @@ module.exports =
       hasWordBeforeCursor = /\w/.test(previousCharacter)
       hasQuoteBeforeCursor = previousCharacter is text[0]
 
-      autoCompleteOpeningBracket = (atom.config.get 'bracket-matcher.createAndSwallowBrackets') and @isOpeningBracket(text) and not hasWordAfterCursor and not (@isQuote(text) and (hasWordBeforeCursor or hasQuoteBeforeCursor))
+      autoCompleteOpeningBracket = (atom.config.get 'bracket-matcher.autocompleteBrackets') and @isOpeningBracket(text) and not hasWordAfterCursor and not (@isQuote(text) and (hasWordBeforeCursor or hasQuoteBeforeCursor))
       skipOverExistingClosingBracket = false
       if @isClosingBracket(text) and nextCharacter == text
         if bracketMarker = _.find(@bracketMarkers, (marker) => marker.isValid() and marker.getBufferRange().end.isEqual(cursorBufferPosition))
