@@ -1,7 +1,7 @@
 _ = require 'underscore-plus'
-BracketMatcherView = require './bracket-matcher-view'
 
 module.exports =
+class BracketMatcher
   pairedCharacters:
     '(': ')'
     '[': ']'
@@ -9,15 +9,7 @@ module.exports =
     '"': '"'
     "'": "'"
 
-  activate: ->
-    atom.workspaceView.eachEditorView (editorView) =>
-      if editorView.attached and editorView.getPane()?
-        new BracketMatcherView(editorView)
-
-    atom.workspace.eachEditor (editor) =>
-      @subscribeToEditor(editor)
-
-  subscribeToEditor: (editor) ->
+  constructor: (editor) ->
     @bracketMarkers = []
 
     _.adviseBefore editor, 'insertText', (text, options) =>
