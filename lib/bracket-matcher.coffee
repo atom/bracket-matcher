@@ -17,7 +17,8 @@ module.exports =
     atom.project.eachEditor (editor) =>
       @subscribeToEditor(editor)
 
-    atom.workspaceView.command "bracket-matcher:remove-brackets", (e) => @removeBrackets(e)
+    atom.workspaceView.command "bracket-matcher:remove-brackets", (event) =>
+      event.abortKeyBinding() unless @removeBrackets()
 
   subscribeToEditor: (editor) ->
     @bracketMarkers = []
@@ -82,17 +83,12 @@ module.exports =
           editor.delete()
         false
 
-  removeBrackets: (e) ->
-
-    editor = atom.workspace.activePaneItem
+  removeBrackets: ->
+    editor = atom.workspace.getActiveEditor()
+    bracketsRemoved = false
     editor.mutateSelectedText (selection) =>
 
-      if selection.isEmpty()
-        e.abortKeyBinding()
-        return
-
-      unless @selectionIsWrappedByMatchingBrackets(selection)
-        e.abortKeyBinding()
+      if selection.isEmpty() || !@selectionIsWrappedByMatchingBrackets(selection)
         return
 
       range = selection.getBufferRange()
@@ -104,11 +100,12 @@ module.exports =
         selectionEnd = range.end.add([0, -1])
 
       text = selection.getText()
-      selection.insertText(text.substring(1,text.length - 1))
+      selection.insertText(text.substring(1, text.length - 1))
       selection.setBufferRange([selectionStart, selectionEnd], options)
+      bracketsRemoved = true
+    bracketsRemoved
 
   wrapSelectionInBrackets: (editor, bracket) ->
-
     pair = @pairedCharacters[bracket]
     selectionWrapped = false
     editor.mutateSelectedText (selection) ->
@@ -143,9 +140,6 @@ module.exports =
 
   isClosingBracket: (string) ->
     @getInvertedPairedCharacters().hasOwnProperty(string)
-
-  isCloseCharacter: (string) ->
-    @closeCharacter == string
 
   selectionIsWrappedByMatchingBrackets: (selection) ->
     return false if selection.isEmpty()
