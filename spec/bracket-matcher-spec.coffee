@@ -201,7 +201,7 @@ describe "bracket matching", ->
       it "does not change the text", ->
         editor.insertText("\"woah(")
         editor.selectAll()
-        editorView.trigger "bracket-matcher:remove-brackets"
+        editorView.trigger "bracket-matcher:remove-brackets-from-selection"
         expect(editor.buffer.getText()).toBe "\"woah("
 
     describe "when selecting a matching pair of brackets", ->
@@ -209,7 +209,7 @@ describe "bracket matching", ->
         beforeEach ->
           editor.buffer.setText("it \"does something\", :meta => true")
           editor.setSelectedBufferRange([[0, 3],[0,19]])
-          editorView.trigger "bracket-matcher:remove-brackets"
+          editorView.trigger "bracket-matcher:remove-brackets-from-selection"
 
         it "removes the brackets", ->
           expect(editor.buffer.getText()).toBe "it does something, :meta => true"
@@ -221,7 +221,7 @@ describe "bracket matching", ->
         beforeEach ->
           editor.buffer.setText("it (\"does something\" do\nend)")
           editor.setSelectedBufferRange([[0, 3],[1,4]])
-          editorView.trigger "bracket-matcher:remove-brackets"
+          editorView.trigger "bracket-matcher:remove-brackets-from-selection"
 
         it "removes the brackets", ->
           expect(editor.buffer.getText()).toBe "it \"does something\" do\nend"

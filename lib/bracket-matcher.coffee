@@ -86,9 +86,8 @@ class BracketMatcher
       false
 
   removeBrackets: ->
-    editor = atom.workspace.getActiveEditor()
     bracketsRemoved = false
-    editor.mutateSelectedText (selection) =>
+    @editor.mutateSelectedText (selection) =>
 
       if selection.isEmpty() || !@selectionIsWrappedByMatchingBrackets(selection)
         return
