@@ -10,6 +10,7 @@ describe "bracket matching", ->
     atom.workspaceView.attachToDom()
 
     atom.workspaceView.openSync('sample.js')
+    atom.config.set 'bracket-matcher.autocompleteBrackets', true
 
     waitsForPromise ->
       atom.packages.activatePackage('bracket-matcher')
@@ -245,6 +246,15 @@ describe "bracket matching", ->
         editor.insertText("(")
 
         expect(editor.buffer.getText()).toBe "a(b"
+
+    describe "when autocompleteBrackets configuration is disabled", ->
+      it "does not insert a matching bracket", ->
+        atom.config.set 'bracket-matcher.autocompleteBrackets', false
+        editor.buffer.setText("}")
+        editor.setCursorBufferPosition([0, 0])
+        editor.insertText '{'
+        expect(buffer.lineForRow(0)).toBe "{}"
+        expect(editor.getCursorBufferPosition()).toEqual([0,1])
 
     describe "when there are multiple cursors", ->
       it "inserts ) at each cursor", ->
