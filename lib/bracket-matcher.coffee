@@ -88,9 +88,7 @@ class BracketMatcher
   removeBrackets: ->
     bracketsRemoved = false
     @editor.mutateSelectedText (selection) =>
-
-      if selection.isEmpty() || !@selectionIsWrappedByMatchingBrackets(selection)
-        return
+      return unless @selectionIsWrappedByMatchingBrackets(selection)
 
       range = selection.getBufferRange()
       options = isReversed: selection.isReversed()
