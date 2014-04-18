@@ -144,5 +144,5 @@ class BracketMatcher
     return false if selection.isEmpty()
     selectedText = selection.getText()
     firstCharacter = selectedText[0]
-    lastCharacter = selectedText[ selectedText.length - 1 ]
+    lastCharacter = selectedText[selectedText.length - 1]
     @pairedCharacters[firstCharacter] is lastCharacter
