@@ -9,13 +9,15 @@ class BracketMatcher
     '"': '"'
     "'": "'"
 
-  constructor: (@editor) ->
+  constructor: (editorView) ->
+    {@editor} = editorView
     @bracketMarkers = []
+
     _.adviseBefore(@editor, 'insertText', @insertText)
     _.adviseBefore(@editor, 'insertNewline', @insertNewline)
     _.adviseBefore(@editor, 'backspace', @backspace)
 
-    atom.workspaceView.command "bracket-matcher:remove-brackets", (event) =>
+    editorView.command "bracket-matcher:remove-brackets", (event) =>
       event.abortKeyBinding() unless @removeBrackets()
 
   insertText: (text, options) =>
