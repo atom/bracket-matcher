@@ -1,7 +1,10 @@
 _ = require 'underscore-plus'
+{Subscriber} = require 'emissary'
 
 module.exports =
 class BracketMatcher
+  Subscriber.includeInto(this)
+
   pairedCharacters:
     '(': ')'
     '[': ']'
@@ -17,8 +20,10 @@ class BracketMatcher
     _.adviseBefore(@editor, 'insertNewline', @insertNewline)
     _.adviseBefore(@editor, 'backspace', @backspace)
 
-    editorView.command "bracket-matcher:remove-brackets", (event) =>
+    @subscribe editorView.command "bracket-matcher:remove-brackets", (event) =>
       event.abortKeyBinding() unless @removeBrackets()
+
+    @subscribe @editor, 'destroyed', => @unsubscribe()
 
   insertText: (text, options) =>
     return true if options?.select or options?.undo is 'skip'
