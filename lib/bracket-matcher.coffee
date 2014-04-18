@@ -20,7 +20,7 @@ class BracketMatcher
     _.adviseBefore(@editor, 'insertNewline', @insertNewline)
     _.adviseBefore(@editor, 'backspace', @backspace)
 
-    @subscribe editorView.command "bracket-matcher:remove-brackets", (event) =>
+    @subscribe editorView.command 'bracket-matcher:remove-brackets-from-selection', (event) =>
       event.abortKeyBinding() unless @removeBrackets()
 
     @subscribe @editor, 'destroyed', => @unsubscribe()
