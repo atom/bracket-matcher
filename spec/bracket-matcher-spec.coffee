@@ -221,7 +221,6 @@ describe "bracket matching", ->
         beforeEach ->
           editor.buffer.setText("it (\"does something\" do\nend)")
           editor.setSelectedBufferRange([[0, 3],[1,4]])
-          console.log(editor.getSelectedText())
           editorView.trigger "bracket-matcher:remove-brackets"
 
         it "removes the brackets", ->
