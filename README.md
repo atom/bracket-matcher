@@ -1,4 +1,4 @@
-# Bracket Matcher package
+# Bracket Matcher package [![Build Status](https://travis-ci.org/atom/bracket-matcher.svg?branch=master)](https://travis-ci.org/atom/bracket-matcher)
 
 Highlights and jumps between `[]`, `()`, and `{}`.
 
