@@ -133,7 +133,7 @@ class BracketMatcherView extends View
     element.style.height = "#{@editorView.lineHeight}px"
 
   moveHighlightViews: (bufferRange) ->
-    {start, end} = Range.fromObject(bufferRange)
+    [start, end] = bufferRange
     startPixelPosition = @editorView.pixelPositionForBufferPosition(start)
     endPixelPosition = @editorView.pixelPositionForBufferPosition(end)
     @moveHighlightView(@startView, start, startPixelPosition)
