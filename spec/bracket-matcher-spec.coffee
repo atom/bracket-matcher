@@ -50,16 +50,16 @@ describe "bracket matching", ->
         editor.moveCursorLeft()
         editor.moveCursorLeft()
         expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
-        expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editorView.pixelPositionForBufferPosition([12,0])
-        expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editorView.pixelPositionForBufferPosition([0,28])
+        expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editorView.pixelPositionForBufferPosition([12,0])
+        expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editorView.pixelPositionForBufferPosition([0,28])
 
     describe "when the cursor is after an ending pair", ->
       it "highlights the starting pair and ending pair", ->
         editor.moveCursorToBottom()
         editor.moveCursorLeft()
         expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
-        expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editorView.pixelPositionForBufferPosition([12,0])
-        expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editorView.pixelPositionForBufferPosition([0,28])
+        expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editorView.pixelPositionForBufferPosition([12,0])
+        expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editorView.pixelPositionForBufferPosition([0,28])
 
     describe "when there are unpaired brackets", ->
       it "highlights the correct start/end pairs", ->
@@ -112,8 +112,8 @@ describe "bracket matching", ->
         editor.moveCursorLeft()
         atom.config.set('editor.fontSize', editorView.getFontSize() + 10)
         expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
-        expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editorView.pixelPositionForBufferPosition([12,0])
-        expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editorView.pixelPositionForBufferPosition([0,28])
+        expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editorView.pixelPositionForBufferPosition([12,0])
+        expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editorView.pixelPositionForBufferPosition([0,28])
 
     describe "pair balancing", ->
       describe "when a second starting pair preceeds the first ending pair", ->
