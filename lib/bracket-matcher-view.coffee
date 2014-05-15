@@ -71,7 +71,7 @@ class BracketMatcherView extends View
         matchPosition = @findMatchingStartPair(position, matchingPair, currentPair)
 
     if position? and matchPosition?
-      @moveHighlightViews([position, matchPosition])
+      @moveHighlightViews(position, matchPosition)
       @pairHighlighted = true
 
   findMatchingEndPair: (startPairPosition, startPair, endPair) ->
@@ -132,12 +132,11 @@ class BracketMatcherView extends View
     element.style.width = "#{@editorView.charWidth}px"
     element.style.height = "#{@editorView.lineHeight}px"
 
-  moveHighlightViews: (bufferRange) ->
-    [start, end] = bufferRange
-    startPixelPosition = @editorView.pixelPositionForBufferPosition(start)
-    endPixelPosition = @editorView.pixelPositionForBufferPosition(end)
-    @moveHighlightView(@startView, start, startPixelPosition)
-    @moveHighlightView(@endView, end, endPixelPosition)
+  moveHighlightViews: (startBufferPosition, endBufferPosition) ->
+    startPixelPosition = @editorView.pixelPositionForBufferPosition(startBufferPosition)
+    endPixelPosition = @editorView.pixelPositionForBufferPosition(endBufferPosition)
+    @moveHighlightView(@startView, startBufferPosition, startPixelPosition)
+    @moveHighlightView(@endView, endBufferPosition, endPixelPosition)
 
   findCurrentPair: (matches) ->
     position = @editor.getCursorBufferPosition()
