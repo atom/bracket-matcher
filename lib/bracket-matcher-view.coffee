@@ -38,8 +38,7 @@ class BracketMatcherView extends View
         @bufferChanged = false
         @updateMatch()
 
-    @subscribe @editor.getCursor(), 'moved', =>
-      @updateMatch()
+    @subscribeToCursor()
 
     @subscribeToCommand @editorView, 'bracket-matcher:go-to-matching-bracket', =>
       @goToMatchingPair()
@@ -52,6 +51,18 @@ class BracketMatcherView extends View
 
     @editorView.underlayer.append(this)
     @updateMatch()
+
+  subscribeToCursor: ->
+    cursor = @editor.getCursor()
+    return unless cursor?
+
+    @subscribe cursor, 'moved', =>
+      @updateMatch()
+
+    @subscribe cursor, 'destroyed', =>
+      @unsubscribe(cursor)
+      @subscribeToCursor()
+      @updateMatch()
 
   updateMatch: ->
     if @pairHighlighted

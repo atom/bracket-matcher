@@ -123,6 +123,16 @@ describe "bracket matching", ->
           expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editorView.pixelPositionForBufferPosition([8,42])
           expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editorView.pixelPositionForBufferPosition([8,54])
 
+    describe "when the cursor is destroyed", ->
+      it "updates the highlights to use the editor's last cursor", ->
+        editor.setCursorBufferPosition([0,29])
+        editor.addCursorAtBufferPosition([9,0])
+        expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
+        editor.consolidateSelections()
+        expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 0
+        editor.setCursorBufferPosition([0,29])
+        expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
+
   describe "when bracket-matcher:go-to-matching-bracket is triggered", ->
     describe "when the cursor is before the starting pair", ->
       it "moves the cursor to after the ending pair", ->
