@@ -377,14 +377,25 @@ describe "bracket matching", ->
 
     describe "when there is text selected on a single line", ->
       it "wraps the selection with brackets", ->
-        editor.insertText 'text'
+        editor.setText 'text'
         editor.moveCursorToBottom()
         editor.selectToTop()
         editor.selectAll()
         editor.insertText '('
-        expect('(text)').toBe buffer.getText()
+        expect(buffer.getText()).toBe '(text)'
         expect(editor.getSelectedBufferRange()).toEqual [[0, 1], [0, 5]]
         expect(editor.getSelection().isReversed()).toBeTruthy()
+
+      describe "when the bracket-matcher.wrapSelectionsInBrackets is falsy", ->
+        it "does not wrap the selection in brackets", ->
+          atom.config.set('bracket-matcher.wrapSelectionsInBrackets', false)
+          editor.setText 'text'
+          editor.moveCursorToBottom()
+          editor.selectToTop()
+          editor.selectAll()
+          editor.insertText '('
+          expect(buffer.getText()).toBe '('
+          expect(editor.getSelectedBufferRange()).toEqual [[0, 1], [0, 1]]
 
     describe "when there is text selected on multiple lines", ->
       it "wraps the selection with brackets", ->

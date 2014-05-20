@@ -105,6 +105,8 @@ class BracketMatcher
     bracketsRemoved
 
   wrapSelectionInBrackets: (bracket) ->
+    return false unless atom.config.get('bracket-matcher.wrapSelectionsInBrackets')
+
     pair = @pairedCharacters[bracket]
     selectionWrapped = false
     @editor.mutateSelectedText (selection) ->
