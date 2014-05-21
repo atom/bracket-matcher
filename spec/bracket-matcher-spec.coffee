@@ -115,6 +115,23 @@ describe "bracket matching", ->
         expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editorView.pixelPositionForBufferPosition([12,0])
         expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editorView.pixelPositionForBufferPosition([0,28])
 
+    describe "when the soft wrap setting changes on the editor", ->
+      it "repositions the highlights", ->
+        editorView.setWidthInChars(200)
+        editor.setSoftWrap(true)
+        editor.moveCursorToBottom()
+        editor.moveCursorLeft()
+        editorView.setWidthInChars(23)
+
+        expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
+        expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editorView.pixelPositionForBufferPosition([12,0])
+        expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editorView.pixelPositionForBufferPosition([0,28])
+
+        editor.setSoftWrap(false)
+        expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
+        expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editorView.pixelPositionForBufferPosition([12,0])
+        expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editorView.pixelPositionForBufferPosition([0,28])
+
     describe "pair balancing", ->
       describe "when a second starting pair preceeds the first ending pair", ->
         it "advances to the second ending pair", ->
