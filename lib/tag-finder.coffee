@@ -44,7 +44,6 @@ class TagFinder
     scanRange = new Range([0, 0], @editor.getCursorBufferPosition())
     startRange = null
     unpairedCount = 0
-    console.log @getTagPattern()
     @editor.backwardsScanInBufferRange @getTagPattern(), scanRange, ({match, range, stop}) =>
       return if @isRangeCommented(range)
       if match[1]
