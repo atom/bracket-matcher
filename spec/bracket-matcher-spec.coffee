@@ -169,7 +169,7 @@ describe "bracket matching", ->
         it "highlight the opening and closing tag", ->
           buffer.setText """
             <test>
-              text
+              <test>text</test>
             </test>
           """
           editor.setCursorBufferPosition([0,0])
@@ -183,7 +183,7 @@ describe "bracket matching", ->
         it "highlight the opening and closing tag", ->
           buffer.setText """
             <test>
-              text
+              <test>text</test>
             </test>
           """
           editor.setCursorBufferPosition([0,0])

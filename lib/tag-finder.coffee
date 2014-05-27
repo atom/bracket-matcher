@@ -24,25 +24,37 @@ class TagFinder
     tagStartPosition
 
   findStartingTag: ->
-    tagName = @getTagName()
-    startingPattern = new RegExp("<#{tagName}[\s>]", 'gi')
     scanRange = new Range([0, 0], @editor.getCursorBufferPosition())
     startingTagRange = null
-    @editor.backwardsScanInBufferRange startingPattern, scanRange, ({match, range, stop}) ->
-      startingTagRange = range.translate([0, 1])
-      stop()
+    unpairedCount = 0
+    @editor.backwardsScanInBufferRange @getTagPattern(), scanRange, ({match, range, stop}) ->
+      if match[1]
+        unpairedCount--
+        if unpairedCount < 0
+          startingTagRange = range.translate([0, 1])
+          stop()
+      else if match[2]
+        unpairedCount++
 
     if startingTagRange?
       {startPosition: startingTagRange.start, endPosition: @getTagStartPosition()}
 
-  findClosingTag: ->
+  getTagPattern: ->
     tagName = @getTagName()
-    closingPattern = new RegExp("</#{tagName}>", 'gi')
+    new RegExp("(<#{tagName}[\s>])|(</#{tagName}>)", 'gi')
+
+  findClosingTag: ->
     scanRange = new Range(@editor.getCursorBufferPosition(), @editor.buffer.getEndPosition())
     closingTagRange = null
-    @editor.scanInBufferRange closingPattern, scanRange, ({match, range, stop}) ->
-      closingTagRange = range.translate([0, 2])
-      stop()
+    unpairedCount = 0
+    @editor.scanInBufferRange @getTagPattern(), scanRange, ({match, range, stop}) ->
+      if match[2]
+        unpairedCount--
+        if unpairedCount < 0
+          closingTagRange = range.translate([0, 2])
+          stop()
+      else if match[1]
+        unpairedCount++
 
     if closingTagRange?
       {startPosition: @getTagStartPosition(), endPosition: closingTagRange.start}
