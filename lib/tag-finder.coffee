@@ -1,8 +1,8 @@
 {Range} = require 'atom'
 {ScopeSelector} = require 'first-mate'
 
-# Helper to find the closing tag for an opening tag in XML, HTML, etc.
-# editors.
+# Helper to find the matching start/end tag for the start/end tag under the
+# cursor in XML, HTML, etc. editors.
 module.exports =
 class TagFinder
   constructor: (@editorView) ->
