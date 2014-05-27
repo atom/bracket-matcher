@@ -1,5 +1,6 @@
 _ = require 'underscore-plus'
 {Range, View} = require 'atom'
+TagFinder = require './tag-finder'
 
 startPairMatches =
   '(': ')'
@@ -23,6 +24,8 @@ class BracketMatcherView extends View
       @div class: 'bracket-matcher', style: 'display: none', outlet: 'endView'
 
   initialize: (@editorView) ->
+    @tagFinder = new TagFinder(@editorView)
+
     {@editor} = @editorView
     @pairHighlighted = false
     @updateHighlights = false
@@ -90,6 +93,10 @@ class BracketMatcherView extends View
     if position? and matchPosition?
       @moveHighlightViews(position, matchPosition)
       @pairHighlighted = true
+    else
+      if pair = @tagFinder.findPair()
+        @moveHighlightViews(pair.startPosition, pair.endPosition)
+        @pairHighlighted = true
 
   findMatchingEndPair: (startPairPosition, startPair, endPair) ->
     scanRange = new Range(startPairPosition.translate([0, 1]), @editor.buffer.getEndPosition())
