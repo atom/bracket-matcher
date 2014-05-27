@@ -16,6 +16,10 @@ class TagFinder
     tagName = @editor.getTextInRange(wordRange)
     tagName.replace(/[<>/]/g, '').trim()
 
+  getTagPattern: ->
+    tagName = @getTagName()
+    new RegExp("(<#{tagName}[\s>])|(</#{tagName}>)", 'gi')
+
   isRangeCommented: (range) ->
     scopes = @editor.scopesForBufferPosition(range.start)
     @commentSelector.matches(scopes)
@@ -44,10 +48,6 @@ class TagFinder
 
     if startingTagRange?
       {startPosition: startingTagRange.start, endPosition: @getTagStartPosition()}
-
-  getTagPattern: ->
-    tagName = @getTagName()
-    new RegExp("(<#{tagName}[\s>])|(</#{tagName}>)", 'gi')
 
   findClosingTag: ->
     scanRange = new Range(@editor.getCursorBufferPosition(), @editor.buffer.getEndPosition())
