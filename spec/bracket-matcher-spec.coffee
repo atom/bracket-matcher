@@ -179,6 +179,20 @@ describe "bracket matching", ->
           expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editorView.pixelPositionForBufferPosition([0,1])
           expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editorView.pixelPositionForBufferPosition([2,2])
 
+      describe "when on a closing tag", ->
+        it "highlight the opening and closing tag", ->
+          buffer.setText """
+            <test>
+              text
+            </test>
+          """
+          editor.setCursorBufferPosition([0,0])
+          expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 0
+          editor.setCursorBufferPosition([2,2])
+          expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
+          expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editorView.pixelPositionForBufferPosition([0,1])
+          expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editorView.pixelPositionForBufferPosition([2,2])
+
   describe "when bracket-matcher:go-to-matching-bracket is triggered", ->
     describe "when the cursor is before the starting pair", ->
       it "moves the cursor to after the ending pair", ->
