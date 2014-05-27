@@ -6,11 +6,13 @@ describe "bracket matching", ->
   [editorView, editor, buffer] = []
 
   beforeEach ->
+    atom.config.set 'bracket-matcher.autocompleteBrackets', true
+
     atom.workspaceView = new WorkspaceView
     atom.workspaceView.attachToDom()
 
-    atom.workspaceView.openSync('sample.js')
-    atom.config.set 'bracket-matcher.autocompleteBrackets', true
+    waitsForPromise ->
+      atom.workspace.open('sample.js')
 
     waitsForPromise ->
       atom.packages.activatePackage('bracket-matcher')
