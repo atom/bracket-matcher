@@ -9,11 +9,16 @@ class TagFinder
     {@editor} = @editorView
 
     @tagSelector = new ScopeSelector('entity.name.tag')
+    @commentSelector = new ScopeSelector('comment.*')
 
   getTagName: ->
     wordRange = @editor.getCursor().getCurrentWordBufferRange()
     tagName = @editor.getTextInRange(wordRange)
     tagName.replace(/[<>/]/g, '').trim()
+
+  isRangeCommented: (range) ->
+    scopes = @editor.scopesForBufferPosition(range.start)
+    @commentSelector.matches(scopes)
 
   getTagStartPosition: ->
     position = @editor.getCursorBufferPosition()
@@ -27,7 +32,8 @@ class TagFinder
     scanRange = new Range([0, 0], @editor.getCursorBufferPosition())
     startingTagRange = null
     unpairedCount = 0
-    @editor.backwardsScanInBufferRange @getTagPattern(), scanRange, ({match, range, stop}) ->
+    @editor.backwardsScanInBufferRange @getTagPattern(), scanRange, ({match, range, stop}) =>
+      return if @isRangeCommented(range)
       if match[1]
         unpairedCount--
         if unpairedCount < 0
@@ -47,7 +53,8 @@ class TagFinder
     scanRange = new Range(@editor.getCursorBufferPosition(), @editor.buffer.getEndPosition())
     closingTagRange = null
     unpairedCount = 0
-    @editor.scanInBufferRange @getTagPattern(), scanRange, ({match, range, stop}) ->
+    @editor.scanInBufferRange @getTagPattern(), scanRange, ({match, range, stop}) =>
+      return if @isRangeCommented(range)
       if match[2]
         unpairedCount--
         if unpairedCount < 0
