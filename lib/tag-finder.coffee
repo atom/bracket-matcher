@@ -24,56 +24,62 @@ class TagFinder
     scopes = @editor.scopesForBufferPosition(range.start)
     @commentSelector.matches(scopes)
 
-  getTagStartPosition: ->
-    position = @editor.getCursorBufferPosition()
+  getTagStartRange: ->
     tagStartPosition = null
+    tagEndPosition = null
+
+    position = @editor.getCursorBufferPosition()
     @editor.backwardsScanInBufferRange /<\/?/, [[0, 0], position], ({match, range, stop}) ->
       tagStartPosition = range.translate([0, match[0].length]).start
       stop()
-    tagStartPosition
+    @editor.scanInBufferRange /[\s>]/, [position, @editor.buffer.getEndPosition()], ({match, range, stop}) ->
+      tagEndPosition = range.translate([0, -1]).end
+      stop()
 
-  findStartingTag: ->
+    [tagStartPosition, tagEndPosition]
+
+  findStartTag: ->
     scanRange = new Range([0, 0], @editor.getCursorBufferPosition())
-    startingTagRange = null
+    startRange = null
     unpairedCount = 0
     @editor.backwardsScanInBufferRange @getTagPattern(), scanRange, ({match, range, stop}) =>
       return if @isRangeCommented(range)
       if match[1]
         unpairedCount--
         if unpairedCount < 0
-          startingTagRange = range.translate([0, 1])
+          startRange = range.translate([0, 1], [0, -1])
           stop()
       else if match[2]
         unpairedCount++
 
-    if startingTagRange?
-      {startPosition: startingTagRange.start, endPosition: @getTagStartPosition()}
+    if startRange?
+      {startRange, endRange: @getTagStartRange()}
 
-  findClosingTag: ->
+  findEndTag: ->
     scanRange = new Range(@editor.getCursorBufferPosition(), @editor.buffer.getEndPosition())
-    closingTagRange = null
+    endRange = null
     unpairedCount = 0
     @editor.scanInBufferRange @getTagPattern(), scanRange, ({match, range, stop}) =>
       return if @isRangeCommented(range)
       if match[2]
         unpairedCount--
         if unpairedCount < 0
-          closingTagRange = range.translate([0, 2])
+          endRange = range.translate([0, 2], [0, -1])
           stop()
       else if match[1]
         unpairedCount++
 
-    if closingTagRange?
-      {startPosition: @getTagStartPosition(), endPosition: closingTagRange.start}
+    if endRange?
+      {startRange: @getTagStartRange(), endRange}
 
   findPair: ->
     return unless @tagSelector.matches(@editor.getCursorScopes())
 
-    positions = null
+    ranges = null
     @editor.backwardsScanInBufferRange /<\/?/, [[0, 0], @editor.getCursorBufferPosition()], ({match, range, stop}) =>
       stop()
       if match[0].length is 2
-        positions = @findStartingTag()
+        ranges = @findStartTag()
       else
-        positions = @findClosingTag()
-    positions
+        ranges = @findEndTag()
+    ranges
