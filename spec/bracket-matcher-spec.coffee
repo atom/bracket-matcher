@@ -18,6 +18,9 @@ describe "bracket matching", ->
     waitsForPromise ->
       atom.packages.activatePackage('language-javascript')
 
+    waitsForPromise ->
+      atom.packages.activatePackage('language-xml')
+
     runs ->
       editorView = atom.workspaceView.getActiveView()
       {editor} = editorView
@@ -149,6 +152,30 @@ describe "bracket matching", ->
         expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 0
         editor.setCursorBufferPosition([0,29])
         expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
+
+    describe "HTML/XML tag matching", ->
+      beforeEach ->
+        waitsForPromise ->
+          atom.workspace.open('sample.xml')
+
+        runs ->
+          editorView = atom.workspaceView.getActiveView()
+          {editor} = editorView
+          {buffer} = editor
+
+      describe "when on an opening tag", ->
+        it "highlight the opening and closing tag", ->
+          buffer.setText """
+            <test>
+              text
+            </test>
+          """
+          editor.setCursorBufferPosition([0,0])
+          expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 0
+          editor.setCursorBufferPosition([0,1])
+          expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
+          expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editorView.pixelPositionForBufferPosition([0,1])
+          expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editorView.pixelPositionForBufferPosition([2,2])
 
   describe "when bracket-matcher:go-to-matching-bracket is triggered", ->
     describe "when the cursor is before the starting pair", ->
