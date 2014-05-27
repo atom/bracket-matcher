@@ -24,6 +24,9 @@ class TagFinder
     scopes = @editor.scopesForBufferPosition(range.start)
     @commentSelector.matches(scopes)
 
+  isCursorOnTag: ->
+    @tagSelector.matches(@editor.getCursorScopes())
+
   getTagStartRange: ->
     tagStartPosition = null
     tagEndPosition = null
@@ -75,7 +78,7 @@ class TagFinder
       {startRange: @getTagStartRange(), endRange}
 
   findPair: ->
-    return unless @tagSelector.matches(@editor.getCursorScopes())
+    return unless isCursorOnTag()
 
     ranges = null
     @editor.backwardsScanInBufferRange /<\/?/, [[0, 0], @editor.getCursorBufferPosition()], ({match, range, stop}) =>
