@@ -78,7 +78,7 @@ class TagFinder
       {startRange: @getTagStartRange(), endRange}
 
   findPair: ->
-    return unless isCursorOnTag()
+    return unless @isCursorOnTag()
 
     ranges = null
     @editor.backwardsScanInBufferRange /<\/?/, [[0, 0], @editor.getCursorBufferPosition()], ({match, range, stop}) =>
