@@ -21,22 +21,6 @@ class TagFinder
   isCursorOnTag: ->
     @tagSelector.matches(@editor.getCursorScopes())
 
-  getTagStartRange: ->
-    tagStartPosition = null
-    tagEndPosition = null
-
-    position = @editor.getCursorBufferPosition()
-    @editor.backwardsScanInBufferRange /<\/?/, [[0, 0], position], ({match, range, stop}) ->
-      tagStartPosition = range.translate([0, match[0].length]).start
-      stop()
-    @editor.scanInBufferRange /[\s>]|$/, [position, @editor.buffer.getEndPosition()], ({match, range, stop}) ->
-      tagEndPosition = range.translate([0, -1]).end
-      if range.start.row isnt range.end.row
-        tagEndPosition = [range.start.row, Infinity]
-      stop()
-
-    [tagStartPosition, tagEndPosition]
-
   findStartTag: (tagName, endPosition) ->
     scanRange = new Range([0, 0], endPosition)
     startRange = null
