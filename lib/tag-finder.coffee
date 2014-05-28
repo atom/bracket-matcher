@@ -8,7 +8,7 @@ class TagFinder
   constructor: (@editorView) ->
     {@editor} = @editorView
 
-    @tagSelector = new ScopeSelector('meta.tag')
+    @tagSelector = new ScopeSelector('meta.tag | punctuation.definition.tag')
     @commentSelector = new ScopeSelector('comment.*')
 
   getTagPattern: (tagName) ->
@@ -74,7 +74,7 @@ class TagFinder
     return unless @isCursorOnTag()
 
     ranges = null
-    endPosition = @editor.getCursor().getCurrentWordBufferRange().end
+    endPosition = @editor.getCursor().getCurrentWordBufferRange(wordRegex: /[^>]*/).end
     @editor.backwardsScanInBufferRange /(<(\/?))([^\s>]+)([\s>]|$)/, [[0, 0], endPosition], ({match, range, stop}) =>
       stop()
 
@@ -84,8 +84,6 @@ class TagFinder
         startRange = range.translate([0, prefix.length], [0, -suffix.length])
       else
         startRange = Range.fromObject([range.start.translate([0, prefix.length]), [range.start.row, Infinity]])
-
-      return if @editor.getCursorBufferPosition().isLessThan(startRange.start)
 
       if isClosingTag
         endRange = @findStartTag(tagName, startRange.start)

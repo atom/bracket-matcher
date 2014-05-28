@@ -173,8 +173,11 @@ describe "bracket matching", ->
               <!-- </test> -->
             </test>
           """
+
           editor.setCursorBufferPosition([0,0])
-          expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 0
+          expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
+          expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editorView.pixelPositionForBufferPosition([0,1])
+          expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editorView.pixelPositionForBufferPosition([3,2])
 
           editor.setCursorBufferPosition([0,1])
           expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
@@ -189,8 +192,11 @@ describe "bracket matching", ->
               <test>text</test>
             </test>
           """
-          editor.setCursorBufferPosition([0,0])
-          expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 0
+
+          editor.setCursorBufferPosition([3,0])
+          expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
+          expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editorView.pixelPositionForBufferPosition([3,2])
+          expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editorView.pixelPositionForBufferPosition([0,1])
 
           editor.setCursorBufferPosition([3,2])
           expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
@@ -205,8 +211,6 @@ describe "bracket matching", ->
               text
             </test>
           """
-          editor.setCursorBufferPosition([0,0])
-          expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 0
 
           editor.setCursorBufferPosition([3,2])
           expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
@@ -225,8 +229,6 @@ describe "bracket matching", ->
               text
             </test>
           """
-          editor.setCursorBufferPosition([0,0])
-          expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 0
 
           editor.setCursorBufferPosition([2,2])
           expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
@@ -241,8 +243,6 @@ describe "bracket matching", ->
       describe "when the opening and closing tags are on the same line", ->
         it "highlight the opening and closing tags", ->
           buffer.setText "<test>text</test>"
-          editor.setCursorBufferPosition([0,0])
-          expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 0
 
           editor.setCursorBufferPosition([0,2])
           expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
