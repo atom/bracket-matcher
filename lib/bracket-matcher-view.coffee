@@ -47,6 +47,9 @@ class BracketMatcherView extends View
     @subscribe @editor, 'soft-wrap-changed', =>
       @updateHighlights = true
 
+    @subscribe @editor, 'grammar-changed', =>
+      @updateHighlights = true
+
     @subscribeToCursor()
 
     @subscribeToCommand @editorView, 'bracket-matcher:go-to-matching-bracket', =>
