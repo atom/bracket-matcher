@@ -6,9 +6,7 @@ _ = require 'underscore-plus'
 # cursor in XML, HTML, etc. editors.
 module.exports =
 class TagFinder
-  constructor: (@editorView) ->
-    {@editor} = @editorView
-
+  constructor: (@editor) ->
     @tagPattern = /(<(\/?))([^\s>]+)([\s>]|$)/
     @wordRegex = /[^>]*/
     @tagSelector = new ScopeSelector('meta.tag | punctuation.definition.tag')

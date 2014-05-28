@@ -24,9 +24,8 @@ class BracketMatcherView extends View
       @div class: 'bracket-matcher', style: 'display: none', outlet: 'endView'
 
   initialize: (@editorView) ->
-    @tagFinder = new TagFinder(@editorView)
-
     {@editor} = @editorView
+    @tagFinder = new TagFinder(@editor)
     @pairHighlighted = false
     @updateHighlights = false
 
