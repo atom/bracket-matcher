@@ -1,5 +1,6 @@
 _ = require 'underscore-plus'
 {Range, View} = require 'atom'
+TagFinder = require './tag-finder'
 
 startPairMatches =
   '(': ')'
@@ -24,6 +25,7 @@ class BracketMatcherView extends View
 
   initialize: (@editorView) ->
     {@editor} = @editorView
+    @tagFinder = new TagFinder(@editor)
     @pairHighlighted = false
     @updateHighlights = false
 
@@ -42,6 +44,9 @@ class BracketMatcherView extends View
       @updateHighlights = true if @editor.getSoftWrap()
 
     @subscribe @editor, 'soft-wrap-changed', =>
+      @updateHighlights = true
+
+    @subscribe @editor, 'grammar-changed', =>
       @updateHighlights = true
 
     @subscribeToCursor()
@@ -88,8 +93,14 @@ class BracketMatcherView extends View
         matchPosition = @findMatchingStartPair(position, matchingPair, currentPair)
 
     if position? and matchPosition?
-      @moveHighlightViews(position, matchPosition)
+      @moveStartView([position, position.translate([0, 1])])
+      @moveEndView([matchPosition, matchPosition.translate([0, 1])])
       @pairHighlighted = true
+    else
+      if pair = @tagFinder.findMatchingTags()
+        @moveStartView(pair.startRange)
+        @moveEndView(pair.endRange)
+        @pairHighlighted = true
 
   findMatchingEndPair: (startPairPosition, startPair, endPair) ->
     scanRange = new Range(startPairPosition.translate([0, 1]), @editor.buffer.getEndPosition())
@@ -140,20 +151,25 @@ class BracketMatcherView extends View
         stop() if unpairedCount < 0
      startPosition
 
-  moveHighlightView: (view, bufferPosition, pixelPosition) ->
-    view.bufferPosition = bufferPosition
+  moveHighlightView: (view, bufferRange) ->
+    bufferRange = Range.fromObject(bufferRange)
+    view.bufferPosition = bufferRange.start
+
+    startPixelPosition = @editorView.pixelPositionForBufferPosition(bufferRange.start)
+    endPixelPosition = @editorView.pixelPositionForBufferPosition(bufferRange.end)
+
     [element] = view
     element.style.display = 'block'
-    element.style.top = "#{pixelPosition.top}px"
-    element.style.left = "#{pixelPosition.left}px"
-    element.style.width = "#{@editorView.charWidth}px"
+    element.style.top = "#{startPixelPosition.top}px"
+    element.style.left = "#{startPixelPosition.left}px"
+    element.style.width = "#{endPixelPosition.left - startPixelPosition.left}px"
     element.style.height = "#{@editorView.lineHeight}px"
 
-  moveHighlightViews: (startBufferPosition, endBufferPosition) ->
-    startPixelPosition = @editorView.pixelPositionForBufferPosition(startBufferPosition)
-    endPixelPosition = @editorView.pixelPositionForBufferPosition(endBufferPosition)
-    @moveHighlightView(@startView, startBufferPosition, startPixelPosition)
-    @moveHighlightView(@endView, endBufferPosition, endPixelPosition)
+  moveStartView: (bufferRange) ->
+    @moveHighlightView(@startView, bufferRange)
+
+  moveEndView: (bufferRange) ->
+    @moveHighlightView(@endView, bufferRange)
 
   findCurrentPair: (matches) ->
     position = @editor.getCursorBufferPosition()
