@@ -1,4 +1,5 @@
 {Range} = require 'atom'
+_ = require 'underscore-plus'
 {ScopeSelector} = require 'first-mate'
 
 # Helper to find the matching start/end tag for the start/end tag under the
@@ -14,6 +15,7 @@ class TagFinder
     @commentSelector = new ScopeSelector('comment.*')
 
   patternForTagName: (tagName) ->
+    tagName = _.escapeRegExp(tagName)
     new RegExp("(<#{tagName}([\\s>]|$))|(</#{tagName}>)", 'gi')
 
   isRangeCommented: (range) ->
