@@ -95,7 +95,7 @@ class BracketMatcherView extends View
       @moveEndView([matchPosition, matchPosition.translate([0, 1])])
       @pairHighlighted = true
     else
-      if pair = @tagFinder.findPair()
+      if pair = @tagFinder.findMatchingTags()
         @moveStartView(pair.startRange)
         @moveEndView(pair.endRange)
         @pairHighlighted = true

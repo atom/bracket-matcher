@@ -70,7 +70,7 @@ class TagFinder
 
     endRange
 
-  findPair: ->
+  findMatchingTags: ->
     return unless @isCursorOnTag()
 
     ranges = null
