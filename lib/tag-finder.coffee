@@ -74,7 +74,7 @@ class TagFinder
     return unless @isCursorOnTag()
 
     ranges = null
-    endPosition = [@editor.getCursor().getBufferRow(), Infinity]
+    endPosition = @editor.getCursor().getCurrentWordBufferRange().end
     @editor.backwardsScanInBufferRange /(<(\/?))([^\s>]+)([\s>]|$)/, [[0, 0], endPosition], ({match, range, stop}) =>
       stop()
 
