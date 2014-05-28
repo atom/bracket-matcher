@@ -83,7 +83,7 @@ class TagFinder
       if range.start.row is range.end.row
         startRange = range.translate([0, prefix.length], [0, -suffix.length])
       else
-        startRange = [range.start, [range.end.row, Infinity]]
+        startRange = Range.fromObject([range.start.translate([0, prefix.length]), [range.start.row, Infinity]])
 
       return if @editor.getCursorBufferPosition().isLessThan(startRange.start)
 
