@@ -8,16 +8,10 @@ class TagFinder
   constructor: (@editorView) ->
     {@editor} = @editorView
 
-    @tagSelector = new ScopeSelector('entity.name.tag')
+    @tagSelector = new ScopeSelector('meta.tag')
     @commentSelector = new ScopeSelector('comment.*')
 
-  getTagName: ->
-    wordRange = @editor.getCursor().getCurrentWordBufferRange()
-    tagName = @editor.getTextInRange(wordRange)
-    tagName.replace(/[<>/]/g, '').trim()
-
-  getTagPattern: ->
-    tagName = @getTagName()
+  getTagPattern: (tagName) ->
     new RegExp("(<#{tagName}([\\s>]|$))|(</#{tagName}>)", 'gi')
 
   isRangeCommented: (range) ->
@@ -43,48 +37,60 @@ class TagFinder
 
     [tagStartPosition, tagEndPosition]
 
-  findStartTag: ->
-    scanRange = new Range([0, 0], @editor.getCursorBufferPosition())
+  findStartTag: (tagName, endPosition) ->
+    scanRange = new Range([0, 0], endPosition)
     startRange = null
     unpairedCount = 0
-    @editor.backwardsScanInBufferRange @getTagPattern(), scanRange, ({match, range, stop}) =>
+    @editor.backwardsScanInBufferRange @getTagPattern(tagName), scanRange, ({match, range, stop}) =>
       return if @isRangeCommented(range)
+
       if match[1]
         unpairedCount--
         if unpairedCount < 0
-          startRange = range.translate([0, 1], [0, -match[2].length])
+          startRange = range.translate([0, 1], [0, -match[2].length]) # Subtract < and tag name suffix from range
           stop()
       else
         unpairedCount++
 
-    if startRange?
-      {startRange, endRange: @getTagStartRange()}
+    startRange
 
-  findEndTag: ->
-    scanRange = new Range(@editor.getCursorBufferPosition(), @editor.buffer.getEndPosition())
+  findEndTag: (tagName, startPosition) ->
+    scanRange = new Range(startPosition, @editor.buffer.getEndPosition())
     endRange = null
     unpairedCount = 0
-    @editor.scanInBufferRange @getTagPattern(), scanRange, ({match, range, stop}) =>
+    @editor.scanInBufferRange @getTagPattern(tagName), scanRange, ({match, range, stop}) =>
       return if @isRangeCommented(range)
       if match[1]
         unpairedCount++
       else
         unpairedCount--
         if unpairedCount < 0
-          endRange = range.translate([0, 2], [0, -1])
+          endRange = range.translate([0, 2], [0, -1]) # Subtract </ and > from range
           stop()
 
-    if endRange?
-      {startRange: @getTagStartRange(), endRange}
+    endRange
 
   findPair: ->
     return unless @isCursorOnTag()
 
     ranges = null
-    @editor.backwardsScanInBufferRange /<\/?/, [[0, 0], @editor.getCursorBufferPosition()], ({match, range, stop}) =>
+    endPosition = [@editor.getCursor().getBufferRow(), Infinity]
+    @editor.backwardsScanInBufferRange /(<(\/?))([^\s>]+)([\s>]|$)/, [[0, 0], endPosition], ({match, range, stop}) =>
       stop()
-      if match[0].length is 2
-        ranges = @findStartTag()
+
+      [entireMatch, prefix, isClosingTag, tagName, suffix] = match
+
+      if range.start.row is range.end.row
+        startRange = range.translate([0, prefix.length], [0, -suffix.length])
       else
-        ranges = @findEndTag()
+        startRange = [range.start, [range.end.row, Infinity]]
+
+      return if @editor.getCursorBufferPosition().isLessThan(startRange.start)
+
+      if isClosingTag
+        endRange = @findStartTag(tagName, startRange.start)
+      else
+        endRange = @findEndTag(tagName, startRange.end)
+
+      ranges = {startRange, endRange} if startRange? and endRange?
     ranges

@@ -194,8 +194,8 @@ describe "bracket matching", ->
 
           editor.setCursorBufferPosition([3,2])
           expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
-          expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editorView.pixelPositionForBufferPosition([0,1])
-          expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editorView.pixelPositionForBufferPosition([3,2])
+          expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editorView.pixelPositionForBufferPosition([3,2])
+          expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editorView.pixelPositionForBufferPosition([0,1])
 
       describe "when the tag spans multiple lines", ->
         it "highlights the opening and closing tag", ->
@@ -210,8 +210,8 @@ describe "bracket matching", ->
 
           editor.setCursorBufferPosition([3,2])
           expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
-          expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editorView.pixelPositionForBufferPosition([0,1])
-          expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editorView.pixelPositionForBufferPosition([3,2])
+          expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editorView.pixelPositionForBufferPosition([3,2])
+          expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editorView.pixelPositionForBufferPosition([0,1])
 
           editor.setCursorBufferPosition([0,1])
           expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
@@ -230,10 +230,10 @@ describe "bracket matching", ->
 
           editor.setCursorBufferPosition([2,2])
           expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
-          expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editorView.pixelPositionForBufferPosition([0,1])
-          expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editorView.pixelPositionForBufferPosition([2,2])
+          expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editorView.pixelPositionForBufferPosition([2,2])
+          expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editorView.pixelPositionForBufferPosition([0,1])
 
-          editor.setCursorBufferPosition([0,1])
+          editor.setCursorBufferPosition([0,7])
           expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
           expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editorView.pixelPositionForBufferPosition([0,1])
           expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editorView.pixelPositionForBufferPosition([2,2])
