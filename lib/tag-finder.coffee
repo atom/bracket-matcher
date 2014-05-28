@@ -13,7 +13,7 @@ class TagFinder
     @tagSelector = new ScopeSelector('meta.tag | punctuation.definition.tag')
     @commentSelector = new ScopeSelector('comment.*')
 
-  getTagPattern: (tagName) ->
+  patternForTagName: (tagName) ->
     new RegExp("(<#{tagName}([\\s>]|$))|(</#{tagName}>)", 'gi')
 
   isRangeCommented: (range) ->
@@ -25,9 +25,10 @@ class TagFinder
 
   findStartTag: (tagName, endPosition) ->
     scanRange = new Range([0, 0], endPosition)
+    pattern = @patternForTagName(tagName)
     startRange = null
     unpairedCount = 0
-    @editor.backwardsScanInBufferRange @getTagPattern(tagName), scanRange, ({match, range, stop}) =>
+    @editor.backwardsScanInBufferRange pattern, scanRange, ({match, range, stop}) =>
       return if @isRangeCommented(range)
 
       if match[1]
@@ -42,9 +43,10 @@ class TagFinder
 
   findEndTag: (tagName, startPosition) ->
     scanRange = new Range(startPosition, @editor.buffer.getEndPosition())
+    pattern = @patternForTagName(tagName)
     endRange = null
     unpairedCount = 0
-    @editor.scanInBufferRange @getTagPattern(tagName), scanRange, ({match, range, stop}) =>
+    @editor.scanInBufferRange pattern, scanRange, ({match, range, stop}) =>
       return if @isRangeCommented(range)
 
       if match[1]
