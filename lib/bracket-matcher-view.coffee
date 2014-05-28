@@ -73,7 +73,7 @@ class BracketMatcherView extends View
     @subscribe cursor, 'destroyed', =>
       @unsubscribe(cursor)
       @subscribeToCursor()
-      @updateMatch()
+      @updateMatch() if @editor.isAlive()
 
   updateMatch: ->
     if @pairHighlighted
