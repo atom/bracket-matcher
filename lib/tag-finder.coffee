@@ -8,6 +8,8 @@ class TagFinder
   constructor: (@editorView) ->
     {@editor} = @editorView
 
+    @tagPattern = /(<(\/?))([^\s>]+)([\s>]|$)/
+    @wordRegex = /[^>]*/
     @tagSelector = new ScopeSelector('meta.tag | punctuation.definition.tag')
     @commentSelector = new ScopeSelector('comment.*')
 
@@ -44,6 +46,7 @@ class TagFinder
     unpairedCount = 0
     @editor.scanInBufferRange @getTagPattern(tagName), scanRange, ({match, range, stop}) =>
       return if @isRangeCommented(range)
+
       if match[1]
         unpairedCount++
       else
@@ -58,8 +61,8 @@ class TagFinder
     return unless @isCursorOnTag()
 
     ranges = null
-    endPosition = @editor.getCursor().getCurrentWordBufferRange(wordRegex: /[^>]*/).end
-    @editor.backwardsScanInBufferRange /(<(\/?))([^\s>]+)([\s>]|$)/, [[0, 0], endPosition], ({match, range, stop}) =>
+    endPosition = @editor.getCursor().getCurrentWordBufferRange({@wordRegex}).end
+    @editor.backwardsScanInBufferRange @tagPattern, [[0, 0], endPosition], ({match, range, stop}) =>
       stop()
 
       [entireMatch, prefix, isClosingTag, tagName, suffix] = match
