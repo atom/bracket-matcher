@@ -1,6 +1,7 @@
 # Bracket Matcher package [![Build Status](https://travis-ci.org/atom/bracket-matcher.svg?branch=master)](https://travis-ci.org/atom/bracket-matcher)
 
-Highlights and jumps between `[]`, `()`, and `{}`.
+Highlights and jumps between `[]`, `()`, and `{}`. Also highlights matching XML
+and HTML tags.
 
 Autocompletes `[]`, `()`, and `{}`, `""`, and `''`.
 
