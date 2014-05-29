@@ -127,7 +127,7 @@ class BracketMatcher
     selectionWrapped
 
   isQuote: (string) ->
-    /'|"/.test(string)
+    /['"`]/.test(string)
 
   getInvertedPairedCharacters: ->
     return @invertedPairedCharacters if @invertedPairedCharacters
