@@ -12,6 +12,8 @@ class BracketMatcher
     '"': '"'
     "'": "'"
     '`': '`'
+    "“": "”"
+    '‘': '’'
 
   constructor: (editorView) ->
     {@editor} = editorView

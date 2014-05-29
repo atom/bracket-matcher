@@ -3,7 +3,7 @@
 Highlights and jumps between `[]`, `()`, and `{}`. Also highlights matching XML
 and HTML tags.
 
-Autocompletes `[]`, `()`, and `{}`, `""`, `''`, and backticks.
+Autocompletes `[]`, `()`, and `{}`, `""`, `''`, `“”`, `‘’` and backticks.
 
 Use `ctrl-m` to jump to the bracket matching the one adjacent to the cursor.
 It jumps to the nearest enclosing bracket when there's no adjacent bracket,
