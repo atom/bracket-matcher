@@ -34,8 +34,8 @@ class BracketMatcher
     @subscribe editorView.command 'bracket-matcher:remove-brackets-from-selection', (event) =>
       event.abortKeyBinding() unless @removeBrackets()
 
-    @subscribe atom.config.observe 'bracket-matcher.useSmartQuotes',
-      (newValue) => @toggleQuotes(newValue)
+    @subscribe atom.config.observe 'bracket-matcher.autocompleteSmartQuotes', (newValue) =>
+      @toggleQuotes(newValue)
 
     @subscribe @editor, 'destroyed', => @unsubscribe()
 
