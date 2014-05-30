@@ -13,3 +13,6 @@ Use `ctrl-cmd-m` to select all the text inside the current brackets.
 Matching brackets and quotes are sensibly inserted for you. If you dislike this
 functionality, you can disable it from the Bracket Matcher section of the
 Settings view (`cmd-,`).
+
+From the settings menu you can toggle whether (English-style) quotation marks
+are treated like brackets in autocompletion.

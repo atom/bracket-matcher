@@ -12,8 +12,16 @@ class BracketMatcher
     '"': '"'
     "'": "'"
     '`': '`'
+
+  smartQuotes:
     "“": "”"
     '‘': '’'
+
+  toggleQuotes: (newValue) ->
+    if newValue
+      @pairedCharacters = _.extend(@pairedCharacters, @smartQuotes)
+    else
+      @pairedCharacters = _.omit(@pairedCharacters, _.keys(@smartQuotes))
 
   constructor: (editorView) ->
     {@editor} = editorView
@@ -25,6 +33,9 @@ class BracketMatcher
 
     @subscribe editorView.command 'bracket-matcher:remove-brackets-from-selection', (event) =>
       event.abortKeyBinding() unless @removeBrackets()
+
+    @subscribe atom.config.observe 'bracket-matcher.useSmartQuotes',
+      (newValue) => @toggleQuotes(newValue)
 
     @subscribe @editor, 'destroyed', => @unsubscribe()
 

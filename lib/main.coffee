@@ -4,6 +4,7 @@ BracketMatcherView = require './bracket-matcher-view'
 module.exports =
   configDefaults:
     autocompleteBrackets: true
+    useSmartQuotes: true
     wrapSelectionsInBrackets: true
 
   activate: ->
