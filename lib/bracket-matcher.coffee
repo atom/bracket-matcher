@@ -17,8 +17,8 @@ class BracketMatcher
     "“": "”"
     '‘': '’'
 
-  toggleQuotes: (newValue) ->
-    if newValue
+  toggleQuotes: (includeSmartQuotes) ->
+    if includeSmartQuotes
       @pairedCharacters = _.extend(@pairedCharacters, @smartQuotes)
     else
       @pairedCharacters = _.omit(@pairedCharacters, _.keys(@smartQuotes))
