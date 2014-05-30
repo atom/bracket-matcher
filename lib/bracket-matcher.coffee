@@ -16,6 +16,8 @@ class BracketMatcher
   smartQuotes:
     "“": "”"
     '‘': '’'
+    "«": "»"
+    "‹": "›"
 
   toggleQuotes: (includeSmartQuotes) ->
     if includeSmartQuotes
