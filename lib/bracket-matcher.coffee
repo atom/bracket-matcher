@@ -5,7 +5,7 @@ module.exports =
 class BracketMatcher
   Subscriber.includeInto(this)
 
-  pairedCharacters:
+  defaultPairs:
     '(': ')'
     '[': ']'
     '{': '}'
@@ -13,7 +13,7 @@ class BracketMatcher
     "'": "'"
     '`': '`'
 
-  smartQuotes:
+  smartQuotePairs:
     "“": "”"
     '‘': '’'
     "«": "»"
@@ -21,9 +21,9 @@ class BracketMatcher
 
   toggleQuotes: (includeSmartQuotes) ->
     if includeSmartQuotes
-      @pairedCharacters = _.extend(@pairedCharacters, @smartQuotes)
+      @pairedCharacters = _.extend(@defaultPairs, @smartQuotePairs)
     else
-      @pairedCharacters = _.omit(@pairedCharacters, _.keys(@smartQuotes))
+      @pairedCharacters = @defaultPairs
 
   constructor: (editorView) ->
     {@editor} = editorView
