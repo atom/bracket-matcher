@@ -3,11 +3,12 @@
 Highlights and jumps between `[]`, `()`, and `{}`. Also highlights matching XML
 and HTML tags.
 
-Autocompletes `[]`, `()`, and `{}`, `""`, `''`, `“”`, `‘’` and backticks.
+Autocompletes `[]`, `()`, and `{}`, `""`, `''`, `“”`, `‘’`, `«»`, `‹›`, and
+backticks.
 
-From the settings menu you can toggle whether (English- and
-French-style) quotation marks (`“”`, `‘’`, `«»` and `‹›`)
-are treated like brackets in autocompletion.
+You can toggle whether English/French style quotation marks (`“”`, `‘’`, `«»`
+and `‹›`) are autocompleted via the *Autocomplete Smart Quotes*  setting in the
+settings view.
 
 Use `ctrl-m` to jump to the bracket matching the one adjacent to the cursor.
 It jumps to the nearest enclosing bracket when there's no adjacent bracket,
