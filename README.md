@@ -5,6 +5,10 @@ and HTML tags.
 
 Autocompletes `[]`, `()`, and `{}`, `""`, `''`, `“”`, `‘’` and backticks.
 
+From the settings menu you can toggle whether (English- and
+French-style) quotation marks (`“”`, `‘’`, `«»` and `‹›`)
+are treated like brackets in autocompletion.
+
 Use `ctrl-m` to jump to the bracket matching the one adjacent to the cursor.
 It jumps to the nearest enclosing bracket when there's no adjacent bracket,
 
