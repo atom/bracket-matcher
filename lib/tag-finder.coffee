@@ -8,7 +8,7 @@ module.exports =
 class TagFinder
   constructor: (@editor) ->
     @tagPattern = /(<(\/?))([^\s>]+)([\s>]|$)/
-    @wordRegex = /[^>]*/
+    @wordRegex = /[^>\r\n]*/
     @tagSelector = new ScopeSelector('meta.tag | punctuation.definition.tag')
     @commentSelector = new ScopeSelector('comment.*')
 

@@ -203,6 +203,24 @@ describe "bracket matching", ->
           expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editorView.pixelPositionForBufferPosition([3,2])
           expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editorView.pixelPositionForBufferPosition([0,1])
 
+          buffer.setText """
+            <test>
+              <test>text</test>
+              <test>text</test>
+            </test>
+          """
+
+          editor.setCursorBufferPosition([1,Infinity])
+          expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
+          expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editorView.pixelPositionForBufferPosition([1,14])
+          expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editorView.pixelPositionForBufferPosition([1,3])
+
+          editor.setCursorBufferPosition([2,Infinity])
+          expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
+          expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editorView.pixelPositionForBufferPosition([2,14])
+          expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editorView.pixelPositionForBufferPosition([2,3])
+
+
       describe "when the tag spans multiple lines", ->
         it "highlights the opening and closing tag", ->
           buffer.setText """
