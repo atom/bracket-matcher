@@ -47,14 +47,21 @@ class BracketMatcher
     return true if @editor.hasMultipleCursors()
 
     cursorBufferPosition = @editor.getCursorBufferPosition()
-    previousCharacter = @editor.getTextInBufferRange([cursorBufferPosition.add([0, -1]), cursorBufferPosition])
+    previousCharacters = @editor.getTextInBufferRange([cursorBufferPosition.add([0, -2]), cursorBufferPosition]).split('')
     nextCharacter = @editor.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0,1])])
+
+    previousCharacter = ''
+    prepreviousCharacter = ''
+
+    previousCharacter = previousCharacters.pop() if previousCharacters.length > 0
+    prepreviousCharacter = previousCharacters.pop()  if previousCharacters.length > 0
 
     hasWordAfterCursor = /\w/.test(nextCharacter)
     hasWordBeforeCursor = /\w/.test(previousCharacter)
     hasQuoteBeforeCursor = previousCharacter is text[0]
+    hasEscapeSequenceBeforeCursor = previousCharacter is '\\' or prepreviousCharacter is '\\'
 
-    autoCompleteOpeningBracket = atom.config.get('bracket-matcher.autocompleteBrackets') and @isOpeningBracket(text) and not hasWordAfterCursor and not (@isQuote(text) and (hasWordBeforeCursor or hasQuoteBeforeCursor))
+    autoCompleteOpeningBracket = atom.config.get('bracket-matcher.autocompleteBrackets') and @isOpeningBracket(text) and not hasWordAfterCursor and not (@isQuote(text) and (hasWordBeforeCursor or hasQuoteBeforeCursor)) and not hasEscapeSequenceBeforeCursor
     skipOverExistingClosingBracket = false
     if @isClosingBracket(text) and nextCharacter == text
       if bracketMarker = _.find(@bracketMarkers, (marker) => marker.isValid() and marker.getBufferRange().end.isEqual(cursorBufferPosition))
