@@ -580,6 +580,41 @@ describe "bracket matching", ->
           editor.insertText '\''
           expect(buffer.lineForRow(0)).toBe "abc\'"
 
+      describe "when a backslash character is before the cursor", ->
+        it "does not automatically insert the closing quote", ->
+          editor.buffer.setText("\\")
+          editor.setCursorBufferPosition([0,1])
+          editor.insertText '"'
+          expect(buffer.lineForRow(0)).toBe "\\\""
+
+          editor.buffer.setText("\\")
+          editor.setCursorBufferPosition([0,1])
+          editor.insertText '\''
+          expect(buffer.lineForRow(0)).toBe "\\\'"
+
+      describe "when an escape sequence is before the cursor", ->
+        it "does not automatically insert the closing quote", ->
+          editor.buffer.setText("\"\\\"")
+          editor.setCursorBufferPosition([0,3])
+          editor.insertText '"'
+          expect(buffer.lineForRow(0)).toBe "\"\\\"\""
+
+          editor.buffer.setText("\"\\\'")
+          editor.setCursorBufferPosition([0,3])
+          editor.insertText '"'
+          expect(buffer.lineForRow(0)).toBe "\"\\\'\""
+          '\''
+
+          editor.buffer.setText("\'\\\"")
+          editor.setCursorBufferPosition([0,3])
+          editor.insertText '\''
+          expect(buffer.lineForRow(0)).toBe "\'\\\"\'"
+
+          editor.buffer.setText("\'\\\'")
+          editor.setCursorBufferPosition([0,3])
+          editor.insertText '\''
+          expect(buffer.lineForRow(0)).toBe "\'\\\'\'"
+
       describe "when a quote is before the cursor", ->
         it "does not automatically insert the closing quote", ->
           editor.buffer.setText("''")
