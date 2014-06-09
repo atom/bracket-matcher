@@ -47,14 +47,11 @@ class BracketMatcher
     return true if @editor.hasMultipleCursors()
 
     cursorBufferPosition = @editor.getCursorBufferPosition()
-    previousCharacters = @editor.getTextInBufferRange([cursorBufferPosition.add([0, -2]), cursorBufferPosition]).split('')
+    previousCharacters = @editor.getTextInBufferRange([cursorBufferPosition.add([0, -2]), cursorBufferPosition])
     nextCharacter = @editor.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0,1])])
 
-    previousCharacter = ''
-    prepreviousCharacter = ''
-
-    previousCharacter = previousCharacters.pop() if previousCharacters.length > 0
-    prepreviousCharacter = previousCharacters.pop()  if previousCharacters.length > 0
+    previousCharacter = previousCharacters.slice(-1)
+    prepreviousCharacter = previousCharacters.slice(0,1)
 
     hasWordAfterCursor = /\w/.test(nextCharacter)
     hasWordBeforeCursor = /\w/.test(previousCharacter)
@@ -85,14 +82,11 @@ class BracketMatcher
     return unless @editor.getSelection().isEmpty()
 
     cursorBufferPosition = @editor.getCursorBufferPosition()
-    previousCharacters = @editor.getTextInBufferRange([cursorBufferPosition.add([0, -2]), cursorBufferPosition]).split('')
+    previousCharacters = @editor.getTextInBufferRange([cursorBufferPosition.add([0, -2]), cursorBufferPosition])
     nextCharacter = @editor.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0,1])])
 
-    previousCharacter = ''
-    prepreviousCharacter = ''
-
-    previousCharacter = previousCharacters.pop() if previousCharacters.length > 0
-    prepreviousCharacter = previousCharacters.pop()  if previousCharacters.length > 0
+    previousCharacter = previousCharacters.slice(-1)
+    prepreviousCharacter = previousCharacters.slice(0,1)
 
     hasBackslashBeforeCursor = previousCharacter is '\\'
     hasEscapeSequenceBeforeCursor = hasBackslashBeforeCursor or prepreviousCharacter is '\\'
@@ -109,14 +103,11 @@ class BracketMatcher
     return unless @editor.getSelection().isEmpty()
 
     cursorBufferPosition = @editor.getCursorBufferPosition()
-    previousCharacters = @editor.getTextInBufferRange([cursorBufferPosition.add([0, -2]), cursorBufferPosition]).split('')
+    previousCharacters = @editor.getTextInBufferRange([cursorBufferPosition.add([0, -2]), cursorBufferPosition])
     nextCharacter = @editor.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0,1])])
 
-    previousCharacter = ''
-    prepreviousCharacter = ''
-
-    previousCharacter = previousCharacters.pop() if previousCharacters.length > 0
-    prepreviousCharacter = previousCharacters.pop()  if previousCharacters.length > 0
+    previousCharacter = previousCharacters.slice(-1)
+    prepreviousCharacter = previousCharacters.slice(0,1)
 
     hasBackslashBeforeCursor = previousCharacter is '\\'
     hasEscapeSequenceBeforeCursor = hasBackslashBeforeCursor or prepreviousCharacter is '\\'
