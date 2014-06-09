@@ -85,9 +85,18 @@ class BracketMatcher
     return unless @editor.getSelection().isEmpty()
 
     cursorBufferPosition = @editor.getCursorBufferPosition()
-    previousCharacter = @editor.getTextInBufferRange([cursorBufferPosition.add([0, -1]), cursorBufferPosition])
+    previousCharacters = @editor.getTextInBufferRange([cursorBufferPosition.add([0, -2]), cursorBufferPosition]).split('')
     nextCharacter = @editor.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0,1])])
-    if @pairedCharacters[previousCharacter] is nextCharacter
+
+    previousCharacter = ''
+    prepreviousCharacter = ''
+
+    previousCharacter = previousCharacters.pop() if previousCharacters.length > 0
+    prepreviousCharacter = previousCharacters.pop()  if previousCharacters.length > 0
+
+    hasBackslashBeforeCursor = previousCharacter is '\\'
+    hasEscapeSequenceBeforeCursor = hasBackslashBeforeCursor or prepreviousCharacter is '\\'
+    if @pairedCharacters[previousCharacter] is nextCharacter and not hasEscapeSequenceBeforeCursor
       @editor.transact =>
         @editor.insertText "\n\n"
         @editor.moveCursorUp()
