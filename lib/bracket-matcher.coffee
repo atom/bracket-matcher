@@ -59,11 +59,12 @@ class BracketMatcher
     hasWordAfterCursor = /\w/.test(nextCharacter)
     hasWordBeforeCursor = /\w/.test(previousCharacter)
     hasQuoteBeforeCursor = previousCharacter is text[0]
-    hasEscapeSequenceBeforeCursor = previousCharacter is '\\' or prepreviousCharacter is '\\'
+    hasBackslashBeforeCursor = previousCharacter is '\\'
+    hasEscapeSequenceBeforeCursor = hasBackslashBeforeCursor or prepreviousCharacter is '\\'
 
     autoCompleteOpeningBracket = atom.config.get('bracket-matcher.autocompleteBrackets') and @isOpeningBracket(text) and not hasWordAfterCursor and not (@isQuote(text) and (hasWordBeforeCursor or hasQuoteBeforeCursor)) and not hasEscapeSequenceBeforeCursor
     skipOverExistingClosingBracket = false
-    if @isClosingBracket(text) and nextCharacter == text
+    if @isClosingBracket(text) and nextCharacter == text and not hasBackslashBeforeCursor
       if bracketMarker = _.find(@bracketMarkers, (marker) => marker.isValid() and marker.getBufferRange().end.isEqual(cursorBufferPosition))
         skipOverExistingClosingBracket = true
 
@@ -99,9 +100,19 @@ class BracketMatcher
     return unless @editor.getSelection().isEmpty()
 
     cursorBufferPosition = @editor.getCursorBufferPosition()
-    previousCharacter = @editor.getTextInBufferRange([cursorBufferPosition.add([0, -1]), cursorBufferPosition])
+    previousCharacters = @editor.getTextInBufferRange([cursorBufferPosition.add([0, -2]), cursorBufferPosition]).split('')
     nextCharacter = @editor.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0,1])])
-    if @pairedCharacters[previousCharacter] is nextCharacter
+
+    previousCharacter = ''
+    prepreviousCharacter = ''
+
+    previousCharacter = previousCharacters.pop() if previousCharacters.length > 0
+    prepreviousCharacter = previousCharacters.pop()  if previousCharacters.length > 0
+
+    hasBackslashBeforeCursor = previousCharacter is '\\'
+    hasEscapeSequenceBeforeCursor = hasBackslashBeforeCursor or prepreviousCharacter is '\\'
+
+    if (@pairedCharacters[previousCharacter] is nextCharacter) and not hasEscapeSequenceBeforeCursor
       @editor.transact =>
         @editor.moveCursorLeft()
         @editor.delete()
