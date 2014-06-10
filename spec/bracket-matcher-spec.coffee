@@ -603,7 +603,6 @@ describe "bracket matching", ->
           editor.setCursorBufferPosition([0,3])
           editor.insertText '"'
           expect(buffer.lineForRow(0)).toBe "\"\\\'\""
-          '\''
 
           editor.buffer.setText("\'\\\"")
           editor.setCursorBufferPosition([0,3])

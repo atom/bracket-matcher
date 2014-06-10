@@ -51,17 +51,15 @@ class BracketMatcher
     nextCharacter = @editor.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0,1])])
 
     previousCharacter = previousCharacters.slice(-1)
-    prepreviousCharacter = previousCharacters.slice(0,1)
 
     hasWordAfterCursor = /\w/.test(nextCharacter)
     hasWordBeforeCursor = /\w/.test(previousCharacter)
     hasQuoteBeforeCursor = previousCharacter is text[0]
-    hasBackslashBeforeCursor = previousCharacter is '\\'
-    hasEscapeSequenceBeforeCursor = hasBackslashBeforeCursor or prepreviousCharacter is '\\'
+    hasEscapeSequenceBeforeCursor = previousCharacters.match(/\\/g)?.length >= 1 # To guard against the "\\" sequence
 
     autoCompleteOpeningBracket = atom.config.get('bracket-matcher.autocompleteBrackets') and @isOpeningBracket(text) and not hasWordAfterCursor and not (@isQuote(text) and (hasWordBeforeCursor or hasQuoteBeforeCursor)) and not hasEscapeSequenceBeforeCursor
     skipOverExistingClosingBracket = false
-    if @isClosingBracket(text) and nextCharacter == text and not hasBackslashBeforeCursor
+    if @isClosingBracket(text) and nextCharacter == text and not hasEscapeSequenceBeforeCursor
       if bracketMarker = _.find(@bracketMarkers, (marker) => marker.isValid() and marker.getBufferRange().end.isEqual(cursorBufferPosition))
         skipOverExistingClosingBracket = true
 
@@ -86,10 +84,8 @@ class BracketMatcher
     nextCharacter = @editor.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0,1])])
 
     previousCharacter = previousCharacters.slice(-1)
-    prepreviousCharacter = previousCharacters.slice(0,1)
 
-    hasBackslashBeforeCursor = previousCharacter is '\\'
-    hasEscapeSequenceBeforeCursor = hasBackslashBeforeCursor or prepreviousCharacter is '\\'
+    hasEscapeSequenceBeforeCursor = previousCharacters.match(/\\/g)?.length >= 1 # To guard against the "\\" sequence
     if @pairedCharacters[previousCharacter] is nextCharacter and not hasEscapeSequenceBeforeCursor
       @editor.transact =>
         @editor.insertText "\n\n"
@@ -107,11 +103,8 @@ class BracketMatcher
     nextCharacter = @editor.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0,1])])
 
     previousCharacter = previousCharacters.slice(-1)
-    prepreviousCharacter = previousCharacters.slice(0,1)
 
-    hasBackslashBeforeCursor = previousCharacter is '\\'
-    hasEscapeSequenceBeforeCursor = hasBackslashBeforeCursor or prepreviousCharacter is '\\'
-
+    hasEscapeSequenceBeforeCursor = previousCharacters.match(/\\/g)?.length >= 1 # To guard against the "\\" sequence
     if (@pairedCharacters[previousCharacter] is nextCharacter) and not hasEscapeSequenceBeforeCursor
       @editor.transact =>
         @editor.moveCursorLeft()
