@@ -573,46 +573,46 @@ describe "bracket matching", ->
           editor.buffer.setText("abc")
           editor.moveCursorToEndOfLine()
           editor.insertText '"'
-          expect(editor.getText()).toBe "abc\""
+          expect(editor.getText()).toBe 'abc"'
 
           editor.buffer.setText("abc")
           editor.moveCursorToEndOfLine()
-          editor.insertText '\''
-          expect(editor.getText()).toBe "abc\'"
+          editor.insertText "'"
+          expect(editor.getText()).toBe "abc'"
 
       describe "when a backslash character is before the cursor", ->
         it "does not automatically insert the closing quote", ->
           editor.buffer.setText("\\")
           editor.moveCursorToEndOfLine()
           editor.insertText '"'
-          expect(editor.getText()).toBe "\\\""
+          expect(editor.getText()).toBe '\\"'
 
           editor.buffer.setText("\\")
           editor.moveCursorToEndOfLine()
-          editor.insertText '\''
-          expect(editor.getText()).toBe "\\\'"
+          editor.insertText "'"
+          expect(editor.getText()).toBe "\\'"
 
       describe "when an escape sequence is before the cursor", ->
         it "does not automatically insert the closing quote", ->
-          editor.buffer.setText("\"\\\"")
+          editor.buffer.setText('"\\"')
           editor.moveCursorToEndOfLine()
           editor.insertText '"'
-          expect(editor.getText()).toBe "\"\\\"\""
+          expect(editor.getText()).toBe '"\\""'
 
-          editor.buffer.setText("\"\\\'")
+          editor.buffer.setText("\"\\'")
           editor.moveCursorToEndOfLine()
           editor.insertText '"'
-          expect(editor.getText()).toBe "\"\\\'\""
+          expect(editor.getText()).toBe "\"\\'\""
 
-          editor.buffer.setText("\'\\\"")
+          editor.buffer.setText("'\\\"")
           editor.moveCursorToEndOfLine()
-          editor.insertText '\''
-          expect(editor.getText()).toBe "\'\\\"\'"
+          editor.insertText "'"
+          expect(editor.getText()).toBe "'\\\"'"
 
-          editor.buffer.setText("\'\\\'")
+          editor.buffer.setText("'\\'")
           editor.moveCursorToEndOfLine()
-          editor.insertText '\''
-          expect(editor.getText()).toBe "\'\\\'\'"
+          editor.insertText "'"
+          expect(editor.getText()).toBe "'\\''"
 
       describe "when a quote is before the cursor", ->
         it "does not automatically insert the closing quote", ->
@@ -641,14 +641,14 @@ describe "bracket matching", ->
           editor.buffer.setText("ab@")
           editor.moveCursorToEndOfLine()
           editor.insertText '"'
-          expect(editor.getText()).toBe "ab@\"\""
+          expect(editor.getText()).toBe 'ab@""'
           expect(editor.getCursorBufferPosition()).toEqual [0, 4]
 
       describe "when the cursor is on an empty line", ->
         it "automatically inserts the closing quote", ->
           editor.buffer.setText("")
           editor.insertText '"'
-          expect(editor.getText()).toBe "\"\""
+          expect(editor.getText()).toBe '""'
           expect(editor.getCursorBufferPosition()).toEqual [0, 1]
 
       describe "when the select option to Editor::insertText is true", ->
