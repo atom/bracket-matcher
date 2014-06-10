@@ -571,75 +571,75 @@ describe "bracket matching", ->
       describe "when a word character is before the cursor", ->
         it "does not automatically insert the closing quote", ->
           editor.buffer.setText("abc")
-          editor.setCursorBufferPosition([0, 3])
+          editor.moveCursorToEndOfLine()
           editor.insertText '"'
           expect(buffer.lineForRow(0)).toBe "abc\""
 
           editor.buffer.setText("abc")
-          editor.setCursorBufferPosition([0, 3])
+          editor.moveCursorToEndOfLine()
           editor.insertText '\''
           expect(buffer.lineForRow(0)).toBe "abc\'"
 
       describe "when a backslash character is before the cursor", ->
         it "does not automatically insert the closing quote", ->
           editor.buffer.setText("\\")
-          editor.setCursorBufferPosition([0,1])
+          editor.moveCursorToEndOfLine()
           editor.insertText '"'
           expect(buffer.lineForRow(0)).toBe "\\\""
 
           editor.buffer.setText("\\")
-          editor.setCursorBufferPosition([0,1])
+          editor.moveCursorToEndOfLine()
           editor.insertText '\''
           expect(buffer.lineForRow(0)).toBe "\\\'"
 
       describe "when an escape sequence is before the cursor", ->
         it "does not automatically insert the closing quote", ->
           editor.buffer.setText("\"\\\"")
-          editor.setCursorBufferPosition([0,3])
+          editor.moveCursorToEndOfLine()
           editor.insertText '"'
           expect(buffer.lineForRow(0)).toBe "\"\\\"\""
 
           editor.buffer.setText("\"\\\'")
-          editor.setCursorBufferPosition([0,3])
+          editor.moveCursorToEndOfLine()
           editor.insertText '"'
           expect(buffer.lineForRow(0)).toBe "\"\\\'\""
 
           editor.buffer.setText("\'\\\"")
-          editor.setCursorBufferPosition([0,3])
+          editor.moveCursorToEndOfLine()
           editor.insertText '\''
           expect(buffer.lineForRow(0)).toBe "\'\\\"\'"
 
           editor.buffer.setText("\'\\\'")
-          editor.setCursorBufferPosition([0,3])
+          editor.moveCursorToEndOfLine()
           editor.insertText '\''
           expect(buffer.lineForRow(0)).toBe "\'\\\'\'"
 
       describe "when a quote is before the cursor", ->
         it "does not automatically insert the closing quote", ->
           editor.buffer.setText("''")
-          editor.setCursorBufferPosition([0, 3])
+          editor.moveCursorToEndOfLine()
           editor.insertText "'"
           expect(buffer.lineForRow(0)).toBe "'''"
 
           editor.buffer.setText('""')
-          editor.setCursorBufferPosition([0, 3])
+          editor.moveCursorToEndOfLine()
           editor.insertText '"'
           expect(buffer.lineForRow(0)).toBe '"""'
 
           editor.buffer.setText('``')
-          editor.setCursorBufferPosition([0, 3])
+          editor.moveCursorToEndOfLine()
           editor.insertText '`'
           expect(buffer.lineForRow(0)).toBe '```'
 
           editor.buffer.setText("''")
-          editor.setCursorBufferPosition([0, 3])
+          editor.moveCursorToEndOfLine()
           editor.insertText '"'
           expect(buffer.lineForRow(0)).toBe "''\"\""
 
       describe "when a non word character is before the cursor", ->
         it "automatically inserts the closing quote", ->
           editor.buffer.setText("ab@")
-          editor.setCursorBufferPosition([0, 3])
+          editor.moveCursorToEndOfLine()
           editor.insertText '"'
           expect(buffer.lineForRow(0)).toBe "ab@\"\""
           expect(editor.getCursorBufferPosition()).toEqual [0, 4]
@@ -647,7 +647,6 @@ describe "bracket matching", ->
       describe "when the cursor is on an empty line", ->
         it "automatically inserts the closing quote", ->
           editor.buffer.setText("")
-          editor.setCursorBufferPosition([0, 0])
           editor.insertText '"'
           expect(buffer.lineForRow(0)).toBe "\"\""
           expect(editor.getCursorBufferPosition()).toEqual [0, 1]
@@ -655,7 +654,6 @@ describe "bracket matching", ->
       describe "when the select option to Editor::insertText is true", ->
         it "does not automatically insert the closing quote", ->
           editor.buffer.setText("")
-          editor.setCursorBufferPosition([0, 0])
           editor.insertText '"', select: true
           expect(buffer.lineForRow(0)).toBe '"'
           expect(editor.getCursorBufferPosition()).toEqual [0, 1]
@@ -663,7 +661,6 @@ describe "bracket matching", ->
       describe "when the undo option to Editor::insertText is 'skip'", ->
         it "does not automatically insert the closing quote", ->
           editor.buffer.setText("")
-          editor.setCursorBufferPosition([0, 0])
           editor.insertText '"', undo: 'skip'
           expect(buffer.lineForRow(0)).toBe '"'
           expect(editor.getCursorBufferPosition()).toEqual [0, 1]
