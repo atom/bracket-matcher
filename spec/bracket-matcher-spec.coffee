@@ -137,6 +137,23 @@ describe "bracket matching", ->
         expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editorView.pixelPositionForBufferPosition([12,0])
         expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editorView.pixelPositionForBufferPosition([0,28])
 
+    describe "when code is folded", ->
+      it "repositions the highlights", ->
+        editor.moveCursorToEndOfLine()
+        expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
+        expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editorView.pixelPositionForBufferPosition([0,28])
+        expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editorView.pixelPositionForBufferPosition([12,0])
+
+        editor.foldBufferRow(1)
+        # Explicitly trigger an editor:display-updated event since this happens
+        # synchronously in specs and so it will fire before screen-lines-changed
+        # fires
+        editorView.trigger('editor:display-updated')
+
+        expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
+        expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editorView.pixelPositionForBufferPosition([0,28])
+        expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editorView.pixelPositionForBufferPosition([12,0])
+
     describe "pair balancing", ->
       describe "when a second starting pair preceeds the first ending pair", ->
         it "advances to the second ending pair", ->

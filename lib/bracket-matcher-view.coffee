@@ -35,6 +35,9 @@ class BracketMatcherView extends View
     @subscribe @editor.getBuffer(), 'changed', =>
       @updateHighlights = true
 
+    @subscribe @editor, 'screen-lines-changed', =>
+      @updateHighlights = true
+
     @subscribe @editorView, 'editor:display-updated', =>
       if @updateHighlights
         @updateHighlights = false
