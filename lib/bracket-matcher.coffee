@@ -105,7 +105,7 @@ class BracketMatcher
     previousCharacter = previousCharacters.slice(-1)
 
     hasEscapeSequenceBeforeCursor = previousCharacters.match(/\\/g)?.length >= 1 # To guard against the "\\" sequence
-    if (@pairedCharacters[previousCharacter] is nextCharacter) and not hasEscapeSequenceBeforeCursor
+    if (@pairedCharacters[previousCharacter] is nextCharacter) and not hasEscapeSequenceBeforeCursor and atom.config.get('bracket-matcher.autocompleteBrackets')
       @editor.transact =>
         @editor.moveCursorLeft()
         @editor.delete()
