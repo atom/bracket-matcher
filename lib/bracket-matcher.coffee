@@ -118,7 +118,7 @@ class BracketMatcher
       return unless @selectionIsWrappedByMatchingBrackets(selection)
 
       range = selection.getBufferRange()
-      options = isReversed: selection.isReversed()
+      options = reversed: selection.isReversed()
       selectionStart = range.start
       if range.start.row is range.end.row
         selectionEnd = range.end.add([0, -2])
@@ -141,7 +141,7 @@ class BracketMatcher
 
       selectionWrapped = true
       range = selection.getBufferRange()
-      options = isReversed: selection.isReversed()
+      options = reversed: selection.isReversed()
       selection.insertText("#{bracket}#{selection.getText()}#{pair}")
       selectionStart = range.start.add([0, 1])
       if range.start.row is range.end.row

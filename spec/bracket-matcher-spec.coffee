@@ -108,7 +108,7 @@ describe "bracket matching", ->
         editor.moveCursorToEndOfLine()
         editor.moveCursorLeft()
         expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
-        editor.backspaceToBeginningOfLine()
+        editor.deleteToBeginningOfLine()
         expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
 
     describe "when the font size changes", ->
