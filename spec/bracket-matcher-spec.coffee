@@ -709,10 +709,23 @@ describe "bracket matching", ->
           expect(editor.getText()).toBe 'void main() {}'
 
   describe "matching bracket deletion", ->
-    it "deletes the end bracket when it directly proceeds a begin bracket that is being backspaced", ->
+    it "deletes the end bracket when it directly precedes a begin bracket that is being backspaced", ->
       buffer.setText("")
       editor.setCursorBufferPosition([0, 0])
       editor.insertText '{'
       expect(buffer.lineForRow(0)).toBe "{}"
       editor.backspace()
       expect(buffer.lineForRow(0)).toBe ""
+
+    it "does not delete end bracket even if it directly precedes a begin bracket if autocomplete is turned off", ->
+      atom.config.set 'bracket-matcher.autocompleteBrackets', false
+      buffer.setText("")
+      editor.setCursorBufferPosition([0, 0])
+      editor.insertText "{"
+      expect(buffer.lineForRow(0)).toBe "{"
+      editor.insertText "}"
+      expect(buffer.lineForRow(0)).toBe "{}"
+      editor.setCursorBufferPosition([0, 1])
+      editor.backspace()
+      expect(buffer.lineForRow(0)).toBe "}"
+
