@@ -51,6 +51,8 @@ class BracketMatcherView extends View
 
     @subscribe @editor, 'grammar-changed', =>
       @updateHighlights = true
+      @unsubscribe(@editorView)
+      @subscribeToCommand @editorView, 'bracket-matcher:close-tag', => @closeTag() if @editor.getGrammar().name == 'HTML'
 
     @subscribeToCursor()
 
@@ -63,7 +65,6 @@ class BracketMatcherView extends View
     @subscribeToCommand @editorView, 'bracket-matcher:select-inside-brackets', =>
       @selectInsidePair()
 
-    @subscribeToCommand @editorView, 'bracket-matcher:close-tag', => @closeTag()
 
 
     @editorView.underlayer.append(this)
