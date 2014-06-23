@@ -742,6 +742,9 @@ describe 'closingTags', ->
     waitsForPromise ->
       atom.packages.activatePackage('bracket-matcher')
 
+    waitsForPromise ->
+      atom.packages.activatePackage('language-html')
+
     runs ->
       editorView = atom.workspaceView.getActiveView()
       {editor} = editorView
@@ -780,7 +783,6 @@ describe 'closingTags', ->
     editor.setCursorBufferPosition(new Point(15,0))
     editorView.trigger('bracket-matcher:close-tag')
     editorView.trigger('bracket-matcher:close-tag')
-    console.log(editor.getText())
 
     # positioning on an already closed tag
     editor.setCursorBufferPosition(new Point(11,9))

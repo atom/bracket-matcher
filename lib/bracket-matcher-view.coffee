@@ -50,9 +50,10 @@ class BracketMatcherView extends View
       @updateHighlights = true
 
     @subscribe @editor, 'grammar-changed', =>
-      @updateHighlights = true
-      @unsubscribe(@editorView)
+      @unsubscribe(@closeTag)
       @subscribeToCommand @editorView, 'bracket-matcher:close-tag', => @closeTag() if @editor.getGrammar().name == 'HTML'
+      @updateHighlights = true
+
 
     @subscribeToCursor()
 
