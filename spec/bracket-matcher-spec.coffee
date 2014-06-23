@@ -806,6 +806,6 @@ describe 'closingTags', ->
     expect( cursorPos ).toEqual( new Point(13, 16) )
     expect( insertedText ).toEqual('</div>')
 
-    editorView.trigger('language-html:close-tag')
+    editorView.trigger('bracket-matcher:close-tag')
     cursorPos = editor.getCursorBufferPosition()
     expect( cursorPos ).toEqual( new Point(13,16) )
