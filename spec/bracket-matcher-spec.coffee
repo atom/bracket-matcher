@@ -1,4 +1,4 @@
-{WorkspaceView} = require 'atom'
+{WorkspaceView, Point, Range} = require 'atom'
 
 path = require 'path'
 
@@ -729,3 +729,85 @@ describe "bracket matching", ->
       editor.backspace()
       expect(buffer.lineForRow(0)).toBe "}"
 
+describe 'closingTags', ->
+  [buffer, editor, editorView, activationPromise] = []
+
+  beforeEach ->
+    atom.workspaceView = new WorkspaceView
+    atom.workspaceView.attachToDom()
+
+    waitsForPromise ->
+      atom.workspace.open('sample.html')
+
+    waitsForPromise ->
+      atom.packages.activatePackage('bracket-matcher')
+
+    waitsForPromise ->
+      atom.packages.activatePackage('language-html')
+
+    runs ->
+      editorView = atom.workspaceView.getActiveView()
+      {editor} = editorView
+      {buffer} = editor
+
+  it 'closes the first non closed tag', ->
+    editor.setCursorBufferPosition(new Point(5,14))
+    editorView.trigger('bracket-matcher:close-tag')
+
+    cursorPos = editor.getCursorBufferPosition()
+    insertedText = editor.getTextInRange( new Range([5,14], [5,18]) )
+
+    expect( cursorPos ).toEqual( new Point(5, 18) )
+    expect( insertedText ).toEqual('</a>')
+
+  it 'closes the following unclosed tags if called repeatedly', ->
+    editor.setCursorBufferPosition(new Point(5,14))
+    editorView.trigger('bracket-matcher:close-tag')
+
+    editorView.trigger('bracket-matcher:close-tag')
+    cursorPos = editor.getCursorBufferPosition()
+    insertedText = editor.getTextInRange( new Range([5,18], [5,22]) )
+
+    expect( cursorPos ).toEqual( new Point(5, 22) )
+    expect( insertedText ).toEqual('</p>')
+
+  it 'does not close any tag if no unclosed tag can be found at the insertion point', ->
+    editor.setCursorBufferPosition(new Point(5,14))
+    editorView.trigger('bracket-matcher:close-tag')
+
+    #closing all currently open tags
+    editorView.trigger('bracket-matcher:close-tag')
+    editor.setCursorBufferPosition(new Point(13,11))
+    editorView.trigger('bracket-matcher:close-tag')
+    editorView.trigger('bracket-matcher:close-tag')
+    editor.setCursorBufferPosition(new Point(15,0))
+    editorView.trigger('bracket-matcher:close-tag')
+    editorView.trigger('bracket-matcher:close-tag')
+
+    # positioning on an already closed tag
+    editor.setCursorBufferPosition(new Point(11,9))
+    editorView.trigger('bracket-matcher:close-tag')
+    expect( editor.getCursorBufferPosition() ).toEqual(new Point(11,9))
+
+  it 'does not get confused in case of nested identical tags -- tag not closing', ->
+    editor.setCursorBufferPosition(new Point(13,11))
+    editorView.trigger('bracket-matcher:close-tag')
+
+    editorView.trigger('bracket-matcher:close-tag')
+    cursorPos = editor.getCursorBufferPosition()
+    expect( cursorPos ).toEqual( new Point(13,16) )
+
+
+  it 'does not get confused in case of nested identical tags -- tag closing', ->
+    editor.setCursorBufferPosition(new Point(13,11))
+    editorView.trigger('bracket-matcher:close-tag')
+
+    cursorPos = editor.getCursorBufferPosition()
+    insertedText = editor.getTextInRange( new Range([13,10], [13,16]) )
+
+    expect( cursorPos ).toEqual( new Point(13, 16) )
+    expect( insertedText ).toEqual('</div>')
+
+    editorView.trigger('bracket-matcher:close-tag')
+    cursorPos = editor.getCursorBufferPosition()
+    expect( cursorPos ).toEqual( new Point(13,16) )

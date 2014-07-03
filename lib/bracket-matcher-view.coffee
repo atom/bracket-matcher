@@ -50,7 +50,10 @@ class BracketMatcherView extends View
       @updateHighlights = true
 
     @subscribe @editor, 'grammar-changed', =>
+      @unsubscribe(@closeTag)
+      @subscribeToCommand @editorView, 'bracket-matcher:close-tag', => @closeTag() if @editor.getGrammar().scopeName.match(/^text.html/)
       @updateHighlights = true
+
 
     @subscribeToCursor()
 
@@ -62,6 +65,8 @@ class BracketMatcherView extends View
 
     @subscribeToCommand @editorView, 'bracket-matcher:select-inside-brackets', =>
       @selectInsidePair()
+
+
 
     @editorView.underlayer.append(this)
     @updateMatch()
@@ -225,3 +230,14 @@ class BracketMatcherView extends View
     if startPosition? and endPosition?
       rangeToSelect = new Range(startPosition, endPosition).translate([0, 1], [0, 0])
       @editor.setSelectedBufferRange(rangeToSelect)
+
+  # Insert at the current cursor position a closing tag if there exists an
+  # open tag that is not closed afterwards.
+  closeTag: ->
+    curPos = @editor.getCursorBufferPosition()
+    textLimits = @editor.getBuffer().getRange()
+    preFragment = @editor.getTextInBufferRange( new Range( textLimits.start, curPos) )
+    postFragment = @editor.getTextInBufferRange( new Range( curPos, textLimits.end ) )
+
+    tag = @tagFinder.closingTagForFragments(preFragment, postFragment)
+    @editor.insertText( "</" + tag + ">" ) if tag?
