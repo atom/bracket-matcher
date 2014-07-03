@@ -133,7 +133,7 @@ class TagFinder
   tagDoesNotCloseInFragment: (tags, fragment) ->
     stack = tags
     stackLength = stack.length
-    tag = tags[tags.length-1]
+    tag = _.escapeRegExp(tags[tags.length-1])
     matchExpr = new RegExp("<(#{tag})|<\/(#{tag})")
     stack = @parseFragment fragment, stack, matchExpr, (s) ->
       s.length >= stackLength or s[s.length-1] is tag
