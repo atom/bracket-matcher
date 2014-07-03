@@ -1,10 +1,8 @@
-{ Point, Range, WorkspaceView } = require 'atom'
-path = require('path')
 TagFinder = require '../lib/tag-finder'
 tagFinder = new TagFinder()
 
 describe 'closeTag', ->
-  describe 'TagFinder#parseFragment', ->
+  describe 'TagFinder::parseFragment', ->
     fragment = ""
 
     beforeEach ->
@@ -22,7 +20,7 @@ describe 'closeTag', ->
       stack = tagFinder.parseFragment fragment, [], /<(body)|(notag)/, -> true
       expect(stack[stack.length-1]).toBe("body")
 
-  describe 'TagFinder#tagsNotClosedInFragment', ->
+  describe 'TagFinder::tagsNotClosedInFragment', ->
     it 'returns the outermost tag not closed in an HTML fragment', ->
       fragment = "<html><head></head><body><h1><p></p>"
       tags = tagFinder.tagsNotClosedInFragment(fragment)
@@ -33,7 +31,7 @@ describe 'closeTag', ->
       tags = tagFinder.tagsNotClosedInFragment(fragment)
       expect(tags).toEqual(['html','body','h1'])
 
-  describe 'TagFinder#tagDoesNotCloseInFragment', ->
+  describe 'TagFinder::tagDoesNotCloseInFragment', ->
     it 'returns true if the given tag is not closed in the given fragment', ->
       fragment = "</other1></other2></html>"
       expect(tagFinder.tagDoesNotCloseInFragment("body", fragment)).toBe(true)
@@ -50,7 +48,7 @@ describe 'closeTag', ->
       fragment = "<other> </other><body></body></body><html>"
       expect(tagFinder.tagDoesNotCloseInFragment(["body"], fragment)).toBe(false)
 
-  describe 'TagFinder#closingTagForFragments', ->
+  describe 'TagFinder::closingTagForFragments', ->
     it 'returns the last opened in preFragment tag that is not closed in postFragment', ->
       preFragment = "<html><head></head><body><h1></h1><p>"
       postFragment = "</body></html>"
