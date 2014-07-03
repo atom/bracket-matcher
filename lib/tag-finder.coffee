@@ -1,11 +1,7 @@
 {Range} = require 'atom'
 _ = require 'underscore-plus'
 {ScopeSelector} = require 'first-mate'
-
-SelfClosingTags = [
-  "area","base","br","col","command","embed","hr","img",
-  "input","keygen","link","meta","param","source","track","wbr"
-]
+SelfClosingTags = require './self-closing-tags'
 
 # Helper to find the matching start/end tag for the start/end tag under the
 # cursor in XML, HTML, etc. editors.
