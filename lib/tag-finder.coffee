@@ -110,7 +110,7 @@ class TagFinder
 
         if match[2] and topElem is match[2]
           stack.pop()
-        else
+        else if match[1]
           stack.push match[1]
 
       fragment = fragment.substr(match.index + match[0].length)
@@ -124,7 +124,7 @@ class TagFinder
   #
   # Returns a string with the name of the most recent unclosed tag.
   tagsNotClosedInFragment: (fragment) ->
-    @parseFragment fragment, [], /<(\w+)|<\/(\w*)/, -> true
+    @parseFragment fragment, [], /<(\w+)|<\/(\w+)/, -> true
 
   # Parses the given fragment of html code and returns true if the given tag
   # has a matching closing tag in it. If tag is reopened and reclosed in the

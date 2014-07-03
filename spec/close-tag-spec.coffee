@@ -59,6 +59,11 @@ describe 'closeTag', ->
       postFragment = ""
       expect(tagFinder.closingTagForFragments(preFragment, postFragment)).toBe("p")
 
+    it "correctly handles malformed tags", ->
+      preFragment = "<html><head></head></htm"
+      postFragment = ""
+      expect(tagFinder.closingTagForFragments(preFragment, postFragment)).toBe("html")
+
     it 'returns null if there is no open tag to be closed', ->
       preFragment = "<html><head></head><body><h1></h1><p>"
       postFragment = "</p></body></html>"
