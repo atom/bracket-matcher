@@ -131,6 +131,8 @@ class TagFinder
   # given fragment then the end point of that pair does not count as a matching
   # closing tag.
   tagDoesNotCloseInFragment: (tags, fragment) ->
+    return if tags.length is 0
+
     stack = tags
     stackLength = stack.length
     tag = _.escapeRegExp(tags[tags.length-1])
