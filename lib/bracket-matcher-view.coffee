@@ -232,11 +232,10 @@ class BracketMatcherView extends View
   # Insert at the current cursor position a closing tag if there exists an
   # open tag that is not closed afterwards.
   closeTag: ->
-    console.log 'here?'
     curPos = @editor.getCursorBufferPosition()
     textLimits = @editor.getBuffer().getRange()
-    preFragment = @editor.getTextInBufferRange( new Range( textLimits.start, curPos) )
-    postFragment = @editor.getTextInBufferRange( new Range( curPos, textLimits.end ) )
+    preFragment = @editor.getTextInBufferRange(new Range( textLimits.start, curPos))
+    postFragment = @editor.getTextInBufferRange(new Range( curPos, textLimits.end ))
 
     tag = @tagFinder.closingTagForFragments(preFragment, postFragment)
-    @editor.insertText( "</" + tag + ">" ) if tag?
+    @editor.insertText("</#{tag}>") if tag?
