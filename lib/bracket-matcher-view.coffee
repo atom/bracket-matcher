@@ -66,6 +66,9 @@ class BracketMatcherView extends View
     @subscribeToCommand @editorView, 'bracket-matcher:close-tag', =>
       @closeTag()
 
+    @subscribeToCommand @editorView, 'bracket-matcher:remove-matching-brackets', =>
+      @removeMatchingBrackets()
+
     @editorView.underlayer.append(this)
     @updateMatch()
 
@@ -107,6 +110,37 @@ class BracketMatcherView extends View
         @moveStartView(pair.startRange)
         @moveEndView(pair.endRange)
         @pairHighlighted = true
+
+  removeMatchingBrackets: ->
+    # wrap the whole thing so undo will undo everything
+    @editor.mutateSelectedText =>
+      @editor.selectLeft()
+      text = @editor.getSelectedText()
+      
+      #check if the character to the left is part of a pair
+      if startPairMatches.hasOwnProperty(text) or endPairMatches.hasOwnProperty(text)
+
+        {position, currentPair, matchingPair} = @findCurrentPair(startPairMatches)
+        if position
+          matchPosition = @findMatchingEndPair(position, currentPair, matchingPair)
+        else
+          {position, currentPair, matchingPair} = @findCurrentPair(endPairMatches)
+          if position
+            matchPosition = @findMatchingStartPair(position, matchingPair, currentPair)
+
+        if position? and matchPosition?
+          @editor.setCursorBufferPosition(matchPosition)
+          @editor.delete()
+          # if on the same line and the cursor is in front of an end pair
+          # offset by one to make up for the missing character
+          if position.row is matchPosition.row and endPairMatches.hasOwnProperty(currentPair)
+            position = position.translate([0, -1])
+          @editor.setCursorBufferPosition(position)
+          @editor.delete()
+        else
+          @editor.backspace()
+      else
+        @editor.backspace()
 
   findMatchingEndPair: (startPairPosition, startPair, endPair) ->
     scanRange = new Range(startPairPosition.translate([0, 1]), @editor.buffer.getEndPosition())
