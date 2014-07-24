@@ -112,14 +112,14 @@ class BracketMatcherView extends View
         @pairHighlighted = true
 
   removeMatchingBrackets: ->
-    # wrap the whole thing so undo will undo everything
+    return @editor.backspace() if @editor.hasMultipleCursors()
+
     @editor.mutateSelectedText =>
       @editor.selectLeft()
       text = @editor.getSelectedText()
-      
+
       #check if the character to the left is part of a pair
       if startPairMatches.hasOwnProperty(text) or endPairMatches.hasOwnProperty(text)
-
         {position, currentPair, matchingPair} = @findCurrentPair(startPairMatches)
         if position
           matchPosition = @findMatchingEndPair(position, currentPair, matchingPair)
