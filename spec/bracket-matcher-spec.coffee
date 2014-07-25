@@ -417,6 +417,20 @@ describe "bracket matching", ->
         expect(editor.lineForBufferRow(11)).toEqual('  return sortArray.apply(this, arguments);')
         expect(editor.getCursorBufferPosition()).toEqual([11,41])
 
+    describe "when a starting pair is selected", ->
+      it "removes both pairs", ->
+        editor.setSelectedBufferRange([[11,13], [11,14]])
+        editorView.trigger "bracket-matcher:remove-matching-brackets"
+        expect(editor.lineForBufferRow(11)).toEqual('  return sortArray.apply(this, arguments);')
+        expect(editor.getCursorBufferPosition()).toEqual([11,13])
+
+    describe "when an ending pair is selected", ->
+      it "removes both pairs", ->
+        editor.setSelectedBufferRange([[11,42], [11,43]])
+        editorView.trigger "bracket-matcher:remove-matching-brackets"
+        expect(editor.lineForBufferRow(11)).toEqual('  return sortArray.apply(this, arguments);')
+        expect(editor.getCursorBufferPosition()).toEqual([11,41])
+
   describe "matching bracket deletion", ->
     beforeEach ->
       editor.buffer.setText("")

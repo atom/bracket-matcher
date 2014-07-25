@@ -114,8 +114,8 @@ class BracketMatcherView extends View
   removeMatchingBrackets: ->
     return @editor.backspace() if @editor.hasMultipleCursors()
 
-    @editor.mutateSelectedText =>
-      @editor.selectLeft()
+    @editor.transact =>
+      @editor.selectLeft() if @editor.getSelection().isEmpty()
       text = @editor.getSelectedText()
 
       #check if the character to the left is part of a pair
