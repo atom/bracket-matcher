@@ -5,9 +5,12 @@
 '.platform-darwin .editor':
   'ctrl-cmd-m': 'bracket-matcher:select-inside-brackets'
   'alt-cmd-.': 'bracket-matcher:close-tag'
+  'ctrl-backspace': 'bracket-matcher:remove-matching-brackets'
 
 '.platform-linux .editor':
   'alt-ctrl-.': 'bracket-matcher:close-tag'
+  'alt-ctrl-backspace': 'bracket-matcher:remove-matching-brackets'
 
 '.platform-win32 .editor':
   'alt-ctrl-.': 'bracket-matcher:close-tag'
+  'alt-ctrl-backspace': 'bracket-matcher:remove-matching-brackets'

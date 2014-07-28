@@ -358,6 +358,79 @@ describe "bracket matching", ->
         editorView.trigger "bracket-matcher:select-inside-brackets"
         expect(editor.getSelectedBufferRange()).toEqual [[4, 29], [7, 4]]
 
+  describe "when bracket-matcher:remove-matching-brackets is triggered", ->
+    describe "when the cursor is not in front of any pair", ->
+      it "performs a regular backspace action", ->
+        editor.setCursorBufferPosition([0,1])
+        editorView.trigger "bracket-matcher:remove-matching-brackets"
+        expect(editor.lineForBufferRow(0)).toEqual('ar quicksort = function () {')
+        expect(editor.getCursorBufferPosition()).toEqual([0,0])
+
+    describe "when the cursor is at the beginning of a line", ->
+      it "performs a regular backspace action", ->
+        editor.setCursorBufferPosition([12,0])
+        editorView.trigger "bracket-matcher:remove-matching-brackets"
+        expect(editor.lineForBufferRow(11)).toEqual('  return sort(Array.apply(this, arguments));};')
+        expect(editor.getCursorBufferPosition()).toEqual([11,44])
+
+    describe "when the cursor is on the left side of a starting pair", ->
+      it "performs a regular backspace action", ->
+        editor.setCursorBufferPosition([0,28])
+        editorView.trigger "bracket-matcher:remove-matching-brackets"
+        expect(editor.lineForBufferRow(0)).toEqual('var quicksort = function (){')
+        expect(editor.getCursorBufferPosition()).toEqual([0,27])
+
+    describe "when the cursor is on the left side of an ending pair", ->
+      it "performs a regular backspace action", ->
+        editor.setCursorBufferPosition([7,4])
+        editorView.trigger "bracket-matcher:remove-matching-brackets"
+        expect(editor.lineForBufferRow(7)).toEqual('  }')
+        expect(editor.getCursorBufferPosition()).toEqual([7,2])
+
+    describe "when the cursor is on the right side of a starting pair, the ending pair on another line", ->
+      it "removes both pairs", ->
+        editor.setCursorBufferPosition([0,29])
+        editorView.trigger "bracket-matcher:remove-matching-brackets"
+        expect(editor.lineForBufferRow(0)).toEqual('var quicksort = function () ')
+        expect(editor.lineForBufferRow(12)).toEqual(';')
+        expect(editor.getCursorBufferPosition()).toEqual([0,28])
+
+    describe "when the cursor is on the right side of an ending pair, the starting pair on another line", ->
+      it "removes both pairs", ->
+        editor.setCursorBufferPosition([7,5])
+        editorView.trigger "bracket-matcher:remove-matching-brackets"
+        expect(editor.lineForBufferRow(4)).toEqual('    while(items.length > 0) ')
+        expect(editor.lineForBufferRow(7)).toEqual('    ')
+        expect(editor.getCursorBufferPosition()).toEqual([7,4])
+
+    describe "when the cursor is on the right side of a starting pair, the ending pair on the same line", ->
+      it "removes both pairs", ->
+        editor.setCursorBufferPosition([11,14])
+        editorView.trigger "bracket-matcher:remove-matching-brackets"
+        expect(editor.lineForBufferRow(11)).toEqual('  return sortArray.apply(this, arguments);')
+        expect(editor.getCursorBufferPosition()).toEqual([11,13])
+
+    describe "when the cursor is on the right side of an ending pair, the starting pair on the same line", ->
+      it "removes both pairs", ->
+        editor.setCursorBufferPosition([11,43])
+        editorView.trigger "bracket-matcher:remove-matching-brackets"
+        expect(editor.lineForBufferRow(11)).toEqual('  return sortArray.apply(this, arguments);')
+        expect(editor.getCursorBufferPosition()).toEqual([11,41])
+
+    describe "when a starting pair is selected", ->
+      it "removes both pairs", ->
+        editor.setSelectedBufferRange([[11,13], [11,14]])
+        editorView.trigger "bracket-matcher:remove-matching-brackets"
+        expect(editor.lineForBufferRow(11)).toEqual('  return sortArray.apply(this, arguments);')
+        expect(editor.getCursorBufferPosition()).toEqual([11,13])
+
+    describe "when an ending pair is selected", ->
+      it "removes both pairs", ->
+        editor.setSelectedBufferRange([[11,42], [11,43]])
+        editorView.trigger "bracket-matcher:remove-matching-brackets"
+        expect(editor.lineForBufferRow(11)).toEqual('  return sortArray.apply(this, arguments);')
+        expect(editor.getCursorBufferPosition()).toEqual([11,41])
+
   describe "matching bracket deletion", ->
     beforeEach ->
       editor.buffer.setText("")

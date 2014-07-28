@@ -8,6 +8,7 @@
         { 'label': 'Select Inside Brackets', 'command': 'bracket-matcher:select-inside-brackets' }
         { 'label': 'Remove Brackets From Selection', 'command': 'bracket-matcher:remove-brackets-from-selection' }
         { 'label': 'Close Current Tag', 'command': 'bracket-matcher:close-tag'}
+        { 'label': 'Remove Matching Brackets', 'command': 'bracket-matcher:remove-matching-brackets'}
       ]
     ]
   }
