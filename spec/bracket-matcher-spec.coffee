@@ -326,6 +326,21 @@ describe "bracket matching", ->
           editorView.trigger "bracket-matcher:go-to-matching-bracket"
           expect(editor.getCursorBufferPosition()).toEqual [2, 7]
 
+      describe 'when within a <tag></tag> pair', ->
+        beforeEach ->
+          waitsForPromise ->
+            atom.workspace.open('sample.xml')
+
+          runs ->
+            editorView = atom.workspaceView.getActiveView()
+            {editor} = editorView
+            {buffer} = editor
+
+        it "moves the cursor to the starting tag", ->
+          editor.setCursorBufferPosition([5, 10])
+          editorView.trigger "bracket-matcher:go-to-matching-bracket"
+          expect(editor.getCursorBufferPosition()).toEqual [4, 9]
+
   describe "when bracket-matcher:go-to-enclosing-bracket is triggered", ->
     describe "when within a `{}` pair", ->
       it "moves the cursor to before the enclosing brace", ->

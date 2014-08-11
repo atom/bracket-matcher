@@ -247,6 +247,11 @@ class BracketMatcherView extends View
 
     if matchPosition = @findAnyStartPair(@editor.getCursorBufferPosition())
       @editor.setCursorBufferPosition(matchPosition)
+    else if pair = @tagFinder.findEnclosingTags()
+      {startRange, endRange} = pair
+      if startRange.compare(endRange) > 0
+        [startRange, endRange] = [endRange, startRange]
+      @editor.setCursorBufferPosition(pair.startRange.start)
 
   selectInsidePair: ->
     return unless @editorView.underlayer.isVisible()
