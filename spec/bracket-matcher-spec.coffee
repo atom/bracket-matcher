@@ -346,7 +346,7 @@ describe "bracket matching", ->
         editorView.trigger "bracket-matcher:select-inside-brackets"
         expect(editor.getSelectedBufferRange()).toEqual [[0, 29], [12, 0]]
 
-    describe "when the cursor on the right side of a brack", ->
+    describe "when the cursor on the right side of a bracket", ->
       it "selects the text inside the brackets", ->
         editor.setCursorBufferPosition([1,30])
         editorView.trigger "bracket-matcher:select-inside-brackets"
@@ -357,6 +357,34 @@ describe "bracket matching", ->
         editor.setCursorBufferPosition([6,6])
         editorView.trigger "bracket-matcher:select-inside-brackets"
         expect(editor.getSelectedBufferRange()).toEqual [[4, 29], [7, 4]]
+
+    describe 'HTML/XML text', ->
+      beforeEach ->
+        waitsForPromise ->
+          atom.workspace.open('sample.xml')
+
+        runs ->
+          editorView = atom.workspaceView.getActiveView()
+          {editor} = editorView
+          {buffer} = editor
+
+      describe 'when the cursor is on a starting tag', ->
+        it 'selects the text inside the starting/closing tag', ->
+          editor.setCursorBufferPosition([4,9])
+          editorView.trigger "bracket-matcher:select-inside-brackets"
+          expect(editor.getSelectedBufferRange()).toEqual [[4, 13], [6, 8]]
+
+      describe 'when the cursor is on an ending tag', ->
+        it 'selects the text inside the starting/closing tag', ->
+          editor.setCursorBufferPosition([15,8])
+          editorView.trigger "bracket-matcher:select-inside-brackets"
+          expect(editor.getSelectedBufferRange()).toEqual [[1, 8], [15, 2]]
+
+      describe 'when the cursor is inside a tag', ->
+        it 'selects the text inside the starting/closing tag', ->
+          editor.setCursorBufferPosition([12,8])
+          editorView.trigger "bracket-matcher:select-inside-brackets"
+          expect(editor.getSelectedBufferRange()).toEqual [[11, 11], [13, 6]]
 
   describe "when bracket-matcher:remove-matching-brackets is triggered", ->
     describe "when the cursor is not in front of any pair", ->

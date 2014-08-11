@@ -194,6 +194,7 @@ class BracketMatcherView extends View
   moveHighlightView: (view, bufferRange) ->
     bufferRange = Range.fromObject(bufferRange)
     view.bufferPosition = bufferRange.start
+    view.bufferRange = bufferRange
 
     startPixelPosition = @editorView.pixelPositionForBufferPosition(bufferRange.start)
     endPixelPosition = @editorView.pixelPositionForBufferPosition(bufferRange.end)
@@ -243,21 +244,36 @@ class BracketMatcherView extends View
   goToEnclosingPair: ->
     return if @pairHighlighted
     return unless @editorView.underlayer.isVisible()
-    position = @editor.getCursorBufferPosition()
-    matchPosition = @findAnyStartPair(position)
-    if matchPosition
+
+    if matchPosition = @findAnyStartPair(@editor.getCursorBufferPosition())
       @editor.setCursorBufferPosition(matchPosition)
 
   selectInsidePair: ->
     return unless @editorView.underlayer.isVisible()
 
     if @pairHighlighted
-      startPosition = @startView.bufferPosition
-      endPosition = @endView.bufferPosition
+      startRange = @startView.bufferRange
+      endRange = @endView.bufferRange
+
+      if startRange.compare(endRange) > 0
+        [startRange, endRange] = [endRange, startRange]
+
+      if @tagFinder.isCursorOnTag()
+        startPosition = startRange.end
+        endPosition = endRange.start.translate([0, -2]) # Don't select </
+      else
+        startPosition = startRange.start
+        endPosition = endRange.start
     else
       if startPosition = @findAnyStartPair(@editor.getCursorBufferPosition())
         startPair = @editor.getTextInRange(Range.fromPointWithDelta(startPosition, 0, 1))
         endPosition = @findMatchingEndPair(startPosition, startPair, startPairMatches[startPair])
+      else if pair = @tagFinder.findEnclosingTags()
+        {startRange, endRange} = pair
+        if startRange.compare(endRange) > 0
+          [startRange, endRange] = [endRange, startRange]
+        startPosition = startRange.end
+        endPosition = endRange.start.translate([0, -2]) # Don't select </
 
     if startPosition? and endPosition?
       rangeToSelect = new Range(startPosition, endPosition).translate([0, 1], [0, 0])

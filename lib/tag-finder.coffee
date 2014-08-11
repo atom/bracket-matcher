@@ -21,6 +21,10 @@ class TagFinder
     scopes = @editor.scopesForBufferPosition(range.start)
     @commentSelector.matches(scopes)
 
+  isTagRange: (range) ->
+    scopes = @editor.scopesForBufferPosition(range.start)
+    @tagSelector.matches(scopes)
+
   isCursorOnTag: ->
     @tagSelector.matches(@editor.getCursorScopes())
 
@@ -60,9 +64,7 @@ class TagFinder
 
     endRange
 
-  findMatchingTags: ->
-    return unless @isCursorOnTag()
-
+  findStartEndTags: ->
     ranges = null
     endPosition = @editor.getCursor().getCurrentWordBufferRange({@wordRegex}).end
     @editor.backwardsScanInBufferRange @tagPattern, [[0, 0], endPosition], ({match, range, stop}) =>
@@ -82,6 +84,16 @@ class TagFinder
 
       ranges = {startRange, endRange} if startRange? and endRange?
     ranges
+
+  findEnclosingTags: ->
+    if ranges = @findStartEndTags()
+      if @isTagRange(ranges.startRange) and @isTagRange(ranges.endRange)
+        return ranges
+
+    null
+
+  findMatchingTags: ->
+    @findStartEndTags() if @isCursorOnTag()
 
   # Parses a fragment of html returning the stack (i.e., an array) of open tags
   #
