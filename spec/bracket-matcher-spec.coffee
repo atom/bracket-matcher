@@ -470,6 +470,7 @@ describe "bracket matching", ->
   describe "matching bracket insertion", ->
     beforeEach ->
       editor.buffer.setText("")
+      atom.config.set('editor.autoIndent', true)
 
     describe "when more than one character is inserted", ->
       it "does not insert a matching bracket", ->
@@ -754,7 +755,7 @@ describe "bracket matching", ->
           expect(editor.getCursorBufferPosition()).toEqual [0, 1]
 
     describe "when return is pressed inside a matching pair", ->
-      it "puts cursor on autoindented empty line", ->
+      it "puts the cursor on the indented empty line", ->
         editor.insertText 'void main() '
         editor.insertText '{'
         expect(editor.getText()).toBe 'void main() {}'
@@ -778,6 +779,19 @@ describe "bracket matching", ->
           editor.insertNewline()
           editor.undo()
           expect(editor.getText()).toBe 'void main() {}'
+
+      describe 'when editor.autoIndent is disabled', ->
+        beforeEach ->
+          atom.config.set('editor.autoIndent', false)
+
+        it 'does not auto-indent the empty line and closing bracket', ->
+          editor.insertText '  void main() '
+          editor.insertText '{'
+          expect(editor.getText()).toBe '  void main() {}'
+          editor.insertNewline()
+          expect(editor.getCursorBufferPosition()).toEqual [1, 0]
+          expect(buffer.lineForRow(1)).toBe ''
+          expect(buffer.lineForRow(2)).toBe '}'
 
   describe "matching bracket deletion", ->
     it "deletes the end bracket when it directly precedes a begin bracket that is being backspaced", ->

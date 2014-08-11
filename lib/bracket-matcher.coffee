@@ -90,8 +90,9 @@ class BracketMatcher
       @editor.transact =>
         @editor.insertText "\n\n"
         @editor.moveCursorUp()
-        cursorRow = @editor.getCursorBufferPosition().row
-        @editor.autoIndentBufferRows(cursorRow, cursorRow + 1)
+        if atom.config.get('editor.autoIndent')
+          cursorRow = @editor.getCursorBufferPosition().row
+          @editor.autoIndentBufferRows(cursorRow, cursorRow + 1)
       false
 
   backspace: =>
