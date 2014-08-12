@@ -27,6 +27,7 @@ class BracketMatcherView extends View
     {@editor} = @editorView
     @tagFinder = new TagFinder(@editor)
     @pairHighlighted = false
+    @tagHighlighted = false
     @updateHighlights = false
 
     @subscribe atom.config.observe 'editor.fontSize', =>
@@ -89,6 +90,7 @@ class BracketMatcherView extends View
       @startView.hide()
       @endView.hide()
     @pairHighlighted = false
+    @tagHighlighted = false
 
     return unless @editor.getSelection().isEmpty()
     return if @editor.isFoldedAtCursorRow()
@@ -110,6 +112,7 @@ class BracketMatcherView extends View
         @moveStartView(pair.startRange)
         @moveEndView(pair.endRange)
         @pairHighlighted = true
+        @tagHighlighted = true
 
   removeMatchingBrackets: ->
     return @editor.backspace() if @editor.hasMultipleCursors()
@@ -228,18 +231,37 @@ class BracketMatcherView extends View
     return unless @editorView.underlayer.isVisible()
 
     position = @editor.getCursorBufferPosition()
-    previousPosition = position.translate([0, -1])
-    startPosition = @startView.bufferPosition
-    endPosition = @endView.bufferPosition
 
-    if position.isEqual(startPosition)
-      @editor.setCursorBufferPosition(endPosition.translate([0, 1]))
-    else if previousPosition.isEqual(startPosition)
-      @editor.setCursorBufferPosition(endPosition)
-    else if position.isEqual(endPosition)
-      @editor.setCursorBufferPosition(startPosition.translate([0, 1]))
-    else if previousPosition.isEqual(endPosition)
-      @editor.setCursorBufferPosition(startPosition)
+    if @tagHighlighted
+      startRange = @startView.bufferRange
+      endRange = @endView.bufferRange
+      if startRange.compare(endRange) > 0
+        [startRange, endRange] = [endRange, startRange]
+
+      startRange = startRange.translate([0, -1], [0, 1]) # include the < and >
+      endRange = endRange.translate([0, -2], [0, 1]) # include the </ and >
+
+      if position.isGreaterThan(startRange.end)
+        tagCharacterOffset = position.column - endRange.start.column
+        tagCharacterOffset-- if tagCharacterOffset > 1
+        @editor.setCursorBufferPosition(startRange.start.translate([0, tagCharacterOffset]))
+      else
+        tagCharacterOffset = position.column - startRange.start.column
+        tagCharacterOffset++ if tagCharacterOffset > 0
+        @editor.setCursorBufferPosition(endRange.start.translate([0, tagCharacterOffset]))
+    else
+      previousPosition = position.translate([0, -1])
+      startPosition = @startView.bufferPosition
+      endPosition = @endView.bufferPosition
+
+      if position.isEqual(startPosition)
+        @editor.setCursorBufferPosition(endPosition.translate([0, 1]))
+      else if previousPosition.isEqual(startPosition)
+        @editor.setCursorBufferPosition(endPosition)
+      else if position.isEqual(endPosition)
+        @editor.setCursorBufferPosition(startPosition.translate([0, 1]))
+      else if previousPosition.isEqual(endPosition)
+        @editor.setCursorBufferPosition(startPosition)
 
   goToEnclosingPair: ->
     return if @pairHighlighted
@@ -263,7 +285,7 @@ class BracketMatcherView extends View
       if startRange.compare(endRange) > 0
         [startRange, endRange] = [endRange, startRange]
 
-      if @tagFinder.isCursorOnTag()
+      if @tagHighlighted
         startPosition = startRange.end
         endPosition = endRange.start.translate([0, -2]) # Don't select </
       else

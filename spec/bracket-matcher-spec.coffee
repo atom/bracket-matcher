@@ -326,7 +326,7 @@ describe "bracket matching", ->
           editorView.trigger "bracket-matcher:go-to-matching-bracket"
           expect(editor.getCursorBufferPosition()).toEqual [2, 7]
 
-      describe 'when within a <tag></tag> pair', ->
+      describe 'in HTML/XML files', ->
         beforeEach ->
           waitsForPromise ->
             atom.workspace.open('sample.xml')
@@ -336,10 +336,75 @@ describe "bracket matching", ->
             {editor} = editorView
             {buffer} = editor
 
-        it "moves the cursor to the starting tag", ->
-          editor.setCursorBufferPosition([5, 10])
-          editorView.trigger "bracket-matcher:go-to-matching-bracket"
-          expect(editor.getCursorBufferPosition()).toEqual [4, 9]
+        describe 'when within a <tag></tag> pair', ->
+          it "moves the cursor to the starting tag", ->
+            editor.setCursorBufferPosition([5, 10])
+            editorView.trigger "bracket-matcher:go-to-matching-bracket"
+            expect(editor.getCursorBufferPosition()).toEqual [4, 9]
+
+        describe 'when on a starting <tag>', ->
+          it 'moves the cursor to the end </tag>', ->
+            editor.setCursorBufferPosition([1, 2])
+            editorView.trigger "bracket-matcher:go-to-matching-bracket"
+            expect(editor.getCursorBufferPosition()).toEqual [15, 2]
+
+            editor.setCursorBufferPosition([1, 3])
+            editorView.trigger "bracket-matcher:go-to-matching-bracket"
+            expect(editor.getCursorBufferPosition()).toEqual [15, 4]
+
+            editor.setCursorBufferPosition([1, 4])
+            editorView.trigger "bracket-matcher:go-to-matching-bracket"
+            expect(editor.getCursorBufferPosition()).toEqual [15, 5]
+
+            editor.setCursorBufferPosition([1, 5])
+            editorView.trigger "bracket-matcher:go-to-matching-bracket"
+            expect(editor.getCursorBufferPosition()).toEqual [15, 6]
+
+            editor.setCursorBufferPosition([1, 6])
+            editorView.trigger "bracket-matcher:go-to-matching-bracket"
+            expect(editor.getCursorBufferPosition()).toEqual [15, 7]
+
+            editor.setCursorBufferPosition([1, 7])
+            editorView.trigger "bracket-matcher:go-to-matching-bracket"
+            expect(editor.getCursorBufferPosition()).toEqual [15, 8]
+
+            editor.setCursorBufferPosition([1, 8])
+            editorView.trigger "bracket-matcher:go-to-matching-bracket"
+            expect(editor.getCursorBufferPosition()).toEqual [15, 9]
+
+        describe 'when on an ending </tag>', ->
+          it 'moves the cursor to the start <tag>', ->
+            editor.setCursorBufferPosition([15, 2])
+            editorView.trigger "bracket-matcher:go-to-matching-bracket"
+            expect(editor.getCursorBufferPosition()).toEqual [1, 2]
+
+            editor.setCursorBufferPosition([15, 3])
+            editorView.trigger "bracket-matcher:go-to-matching-bracket"
+            expect(editor.getCursorBufferPosition()).toEqual [1, 3]
+
+            editor.setCursorBufferPosition([15, 4])
+            editorView.trigger "bracket-matcher:go-to-matching-bracket"
+            expect(editor.getCursorBufferPosition()).toEqual [1, 3]
+
+            editor.setCursorBufferPosition([15, 5])
+            editorView.trigger "bracket-matcher:go-to-matching-bracket"
+            expect(editor.getCursorBufferPosition()).toEqual [1, 4]
+
+            editor.setCursorBufferPosition([15, 6])
+            editorView.trigger "bracket-matcher:go-to-matching-bracket"
+            expect(editor.getCursorBufferPosition()).toEqual [1, 5]
+
+            editor.setCursorBufferPosition([15, 7])
+            editorView.trigger "bracket-matcher:go-to-matching-bracket"
+            expect(editor.getCursorBufferPosition()).toEqual [1, 6]
+
+            editor.setCursorBufferPosition([15, 8])
+            editorView.trigger "bracket-matcher:go-to-matching-bracket"
+            expect(editor.getCursorBufferPosition()).toEqual [1, 7]
+
+            editor.setCursorBufferPosition([15, 9])
+            editorView.trigger "bracket-matcher:go-to-matching-bracket"
+            expect(editor.getCursorBufferPosition()).toEqual [1, 8]
 
   describe "when bracket-matcher:go-to-enclosing-bracket is triggered", ->
     describe "when within a `{}` pair", ->
