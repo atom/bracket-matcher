@@ -370,7 +370,19 @@ describe "bracket matching", ->
 
             editor.setCursorBufferPosition([1, 8])
             editorView.trigger "bracket-matcher:go-to-matching-bracket"
-            expect(editor.getCursorBufferPosition()).toEqual [15, 9]
+            expect(editor.getCursorBufferPosition()).toEqual [15, 8]
+
+            editor.setCursorBufferPosition([1, 9])
+            editorView.trigger "bracket-matcher:go-to-matching-bracket"
+            expect(editor.getCursorBufferPosition()).toEqual [15, 8]
+
+            editor.setCursorBufferPosition([1, 10])
+            editorView.trigger "bracket-matcher:go-to-matching-bracket"
+            expect(editor.getCursorBufferPosition()).toEqual [15, 8]
+
+            editor.setCursorBufferPosition([1, 16])
+            editorView.trigger "bracket-matcher:go-to-matching-bracket"
+            expect(editor.getCursorBufferPosition()).toEqual [15, 8]
 
         describe 'when on an ending </tag>', ->
           it 'moves the cursor to the start <tag>', ->
@@ -404,7 +416,7 @@ describe "bracket matching", ->
 
             editor.setCursorBufferPosition([15, 9])
             editorView.trigger "bracket-matcher:go-to-matching-bracket"
-            expect(editor.getCursorBufferPosition()).toEqual [1, 8]
+            expect(editor.getCursorBufferPosition()).toEqual [1, 7]
 
   describe "when bracket-matcher:go-to-enclosing-bracket is triggered", ->
     describe "when within a `{}` pair", ->

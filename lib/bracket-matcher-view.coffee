@@ -234,21 +234,24 @@ class BracketMatcherView extends View
 
     if @tagHighlighted
       startRange = @startView.bufferRange
+      tagLength = startRange.end.column - startRange.start.column
       endRange = @endView.bufferRange
       if startRange.compare(endRange) > 0
         [startRange, endRange] = [endRange, startRange]
 
-      startRange = startRange.translate([0, -1], [0, 1]) # include the < and >
-      endRange = endRange.translate([0, -2], [0, 1]) # include the </ and >
+      startRange = startRange.translate([0, -1]) # include the <
+      endRange = endRange.translate([0, -2]) # include the </
 
-      if position.isGreaterThan(startRange.end)
-        tagCharacterOffset = position.column - endRange.start.column
-        tagCharacterOffset-- if tagCharacterOffset > 1
-        @editor.setCursorBufferPosition(startRange.start.translate([0, tagCharacterOffset]))
-      else
+      if position.isLessThan(endRange.start)
         tagCharacterOffset = position.column - startRange.start.column
         tagCharacterOffset++ if tagCharacterOffset > 0
+        tagCharacterOffset = Math.min(tagCharacterOffset, tagLength + 2) # include </
         @editor.setCursorBufferPosition(endRange.start.translate([0, tagCharacterOffset]))
+      else
+        tagCharacterOffset = position.column - endRange.start.column
+        tagCharacterOffset-- if tagCharacterOffset > 1
+        tagCharacterOffset = Math.min(tagCharacterOffset, tagLength + 1) # include <
+        @editor.setCursorBufferPosition(startRange.start.translate([0, tagCharacterOffset]))
     else
       previousPosition = position.translate([0, -1])
       startPosition = @startView.bufferPosition
