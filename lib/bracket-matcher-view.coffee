@@ -24,7 +24,7 @@ class BracketMatcherView extends View
       @div class: 'bracket-matcher', style: 'display: none', outlet: 'endView'
 
   initialize: (@editorView) ->
-    {@editor} = @editorView
+    @editor = @editorView.getModel()
     @tagFinder = new TagFinder(@editor)
     @pairHighlighted = false
     @tagHighlighted = false
@@ -74,7 +74,7 @@ class BracketMatcherView extends View
     @updateMatch()
 
   subscribeToCursor: ->
-    cursor = @editor.getCursor()
+    cursor = @editor.getLastCursor()
     return unless cursor?
 
     @subscribe cursor, 'moved', =>
@@ -92,7 +92,7 @@ class BracketMatcherView extends View
     @pairHighlighted = false
     @tagHighlighted = false
 
-    return unless @editor.getSelection().isEmpty()
+    return unless @editor.getLastSelection().isEmpty()
     return if @editor.isFoldedAtCursorRow()
 
     {position, currentPair, matchingPair} = @findCurrentPair(startPairMatches)
@@ -118,7 +118,7 @@ class BracketMatcherView extends View
     return @editor.backspace() if @editor.hasMultipleCursors()
 
     @editor.transact =>
-      @editor.selectLeft() if @editor.getSelection().isEmpty()
+      @editor.selectLeft() if @editor.getLastSelection().isEmpty()
       text = @editor.getSelectedText()
 
       #check if the character to the left is part of a pair
@@ -199,8 +199,8 @@ class BracketMatcherView extends View
     view.bufferPosition = bufferRange.start
     view.bufferRange = bufferRange
 
-    startPixelPosition = @editorView.pixelPositionForBufferPosition(bufferRange.start)
-    endPixelPosition = @editorView.pixelPositionForBufferPosition(bufferRange.end)
+    startPixelPosition = @editor.pixelPositionForBufferPosition(bufferRange.start)
+    endPixelPosition = @editor.pixelPositionForBufferPosition(bufferRange.end)
 
     [element] = view
     element.style.display = 'block'

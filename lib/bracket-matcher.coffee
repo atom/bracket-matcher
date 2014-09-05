@@ -66,18 +66,18 @@ class BracketMatcher
     if skipOverExistingClosingBracket
       bracketMarker.destroy()
       _.remove(@bracketMarkers, bracketMarker)
-      @editor.moveCursorRight()
+      @editor.moveRight()
       false
     else if autoCompleteOpeningBracket
       @editor.insertText(text + @pairedCharacters[text])
-      @editor.moveCursorLeft()
+      @editor.moveLeft()
       range = [cursorBufferPosition, cursorBufferPosition.add([0, text.length])]
       @bracketMarkers.push @editor.markBufferRange(range)
       false
 
   insertNewline: =>
     return if @editor.hasMultipleCursors()
-    return unless @editor.getSelection().isEmpty()
+    return unless @editor.getLastSelection().isEmpty()
 
     cursorBufferPosition = @editor.getCursorBufferPosition()
     previousCharacters = @editor.getTextInBufferRange([cursorBufferPosition.add([0, -2]), cursorBufferPosition])
@@ -89,7 +89,7 @@ class BracketMatcher
     if @pairedCharacters[previousCharacter] is nextCharacter and not hasEscapeSequenceBeforeCursor
       @editor.transact =>
         @editor.insertText "\n\n"
-        @editor.moveCursorUp()
+        @editor.moveUp()
         if atom.config.get('editor.autoIndent')
           cursorRow = @editor.getCursorBufferPosition().row
           @editor.autoIndentBufferRows(cursorRow, cursorRow + 1)
@@ -97,7 +97,7 @@ class BracketMatcher
 
   backspace: =>
     return if @editor.hasMultipleCursors()
-    return unless @editor.getSelection().isEmpty()
+    return unless @editor.getLastSelection().isEmpty()
 
     cursorBufferPosition = @editor.getCursorBufferPosition()
     previousCharacters = @editor.getTextInBufferRange([cursorBufferPosition.add([0, -2]), cursorBufferPosition])
@@ -108,7 +108,7 @@ class BracketMatcher
     hasEscapeSequenceBeforeCursor = previousCharacters.match(/\\/g)?.length >= 1 # To guard against the "\\" sequence
     if (@pairedCharacters[previousCharacter] is nextCharacter) and not hasEscapeSequenceBeforeCursor and atom.config.get('bracket-matcher.autocompleteBrackets')
       @editor.transact =>
-        @editor.moveCursorLeft()
+        @editor.moveLeft()
         @editor.delete()
         @editor.delete()
       false
