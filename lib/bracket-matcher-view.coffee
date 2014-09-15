@@ -87,8 +87,8 @@ class BracketMatcherView extends View
 
   updateMatch: ->
     if @pairHighlighted
-      @startView.hide()
-      @endView.hide()
+      @startView.element.style.display = 'none'
+      @endView.element.style.display = 'none'
     @pairHighlighted = false
     @tagHighlighted = false
 
