@@ -1,5 +1,6 @@
 _ = require 'underscore-plus'
 {Range, View} = require 'atom'
+{Subscriber} = require 'emissary'
 TagFinder = require './tag-finder'
 
 startPairMatches =
@@ -17,13 +18,21 @@ for startPair, endPair of startPairMatches
   pairRegexes[startPair] = new RegExp("[#{_.escapeRegExp(startPair + endPair)}]", 'g')
 
 module.exports =
-class BracketMatcherView extends View
-  @content: ->
-    @div =>
-      @div class: 'bracket-matcher', style: 'display: none', outlet: 'startView'
-      @div class: 'bracket-matcher', style: 'display: none', outlet: 'endView'
+class BracketMatcherView extends HTMLElement
+  Subscriber.includeInto(this)
+
+  @create: (editorView) ->
+    element = new BracketMatcherElement()
+    element.initialize(editorView)
+    element
 
   initialize: (@editorView) ->
+    @startView = @createPairView()
+    @appendChild(@startView)
+
+    @endView = @createPairView()
+    @appendChild(@endView)
+
     @editor = @editorView.getModel()
     @tagFinder = new TagFinder(@editor)
     @pairHighlighted = false
@@ -70,8 +79,14 @@ class BracketMatcherView extends View
     @subscribeToCommand @editorView, 'bracket-matcher:remove-matching-brackets', =>
       @removeMatchingBrackets()
 
-    @editorView.underlayer.append(this)
+    @editorView.underlayer.element.appendChild(this)
     @updateMatch()
+
+  createPairView: ->
+    pairView = document.createElement('div')
+    pairView.classList.add('bracket-matcher')
+    pairView.style.display = 'none'
+    pairView
 
   subscribeToCursor: ->
     cursor = @editor.getLastCursor()
@@ -87,8 +102,8 @@ class BracketMatcherView extends View
 
   updateMatch: ->
     if @pairHighlighted
-      @startView.element.style.display = 'none'
-      @endView.element.style.display = 'none'
+      @startView.style.display = 'none'
+      @endView.style.display = 'none'
     @pairHighlighted = false
     @tagHighlighted = false
 
@@ -202,12 +217,11 @@ class BracketMatcherView extends View
     startPixelPosition = @editor.pixelPositionForBufferPosition(bufferRange.start)
     endPixelPosition = @editor.pixelPositionForBufferPosition(bufferRange.end)
 
-    [element] = view
-    element.style.display = 'block'
-    element.style.top = "#{startPixelPosition.top}px"
-    element.style.left = "#{startPixelPosition.left}px"
-    element.style.width = "#{endPixelPosition.left - startPixelPosition.left}px"
-    element.style.height = "#{@editorView.lineHeight}px"
+    view.style.display = 'block'
+    view.style.top = "#{startPixelPosition.top}px"
+    view.style.left = "#{startPixelPosition.left}px"
+    view.style.width = "#{endPixelPosition.left - startPixelPosition.left}px"
+    view.style.height = "#{@editorView.lineHeight}px"
 
   moveStartView: (bufferRange) ->
     @moveHighlightView(@startView, bufferRange)
@@ -319,3 +333,5 @@ class BracketMatcherView extends View
 
     if tag = @tagFinder.closingTagForFragments(preFragment, postFragment)
       @editor.insertText("</#{tag}>")
+
+BracketMatcherElement = document.registerElement('bracket-matcher', prototype: BracketMatcherView.prototype, extends: 'div')
