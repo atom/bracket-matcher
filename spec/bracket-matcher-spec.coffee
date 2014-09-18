@@ -913,6 +913,45 @@ describe "bracket matching", ->
           expect(buffer.lineForRow(1)).toBe ''
           expect(buffer.lineForRow(2)).toBe '}'
 
+    describe "when in language specific scope", ->
+      describe "ruby string interpolation", ->
+        beforeEach ->
+          waitsForPromise ->
+            atom.packages.activatePackage("language-ruby")
+
+          runs ->
+            buffer.setPath('foo.rb')
+
+        it "should insert curly braces inside doubly quoted string", ->
+          editor.insertText "foo = "
+          editor.insertText '"'
+          editor.insertText "#"
+          expect(editor.getText()).toBe 'foo = "#{}"'
+
+        it "should not insert curly braces inside singly quoted string", ->
+          editor.insertText "foo = "
+          editor.insertText "'"
+          editor.insertText "#"
+          expect(editor.getText()).toBe "foo = '#'"
+
+        it "should insert curly braces inside % string", ->
+          editor.insertText "foo = %"
+          editor.insertText '('
+          editor.insertText "#"
+          expect(editor.getText()).toBe 'foo = %(#{})'
+
+        it "should not insert curly braces inside non-interpolated % string", ->
+          editor.insertText "foo = %q"
+          editor.insertText "("
+          editor.insertText "#"
+          expect(editor.getText()).toBe "foo = %q(#)"
+
+        it "should insert curly braces inside interpolated symbol", ->
+          editor.insertText "foo = :"
+          editor.insertText '"'
+          editor.insertText "#"
+          expect(editor.getText()).toBe 'foo = :"#{}"'
+
   describe "matching bracket deletion", ->
     it "deletes the end bracket when it directly precedes a begin bracket that is being backspaced", ->
       buffer.setText("")

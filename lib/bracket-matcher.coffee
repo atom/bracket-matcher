@@ -45,6 +45,9 @@ class BracketMatcher
     return true if options?.select or options?.undo is 'skip'
     return false if @isOpeningBracket(text) and @wrapSelectionInBrackets(text)
     return true if @editor.hasMultipleCursors()
+    if text is '#' and _.find(@editor.getCursorScopes(), (scope) -> scope.indexOf("interpolated.ruby") != -1 or scope.indexOf("unquoted.heredoc.ruby") != -1 )?
+      @editor.insertText(text, {'undo': 'skip'})
+      return @insertText('{', options)
 
     cursorBufferPosition = @editor.getCursorBufferPosition()
     previousCharacters = @editor.getTextInBufferRange([cursorBufferPosition.add([0, -2]), cursorBufferPosition])
