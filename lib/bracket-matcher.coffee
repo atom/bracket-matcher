@@ -1,9 +1,12 @@
 _ = require 'underscore-plus'
 {Subscriber} = require 'emissary'
+{ScopeSelector} = require 'first-mate'
 
 module.exports =
 class BracketMatcher
   Subscriber.includeInto(this)
+
+  interpolatedRubySelector = new ScopeSelector("constant.other.symbol.interpolated.ruby | string.quoted.double.interpolated.ruby | string.interpolated.ruby | string.regexp.interpolated.ruby | string.quoted.other.interpolated.ruby | string.unquoted.heredoc.ruby")
 
   defaultPairs:
     '(': ')'
@@ -45,7 +48,7 @@ class BracketMatcher
     return true if options?.select or options?.undo is 'skip'
     return false if @isOpeningBracket(text) and @wrapSelectionInBrackets(text)
     return true if @editor.hasMultipleCursors()
-    if text is '#' and _.find(@editor.getCursorScopes(), (scope) -> scope.indexOf("interpolated.ruby") != -1 or scope.indexOf("unquoted.heredoc.ruby") != -1 )?
+    if text is '#' and interpolatedRubySelector.matches(@editor.getCursorScopes())
       @editor.insertText(text, {'undo': 'skip'})
       return @insertText('{', options)
 
