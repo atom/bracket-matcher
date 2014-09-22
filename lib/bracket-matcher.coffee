@@ -47,10 +47,6 @@ class BracketMatcher
     return false if @isOpeningBracket(text) and @wrapSelectionInBrackets(text)
     return true if @editor.hasMultipleCursors()
 
-    if text is '#' and @isCursorOnRubyInterpolatedString()
-      @editor.insertText(text, undo: 'skip')
-      return @insertText('{', options)
-
     cursorBufferPosition = @editor.getCursorBufferPosition()
     previousCharacters = @editor.getTextInBufferRange([cursorBufferPosition.add([0, -2]), cursorBufferPosition])
     nextCharacter = @editor.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0,1])])
@@ -62,7 +58,14 @@ class BracketMatcher
     hasQuoteBeforeCursor = previousCharacter is text[0]
     hasEscapeSequenceBeforeCursor = previousCharacters.match(/\\/g)?.length >= 1 # To guard against the "\\" sequence
 
-    autoCompleteOpeningBracket = atom.config.get('bracket-matcher.autocompleteBrackets') and @isOpeningBracket(text) and not hasWordAfterCursor and not (@isQuote(text) and (hasWordBeforeCursor or hasQuoteBeforeCursor)) and not hasEscapeSequenceBeforeCursor
+    if text is '#' and @isCursorOnRubyInterpolatedString()
+      autoCompleteOpeningBracket = atom.config.get('bracket-matcher.autocompleteBrackets') and not hasEscapeSequenceBeforeCursor
+      text += '{'
+      pair = '}'
+    else
+      autoCompleteOpeningBracket = atom.config.get('bracket-matcher.autocompleteBrackets') and @isOpeningBracket(text) and not hasWordAfterCursor and not (@isQuote(text) and (hasWordBeforeCursor or hasQuoteBeforeCursor)) and not hasEscapeSequenceBeforeCursor
+      pair = @pairedCharacters[text]
+
     skipOverExistingClosingBracket = false
     if @isClosingBracket(text) and nextCharacter == text and not hasEscapeSequenceBeforeCursor
       if bracketMarker = _.find(@bracketMarkers, (marker) => marker.isValid() and marker.getBufferRange().end.isEqual(cursorBufferPosition))
@@ -74,7 +77,7 @@ class BracketMatcher
       @editor.moveRight()
       false
     else if autoCompleteOpeningBracket
-      @editor.insertText(text + @pairedCharacters[text])
+      @editor.insertText(text + pair)
       @editor.moveLeft()
       range = [cursorBufferPosition, cursorBufferPosition.add([0, text.length])]
       @bracketMarkers.push @editor.markBufferRange(range)
