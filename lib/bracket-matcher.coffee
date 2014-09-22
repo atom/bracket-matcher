@@ -165,8 +165,18 @@ class BracketMatcher
     /['"`]/.test(string)
 
   isCursorOnInterpolatedString: ->
-    @interpolatedRubySelector ?= SelectorCache.get('string.quoted.double.coffee | constant.other.symbol.interpolated.ruby | string.quoted.double.interpolated.ruby | string.interpolated.ruby | string.regexp.interpolated.ruby | string.quoted.other.interpolated.ruby | string.unquoted.heredoc.ruby')
-    @interpolatedRubySelector.matches(@editor.getCursorScopes())
+    unless @interpolatedStringSelector?
+      segments = [
+        'constant.other.symbol.interpolated.ruby'
+        'string.interpolated.ruby'
+        'string.regexp.interpolated.ruby'
+        'string.quoted.double.coffee'
+        'string.quoted.double.interpolated.ruby'
+        'string.quoted.other.interpolated.ruby'
+        'string.unquoted.heredoc.ruby'
+      ]
+      @interpolatedStringSelector = SelectorCache.get(segments.join(' | '))
+    @interpolatedStringSelector.matches(@editor.getCursorScopes())
 
   getInvertedPairedCharacters: ->
     return @invertedPairedCharacters if @invertedPairedCharacters
