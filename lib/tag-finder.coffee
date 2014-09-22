@@ -1,6 +1,6 @@
 {Range} = require 'atom'
 _ = require 'underscore-plus'
-{ScopeSelector} = require 'first-mate'
+SelectorCache = require './selector-cache'
 SelfClosingTags = require './self-closing-tags'
 
 # Helper to find the matching start/end tag for the start/end tag under the
@@ -10,8 +10,8 @@ class TagFinder
   constructor: (@editor) ->
     @tagPattern = /(<(\/?))([^\s>]+)([\s>]|$)/
     @wordRegex = /[^>\r\n]*/
-    @tagSelector = new ScopeSelector('meta.tag | punctuation.definition.tag')
-    @commentSelector = new ScopeSelector('comment.*')
+    @tagSelector = SelectorCache.get('meta.tag | punctuation.definition.tag')
+    @commentSelector = SelectorCache.get('comment.*')
 
   patternForTagName: (tagName) ->
     tagName = _.escapeRegExp(tagName)
