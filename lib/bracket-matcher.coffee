@@ -58,7 +58,7 @@ class BracketMatcher
     hasQuoteBeforeCursor = previousCharacter is text[0]
     hasEscapeSequenceBeforeCursor = previousCharacters.match(/\\/g)?.length >= 1 # To guard against the "\\" sequence
 
-    if text is '#' and @isCursorOnRubyInterpolatedString()
+    if text is '#' and @isCursorOnInterpolatedString()
       autoCompleteOpeningBracket = atom.config.get('bracket-matcher.autocompleteBrackets') and not hasEscapeSequenceBeforeCursor
       text += '{'
       pair = '}'
@@ -164,8 +164,8 @@ class BracketMatcher
   isQuote: (string) ->
     /['"`]/.test(string)
 
-  isCursorOnRubyInterpolatedString: ->
-    @interpolatedRubySelector ?= SelectorCache.get('constant.other.symbol.interpolated.ruby | string.quoted.double.interpolated.ruby | string.interpolated.ruby | string.regexp.interpolated.ruby | string.quoted.other.interpolated.ruby | string.unquoted.heredoc.ruby')
+  isCursorOnInterpolatedString: ->
+    @interpolatedRubySelector ?= SelectorCache.get('string.quoted.double.coffee | constant.other.symbol.interpolated.ruby | string.quoted.double.interpolated.ruby | string.interpolated.ruby | string.regexp.interpolated.ruby | string.quoted.other.interpolated.ruby | string.unquoted.heredoc.ruby')
     @interpolatedRubySelector.matches(@editor.getCursorScopes())
 
   getInvertedPairedCharacters: ->

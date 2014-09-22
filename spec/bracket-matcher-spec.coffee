@@ -914,7 +914,7 @@ describe "bracket matching", ->
           expect(buffer.lineForRow(2)).toBe '}'
 
     describe "when in language specific scope", ->
-      describe "ruby string interpolation", ->
+      describe "string interpolation", ->
         beforeEach ->
           waitsForPromise ->
             atom.packages.activatePackage("language-ruby")
