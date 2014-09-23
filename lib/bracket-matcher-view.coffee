@@ -87,8 +87,8 @@ class BracketMatcherView extends View
 
   updateMatch: ->
     if @pairHighlighted
-      @startView.hide()
-      @endView.hide()
+      @startView.element.style.display = 'none'
+      @endView.element.style.display = 'none'
     @pairHighlighted = false
     @tagHighlighted = false
 
@@ -202,12 +202,11 @@ class BracketMatcherView extends View
     startPixelPosition = @editor.pixelPositionForBufferPosition(bufferRange.start)
     endPixelPosition = @editor.pixelPositionForBufferPosition(bufferRange.end)
 
-    [element] = view
-    element.style.display = 'block'
-    element.style.top = "#{startPixelPosition.top}px"
-    element.style.left = "#{startPixelPosition.left}px"
-    element.style.width = "#{endPixelPosition.left - startPixelPosition.left}px"
-    element.style.height = "#{@editorView.lineHeight}px"
+    view.element.style.display = ''
+    view.element.style.top = "#{startPixelPosition.top}px"
+    view.element.style.left = "#{startPixelPosition.left}px"
+    view.element.style.width = "#{endPixelPosition.left - startPixelPosition.left}px"
+    view.element.style.height = "#{@editorView.lineHeight}px"
 
   moveStartView: (bufferRange) ->
     @moveHighlightView(@startView, bufferRange)
