@@ -167,12 +167,10 @@ class BracketMatcher
   isCursorOnInterpolatedString: ->
     unless @interpolatedStringSelector?
       segments = [
-        'constant.other.symbol.interpolated.ruby'
+        '*.*.*.interpolated.ruby'
         'string.interpolated.ruby'
         'string.regexp.interpolated.ruby'
         'string.quoted.double.coffee'
-        'string.quoted.double.interpolated.ruby'
-        'string.quoted.other.interpolated.ruby'
         'string.unquoted.heredoc.ruby'
       ]
       @interpolatedStringSelector = SelectorCache.get(segments.join(' | '))
