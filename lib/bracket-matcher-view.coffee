@@ -44,9 +44,6 @@ class BracketMatcherView extends View
         @updateHighlights = false
         @updateMatch()
 
-    @subscribe @editorView, 'editor:min-width-changed', =>
-      @updateHighlights = true if @editor.getSoftWrap()
-
     @subscribe @editor, 'soft-wrap-changed', =>
       @updateHighlights = true
 
