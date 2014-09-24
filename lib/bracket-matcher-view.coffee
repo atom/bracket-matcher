@@ -104,8 +104,8 @@ class BracketMatcherView extends View
         matchPosition = @findMatchingStartPair(position, matchingPair, currentPair)
 
     if position? and matchPosition?
-      @moveStartView([position, position.translate([0, 1])])
-      @moveEndView([matchPosition, matchPosition.translate([0, 1])])
+      @moveStartView([position, position.add([0, 1])])
+      @moveEndView([matchPosition, matchPosition.add([0, 1])])
       @pairHighlighted = true
     else
       if pair = @tagFinder.findMatchingTags()
@@ -137,7 +137,7 @@ class BracketMatcherView extends View
           # if on the same line and the cursor is in front of an end pair
           # offset by one to make up for the missing character
           if position.row is matchPosition.row and endPairMatches.hasOwnProperty(currentPair)
-            position = position.translate([0, -1])
+            position = position.add([0, -1])
           @editor.setCursorBufferPosition(position)
           @editor.delete()
         else
@@ -146,7 +146,7 @@ class BracketMatcherView extends View
         @editor.backspace()
 
   findMatchingEndPair: (startPairPosition, startPair, endPair) ->
-    scanRange = new Range(startPairPosition.translate([0, 1]), @editor.buffer.getEndPosition())
+    scanRange = new Range(startPairPosition.add([0, 1]), @editor.buffer.getEndPosition())
     endPairPosition = null
     unpairedCount = 0
     @editor.scanInBufferRange pairRegexes[startPair], scanRange, ({match, range, stop}) ->
@@ -218,7 +218,7 @@ class BracketMatcherView extends View
     position = @editor.getCursorBufferPosition()
     currentPair = @editor.getTextInRange(Range.fromPointWithDelta(position, 0, 1))
     unless matches[currentPair]
-      position = position.translate([0, -1])
+      position = position.add([0, -1])
       currentPair = @editor.getTextInRange(Range.fromPointWithDelta(position, 0, 1))
     if matchingPair = matches[currentPair]
       {position, currentPair, matchingPair}
@@ -238,30 +238,32 @@ class BracketMatcherView extends View
       if startRange.compare(endRange) > 0
         [startRange, endRange] = [endRange, startRange]
 
-      startRange = startRange.translate([0, -1]) # include the <
-      endRange = endRange.translate([0, -2]) # include the </
+      # include the <
+      startRange = new Range(startRange.start.add([0, -1]), endRange.end.add([0, -1]))
+      # include the </
+      endRange = new Range(endRange.start.add([0, -2]), endRange.end.add([0, -2]))
 
       if position.isLessThan(endRange.start)
         tagCharacterOffset = position.column - startRange.start.column
         tagCharacterOffset++ if tagCharacterOffset > 0
         tagCharacterOffset = Math.min(tagCharacterOffset, tagLength + 2) # include </
-        @editor.setCursorBufferPosition(endRange.start.translate([0, tagCharacterOffset]))
+        @editor.setCursorBufferPosition(endRange.start.add([0, tagCharacterOffset]))
       else
         tagCharacterOffset = position.column - endRange.start.column
         tagCharacterOffset-- if tagCharacterOffset > 1
         tagCharacterOffset = Math.min(tagCharacterOffset, tagLength + 1) # include <
-        @editor.setCursorBufferPosition(startRange.start.translate([0, tagCharacterOffset]))
+        @editor.setCursorBufferPosition(startRange.start.add([0, tagCharacterOffset]))
     else
-      previousPosition = position.translate([0, -1])
+      previousPosition = position.add([0, -1])
       startPosition = @startView.bufferPosition
       endPosition = @endView.bufferPosition
 
       if position.isEqual(startPosition)
-        @editor.setCursorBufferPosition(endPosition.translate([0, 1]))
+        @editor.setCursorBufferPosition(endPosition.add([0, 1]))
       else if previousPosition.isEqual(startPosition)
         @editor.setCursorBufferPosition(endPosition)
       else if position.isEqual(endPosition)
-        @editor.setCursorBufferPosition(startPosition.translate([0, 1]))
+        @editor.setCursorBufferPosition(startPosition.add([0, 1]))
       else if previousPosition.isEqual(endPosition)
         @editor.setCursorBufferPosition(startPosition)
 
@@ -289,7 +291,7 @@ class BracketMatcherView extends View
 
       if @tagHighlighted
         startPosition = startRange.end
-        endPosition = endRange.start.translate([0, -2]) # Don't select </
+        endPosition = endRange.start.add([0, -2]) # Don't select </
       else
         startPosition = startRange.start
         endPosition = endRange.start
@@ -302,10 +304,10 @@ class BracketMatcherView extends View
         if startRange.compare(endRange) > 0
           [startRange, endRange] = [endRange, startRange]
         startPosition = startRange.end
-        endPosition = endRange.start.translate([0, -2]) # Don't select </
+        endPosition = endRange.start.add([0, -2]) # Don't select </
 
     if startPosition? and endPosition?
-      rangeToSelect = new Range(startPosition, endPosition).translate([0, 1], [0, 0])
+      rangeToSelect = new Range(startPosition.add([0, 1]), endPosition)
       @editor.setSelectedBufferRange(rangeToSelect)
 
   # Insert at the current cursor position a closing tag if there exists an
