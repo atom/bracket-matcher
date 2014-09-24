@@ -26,7 +26,7 @@ class TagFinder
     @tagSelector.matches(scopes)
 
   isCursorOnTag: ->
-    @tagSelector.matches(@editor.getCursorScopes())
+    @tagSelector.matches(@editor.scopesAtCursor())
 
   findStartTag: (tagName, endPosition) ->
     scanRange = new Range([0, 0], endPosition)

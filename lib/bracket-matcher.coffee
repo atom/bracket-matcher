@@ -174,7 +174,7 @@ class BracketMatcher
         'string.unquoted.heredoc.ruby'
       ]
       @interpolatedStringSelector = SelectorCache.get(segments.join(' | '))
-    @interpolatedStringSelector.matches(@editor.getCursorScopes())
+    @interpolatedStringSelector.matches(@editor.scopesAtCursor())
 
   getInvertedPairedCharacters: ->
     return @invertedPairedCharacters if @invertedPairedCharacters
