@@ -954,6 +954,30 @@ describe "bracket matching", ->
           editor.insertText "#"
           expect(editor.getText()).toBe 'foo = :"#{}"'
 
+        it 'wraps the selection in the interpolation brackets when the selection is a single line', ->
+          editor.setText 'foo = "a bar"'
+          editor.setSelectedBufferRange([[0,9], [0,12]])
+
+          editor.insertText '#'
+          expect(editor.getText()).toBe 'foo = "a #{bar}"'
+          expect(editor.getSelectedBufferRange()).toEqual [[0,11], [0,14]]
+
+          editor.undo()
+          expect(editor.getText()).toBe 'foo = "a bar"'
+          expect(editor.getSelectedBufferRange()).toEqual [[0,9], [0,12]]
+
+        it 'does not wrap the selection in the interpolation brackets when the selection is mutli-line', ->
+          editor.setText 'foo = "a bar"\nfoo = "a bar"'
+          editor.setSelectedBufferRange([[0,9], [1,12]])
+
+          editor.insertText '#'
+          expect(editor.getText()).toBe 'foo = "a #{}"'
+          expect(editor.getSelectedBufferRange()).toEqual [[0,11], [0,11]]
+
+          editor.undo()
+          expect(editor.getText()).toBe 'foo = "a bar"\nfoo = "a bar"'
+          expect(editor.getSelectedBufferRange()).toEqual [[0,9], [1,12]]
+
   describe "matching bracket deletion", ->
     it "deletes the end bracket when it directly precedes a begin bracket that is being backspaced", ->
       buffer.setText("")

@@ -44,7 +44,7 @@ class BracketMatcher
 
   insertText: (text, options) =>
     return true if options?.select or options?.undo is 'skip'
-    return false if @isOpeningBracket(text) and @wrapSelectionInBrackets(text)
+    return false if @wrapSelectionInBrackets(text)
     return true if @editor.hasMultipleCursors()
 
     cursorBufferPosition = @editor.getCursorBufferPosition()
@@ -143,18 +143,28 @@ class BracketMatcher
   wrapSelectionInBrackets: (bracket) ->
     return false unless atom.config.get('bracket-matcher.wrapSelectionsInBrackets')
 
-    pair = @pairedCharacters[bracket]
+    if bracket is '#'
+      return false unless @isCursorOnInterpolatedString()
+      bracket = '#{'
+      pair = '}'
+    else
+      return false unless @isOpeningBracket(bracket)
+      pair = @pairedCharacters[bracket]
+
     selectionWrapped = false
     @editor.mutateSelectedText (selection) ->
       return if selection.isEmpty()
+
+      # Don't wrap in #{} if the selection spans more than one line
+      return if bracket is '#{' and not selection.getBufferRange().isSingleLine()
 
       selectionWrapped = true
       range = selection.getBufferRange()
       options = reversed: selection.isReversed()
       selection.insertText("#{bracket}#{selection.getText()}#{pair}")
-      selectionStart = range.start.add([0, 1])
+      selectionStart = range.start.add([0, bracket.length])
       if range.start.row is range.end.row
-        selectionEnd = range.end.add([0, 1])
+        selectionEnd = range.end.add([0, bracket.length])
       else
         selectionEnd = range.end
       selection.setBufferRange([selectionStart, selectionEnd], options)
