@@ -132,7 +132,7 @@ class TagFinder
   #
   # Returns a string with the name of the most recent unclosed tag.
   tagsNotClosedInFragment: (fragment) ->
-    @parseFragment fragment, [], /<(\w+)|<\/(\w+)/, -> true
+    @parseFragment fragment, [], /<(\w[-\w]*)|<\/(\w[-\w]*)/, -> true
 
   # Parses the given fragment of html code and returns true if the given tag
   # has a matching closing tag in it. If tag is reopened and reclosed in the
@@ -143,8 +143,9 @@ class TagFinder
 
     stack = tags
     stackLength = stack.length
-    tag = _.escapeRegExp(tags[tags.length-1])
-    matchExpr = new RegExp("<(#{tag})|<\/(#{tag})")
+    tag = tags[tags.length-1]
+    escapedTag = _.escapeRegExp(tag)
+    matchExpr = new RegExp("<(#{escapedTag})|<\/(#{escapedTag})")
     stack = @parseFragment fragment, stack, matchExpr, (s) ->
       s.length >= stackLength or s[s.length-1] is tag
 

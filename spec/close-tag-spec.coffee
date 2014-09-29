@@ -68,3 +68,8 @@ describe 'closeTag', ->
       preFragment = "<html><head></head><body><h1></h1><p>"
       postFragment = "</p></body></html>"
       expect(tagFinder.closingTagForFragments(preFragment, postFragment)).toBe(null)
+
+    it "correctly closes tags containing hyphens", ->
+      preFragment = "<html><head></head><body><h1></h1><my-element>"
+      postFragment = "</body></html>"
+      expect(tagFinder.closingTagForFragments(preFragment, postFragment)).toBe("my-element")
