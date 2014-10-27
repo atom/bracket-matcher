@@ -6,6 +6,11 @@ module.exports =
 class BracketMatcher
   Subscriber.includeInto(this)
 
+  pairsToIndent:
+    '(': ')'
+    '[': ']'
+    '{': '}'
+
   defaultPairs:
     '(': ')'
     '[': ']'
@@ -94,7 +99,7 @@ class BracketMatcher
     previousCharacter = previousCharacters.slice(-1)
 
     hasEscapeSequenceBeforeCursor = previousCharacters.match(/\\/g)?.length >= 1 # To guard against the "\\" sequence
-    if @pairedCharacters[previousCharacter] is nextCharacter and not hasEscapeSequenceBeforeCursor
+    if @pairsToIndent[previousCharacter] is nextCharacter and not hasEscapeSequenceBeforeCursor
       @editor.transact =>
         @editor.insertText "\n\n"
         @editor.moveUp()
