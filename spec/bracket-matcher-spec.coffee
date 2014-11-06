@@ -121,7 +121,7 @@ describe "bracket matching", ->
     describe "when the soft wrap setting changes on the editor", ->
       it "repositions the highlights", ->
         editorView.setWidthInChars(200)
-        editor.setSoftWrap(true)
+        editor.setSoftWrapped(true)
         editor.moveToBottom()
         editor.moveLeft()
         editorView.setWidthInChars(23)
@@ -130,7 +130,7 @@ describe "bracket matching", ->
         expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editor.pixelPositionForBufferPosition([12,0])
         expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editor.pixelPositionForBufferPosition([0,28])
 
-        editor.setSoftWrap(false)
+        editor.setSoftWrapped(false)
         expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
         expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editor.pixelPositionForBufferPosition([12,0])
         expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editor.pixelPositionForBufferPosition([0,28])

@@ -33,10 +33,10 @@ class BracketMatcherView extends View
     @subscribe atom.config.observe 'editor.fontSize', =>
       @updateMatch()
 
-    @subscribe @editor.getBuffer(), 'changed', =>
+    @subscribe @editor.getBuffer().onDidChange =>
       @updateHighlights = true
 
-    @subscribe @editor, 'screen-lines-changed', =>
+    @subscribe @editor.onDidChange =>
       @updateHighlights = true
 
     @subscribe @editorView, 'editor:display-updated', =>
@@ -44,10 +44,10 @@ class BracketMatcherView extends View
         @updateHighlights = false
         @updateMatch()
 
-    @subscribe @editor, 'soft-wrap-changed', =>
+    @subscribe @editor.onDidChangeSoftWrapped =>
       @updateHighlights = true
 
-    @subscribe @editor, 'grammar-changed', =>
+    @subscribe @editor.onDidChangeGrammar =>
       @updateHighlights = true
 
     @subscribeToCursor()
@@ -74,10 +74,10 @@ class BracketMatcherView extends View
     cursor = @editor.getLastCursor()
     return unless cursor?
 
-    @subscribe cursor, 'moved', =>
+    @subscribe cursor.onDidChangePosition =>
       @updateMatch()
 
-    @subscribe cursor, 'destroyed', =>
+    @subscribe cursor.onDidDestroy =>
       @unsubscribe(cursor)
       @subscribeToCursor()
       @updateMatch() if @editor.isAlive()
