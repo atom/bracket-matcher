@@ -11,6 +11,7 @@
   "dependencies": {
     "emissary": "1.x",
     "first-mate": "2.x",
+    "event-kit": "^0.8.0",
     "underscore-plus": "1.x"
   }
 }

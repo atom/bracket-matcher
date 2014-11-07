@@ -1,11 +1,9 @@
 _ = require 'underscore-plus'
-{Subscriber} = require 'emissary'
+{CompositeDisposable} = require 'event-kit'
 SelectorCache = require './selector-cache'
 
 module.exports =
 class BracketMatcher
-  Subscriber.includeInto(this)
-
   pairsToIndent:
     '(': ')'
     '[': ']'
@@ -33,19 +31,22 @@ class BracketMatcher
 
   constructor: (editorView) ->
     {@editor} = editorView
+    editorElement = editorView.element
+
+    @subscriptions = new CompositeDisposable
     @bracketMarkers = []
 
     _.adviseBefore(@editor, 'insertText', @insertText)
     _.adviseBefore(@editor, 'insertNewline', @insertNewline)
     _.adviseBefore(@editor, 'backspace', @backspace)
 
-    @subscribe editorView.command 'bracket-matcher:remove-brackets-from-selection', (event) =>
+    @subscriptions.add atom.commands.add editorElement, 'bracket-matcher:remove-brackets-from-selection', (event) =>
       event.abortKeyBinding() unless @removeBrackets()
 
-    @subscribe atom.config.observe 'bracket-matcher.autocompleteSmartQuotes', (newValue) =>
+    @subscriptions.add atom.config.observe 'bracket-matcher.autocompleteSmartQuotes', (newValue) =>
       @toggleQuotes(newValue)
 
-    @subscribe @editor, 'destroyed', => @unsubscribe()
+    @subscriptions.add @editor.on 'destroyed', => @unsubscribe()
 
   insertText: (text, options) =>
     return true if options?.select or options?.undo is 'skip'
@@ -211,3 +212,6 @@ class BracketMatcher
     firstCharacter = selectedText[0]
     lastCharacter = selectedText[selectedText.length - 1]
     @pairedCharacters[firstCharacter] is lastCharacter
+
+  unsubscribe: ->
+    @subscriptions.dispose()

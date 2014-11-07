@@ -1,3 +1,4 @@
+{CompositeDisposable} = require 'event-kit'
 _ = require 'underscore-plus'
 {Range, View} = require 'atom'
 TagFinder = require './tag-finder'
@@ -25,46 +26,49 @@ class BracketMatcherView extends View
 
   initialize: (@editorView) ->
     @editor = @editorView.getModel()
+    editorElement = @editorView.element
+
+    @subscriptions = new CompositeDisposable
     @tagFinder = new TagFinder(@editor)
     @pairHighlighted = false
     @tagHighlighted = false
     @updateHighlights = false
 
-    @subscribe atom.config.observe 'editor.fontSize', =>
+    @subscriptions.add atom.config.observe 'editor.fontSize', =>
       @updateMatch()
 
-    @subscribe @editor.getBuffer().onDidChange =>
+    @subscriptions.add @editor.getBuffer().onDidChange =>
       @updateHighlights = true
 
-    @subscribe @editor.onDidChange =>
+    @subscriptions.add @editor.onDidChange =>
       @updateHighlights = true
 
-    @subscribe @editorView, 'editor:display-updated', =>
+    @subscriptions.add @editorView.on 'editor:display-updated', =>
       if @updateHighlights
         @updateHighlights = false
         @updateMatch()
 
-    @subscribe @editor.onDidChangeSoftWrapped =>
+    @subscriptions.add @editor.onDidChangeSoftWrapped =>
       @updateHighlights = true
 
-    @subscribe @editor.onDidChangeGrammar =>
+    @subscriptions.add @editor.onDidChangeGrammar =>
       @updateHighlights = true
 
     @subscribeToCursor()
 
-    @subscribeToCommand @editorView, 'bracket-matcher:go-to-matching-bracket', =>
+    @subscriptions.add atom.commands.add editorElement, 'bracket-matcher:go-to-matching-bracket', =>
       @goToMatchingPair()
 
-    @subscribeToCommand @editorView, 'bracket-matcher:go-to-enclosing-bracket', =>
+    @subscriptions.add atom.commands.add editorElement, 'bracket-matcher:go-to-enclosing-bracket', =>
       @goToEnclosingPair()
 
-    @subscribeToCommand @editorView, 'bracket-matcher:select-inside-brackets', =>
+    @subscriptions.add atom.commands.add editorElement, 'bracket-matcher:select-inside-brackets', =>
       @selectInsidePair()
 
-    @subscribeToCommand @editorView, 'bracket-matcher:close-tag', =>
+    @subscriptions.add atom.commands.add editorElement, 'bracket-matcher:close-tag', =>
       @closeTag()
 
-    @subscribeToCommand @editorView, 'bracket-matcher:remove-matching-brackets', =>
+    @subscriptions.add atom.commands.add editorElement, 'bracket-matcher:remove-matching-brackets', =>
       @removeMatchingBrackets()
 
     @editorView.underlayer.append(this)
@@ -74,11 +78,12 @@ class BracketMatcherView extends View
     cursor = @editor.getLastCursor()
     return unless cursor?
 
-    @subscribe cursor.onDidChangePosition =>
+    cursorSubscriptions = new CompositeDisposable
+    cursorSubscriptions.add cursor.onDidChangePosition =>
       @updateMatch()
 
-    @subscribe cursor.onDidDestroy =>
-      @unsubscribe(cursor)
+    cursorSubscriptions.add cursor.onDidDestroy =>
+      cursorSubscriptions.dispose()
       @subscribeToCursor()
       @updateMatch() if @editor.isAlive()
 
