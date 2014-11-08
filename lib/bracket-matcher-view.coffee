@@ -24,9 +24,8 @@ class BracketMatcherView extends View
       @div class: 'bracket-matcher', style: 'display: none', outlet: 'startView'
       @div class: 'bracket-matcher', style: 'display: none', outlet: 'endView'
 
-  initialize: (@editorView) ->
-    @editor = @editorView.getModel()
-    editorElement = @editorView.element
+  initialize: (@editor, editorElement) ->
+    @editorView = editorElement.__spacePenView
 
     @subscriptions = new CompositeDisposable
     @tagFinder = new TagFinder(@editor)

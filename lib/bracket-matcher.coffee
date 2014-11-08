@@ -29,10 +29,7 @@ class BracketMatcher
     else
       @pairedCharacters = @defaultPairs
 
-  constructor: (editorView) ->
-    {@editor} = editorView
-    editorElement = editorView.element
-
+  constructor: (@editor, editorElement) ->
     @subscriptions = new CompositeDisposable
     @bracketMarkers = []
 
