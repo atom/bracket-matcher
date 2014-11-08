@@ -18,40 +18,20 @@ for startPair, endPair of startPairMatches
   pairRegexes[startPair] = new RegExp("[#{_.escapeRegExp(startPair + endPair)}]", 'g')
 
 module.exports =
-class BracketMatcherView extends View
-  @content: ->
-    @div =>
-      @div class: 'bracket-matcher', style: 'display: none', outlet: 'startView'
-      @div class: 'bracket-matcher', style: 'display: none', outlet: 'endView'
-
-  initialize: (@editor, editorElement) ->
+class BracketMatcherView
+  constructor: (@editor, editorElement) ->
     @editorView = editorElement.__spacePenView
 
     @subscriptions = new CompositeDisposable
     @tagFinder = new TagFinder(@editor)
     @pairHighlighted = false
     @tagHighlighted = false
-    @updateHighlights = false
-
-    @subscriptions.add atom.config.observe 'editor.fontSize', =>
-      @updateMatch()
-
-    @subscriptions.add @editor.getBuffer().onDidChange =>
-      @updateHighlights = true
 
     @subscriptions.add @editor.onDidChange =>
-      @updateHighlights = true
-
-    @subscriptions.add @editorView.on 'editor:display-updated', =>
-      if @updateHighlights
-        @updateHighlights = false
-        @updateMatch()
-
-    @subscriptions.add @editor.onDidChangeSoftWrapped =>
-      @updateHighlights = true
+      @updateMatch()
 
     @subscriptions.add @editor.onDidChangeGrammar =>
-      @updateHighlights = true
+      @updateMatch()
 
     @subscribeToCursor()
 
@@ -70,7 +50,6 @@ class BracketMatcherView extends View
     @subscriptions.add atom.commands.add editorElement, 'bracket-matcher:remove-matching-brackets', =>
       @removeMatchingBrackets()
 
-    @editorView.underlayer.append(this)
     @updateMatch()
 
   subscribeToCursor: ->
@@ -88,8 +67,9 @@ class BracketMatcherView extends View
 
   updateMatch: ->
     if @pairHighlighted
-      @startView.element.style.display = 'none'
-      @endView.element.style.display = 'none'
+      @editor.destroyMarker(@startMarker.id)
+      @editor.destroyMarker(@endMarker.id)
+
     @pairHighlighted = false
     @tagHighlighted = false
 
@@ -105,13 +85,13 @@ class BracketMatcherView extends View
         matchPosition = @findMatchingStartPair(position, matchingPair, currentPair)
 
     if position? and matchPosition?
-      @moveStartView([position, position.add([0, 1])])
-      @moveEndView([matchPosition, matchPosition.add([0, 1])])
+      @startMarker = @createMarker([position, position.add([0, 1])])
+      @endMarker = @createMarker([matchPosition, matchPosition.add([0, 1])])
       @pairHighlighted = true
     else
       if pair = @tagFinder.findMatchingTags()
-        @moveStartView(pair.startRange)
-        @moveEndView(pair.endRange)
+        @startMarker = @createMarker(pair.startRange)
+        @endMarker = @createMarker(pair.endRange)
         @pairHighlighted = true
         @tagHighlighted = true
 
@@ -195,25 +175,10 @@ class BracketMatcherView extends View
         stop() if unpairedCount < 0
      startPosition
 
-  moveHighlightView: (view, bufferRange) ->
-    bufferRange = Range.fromObject(bufferRange)
-    view.bufferPosition = bufferRange.start
-    view.bufferRange = bufferRange
-
-    startPixelPosition = @editor.pixelPositionForBufferPosition(bufferRange.start)
-    endPixelPosition = @editor.pixelPositionForBufferPosition(bufferRange.end)
-
-    view.element.style.display = ''
-    view.element.style.top = "#{startPixelPosition.top}px"
-    view.element.style.left = "#{startPixelPosition.left}px"
-    view.element.style.width = "#{endPixelPosition.left - startPixelPosition.left}px"
-    view.element.style.height = "#{@editorView.lineHeight}px"
-
-  moveStartView: (bufferRange) ->
-    @moveHighlightView(@startView, bufferRange)
-
-  moveEndView: (bufferRange) ->
-    @moveHighlightView(@endView, bufferRange)
+  createMarker: (bufferRange) ->
+    marker = @editor.markBufferRange(bufferRange)
+    @editor.decorateMarker(marker, type: 'highlight', class: 'bracket-matcher')
+    marker
 
   findCurrentPair: (matches) ->
     position = @editor.getCursorBufferPosition()
@@ -233,9 +198,9 @@ class BracketMatcherView extends View
     position = @editor.getCursorBufferPosition()
 
     if @tagHighlighted
-      startRange = @startView.bufferRange
+      startRange = @startMarker.getBufferRange()
       tagLength = startRange.end.column - startRange.start.column
-      endRange = @endView.bufferRange
+      endRange = @endMarker.getBufferRange()
       if startRange.compare(endRange) > 0
         [startRange, endRange] = [endRange, startRange]
 
@@ -256,8 +221,8 @@ class BracketMatcherView extends View
         @editor.setCursorBufferPosition(startRange.start.add([0, tagCharacterOffset]))
     else
       previousPosition = position.add([0, -1])
-      startPosition = @startView.bufferPosition
-      endPosition = @endView.bufferPosition
+      startPosition = @startMarker.getStartBufferPosition()
+      endPosition = @endMarker.getStartBufferPosition()
 
       if position.isEqual(startPosition)
         @editor.setCursorBufferPosition(endPosition.add([0, 1]))
@@ -284,8 +249,8 @@ class BracketMatcherView extends View
     return unless @editorView.underlayer.isVisible()
 
     if @pairHighlighted
-      startRange = @startView.bufferRange
-      endRange = @endView.bufferRange
+      startRange = @startMarker.getBufferRange()
+      endRange = @endMarker.getBufferRange()
 
       if startRange.compare(endRange) > 0
         [startRange, endRange] = [endRange, startRange]

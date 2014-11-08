@@ -29,10 +29,10 @@ describe "bracket matching", ->
 
   describe "matching bracket highlighting", ->
     expectNoHighlights = ->
-      expect(editorView.underlayer.find('.bracket-matcher:visible')).not.toExist()
+      expect(editorView.find('.bracket-matcher')).not.toExist()
 
     expectHighlights = (startBufferPosition, endBufferPosition) ->
-      highlights = editorView.underlayer.find('.bracket-matcher:visible')
+      highlights = editorView.find('.bracket-matcher .region:first-child')
       expect(highlights.length).toBe(2)
 
       expect(highlights.eq(0).position()).toEqual(editor.pixelPositionForBufferPosition(startBufferPosition))
