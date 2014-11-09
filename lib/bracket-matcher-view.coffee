@@ -20,8 +20,6 @@ for startPair, endPair of startPairMatches
 module.exports =
 class BracketMatcherView
   constructor: (@editor, editorElement) ->
-    @editorView = editorElement.__spacePenView
-
     @subscriptions = new CompositeDisposable
     @tagFinder = new TagFinder(@editor)
     @pairHighlighted = false
@@ -193,8 +191,6 @@ class BracketMatcherView
 
   goToMatchingPair: ->
     return @goToEnclosingPair() unless @pairHighlighted
-    return unless @editorView.underlayer.isVisible()
-
     position = @editor.getCursorBufferPosition()
 
     if @tagHighlighted
@@ -235,7 +231,6 @@ class BracketMatcherView
 
   goToEnclosingPair: ->
     return if @pairHighlighted
-    return unless @editorView.underlayer.isVisible()
 
     if matchPosition = @findAnyStartPair(@editor.getCursorBufferPosition())
       @editor.setCursorBufferPosition(matchPosition)
@@ -246,8 +241,6 @@ class BracketMatcherView
       @editor.setCursorBufferPosition(pair.startRange.start)
 
   selectInsidePair: ->
-    return unless @editorView.underlayer.isVisible()
-
     if @pairHighlighted
       startRange = @startMarker.getBufferRange()
       endRange = @endMarker.getBufferRange()
