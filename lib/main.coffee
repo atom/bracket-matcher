@@ -2,10 +2,16 @@ BracketMatcher = require './bracket-matcher'
 BracketMatcherView = require './bracket-matcher-view'
 
 module.exports =
-  configDefaults:
-    autocompleteBrackets: true
-    autocompleteSmartQuotes: true
-    wrapSelectionsInBrackets: true
+  config:
+    autocompleteBrackets:
+      type: 'boolean'
+      default: true
+    autocompleteSmartQuotes:
+      type: 'boolean'
+      default: true
+    wrapSelectionsInBrackets:
+      type: 'boolean'
+      default: true
 
   activate: ->
     atom.workspaceView.eachEditorView (editorView) ->
