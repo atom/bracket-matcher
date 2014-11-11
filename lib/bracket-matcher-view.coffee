@@ -175,7 +175,7 @@ class BracketMatcherView
 
   createMarker: (bufferRange) ->
     marker = @editor.markBufferRange(bufferRange)
-    @editor.decorateMarker(marker, type: 'highlight', class: 'bracket-matcher')
+    @editor.decorateMarker(marker, type: 'highlight', class: 'bracket-matcher', deprecatedRegionClass: 'bracket-matcher')
     marker
 
   findCurrentPair: (matches) ->
