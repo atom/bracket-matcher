@@ -1,7 +1,7 @@
 {WorkspaceView} = require 'atom'
 
 describe "bracket matching", ->
-  [editorView, editor, buffer] = []
+  [editorView, editorElement, editor, buffer] = []
 
   beforeEach ->
     atom.config.set 'bracket-matcher.autocompleteBrackets', true
@@ -23,100 +23,95 @@ describe "bracket matching", ->
 
     runs ->
       editorView = atom.workspaceView.getActiveView()
+      editorElement = editorView.element
       editor = editorView.getModel()
       buffer = editor.getBuffer()
 
   describe "matching bracket highlighting", ->
+    expectNoHighlights = ->
+      expect(editorView.find('.bracket-matcher')).not.toExist()
+
+    expectHighlights = (startBufferPosition, endBufferPosition) ->
+      highlights = editorView.find('.bracket-matcher .region:first-child')
+      expect(highlights.length).toBe(2)
+
+      expect(highlights.eq(0).position()).toEqual(editor.pixelPositionForBufferPosition(startBufferPosition))
+      expect(highlights.eq(0).width()).toBeGreaterThan(0)
+      expect(highlights.eq(0).height()).toBeGreaterThan(0)
+
+      expect(highlights.eq(1).position()).toEqual(editor.pixelPositionForBufferPosition(endBufferPosition))
+      expect(highlights.eq(1).width()).toBeGreaterThan(0)
+      expect(highlights.eq(1).height()).toBeGreaterThan(0)
+
     describe "when the cursor is before a starting pair", ->
       it "highlights the starting pair and ending pair", ->
         editor.moveToEndOfLine()
         editor.moveLeft()
-        expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
-        expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editor.pixelPositionForBufferPosition([0,28])
-        expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editor.pixelPositionForBufferPosition([12,0])
-
-        expect(editorView.underlayer.find('.bracket-matcher:first').width()).toBeGreaterThan 0
-        expect(editorView.underlayer.find('.bracket-matcher:last').width()).toBeGreaterThan 0
-        expect(editorView.underlayer.find('.bracket-matcher:first').height()).toBeGreaterThan 0
-        expect(editorView.underlayer.find('.bracket-matcher:last').height()).toBeGreaterThan 0
+        expectHighlights([0,28], [12,0])
 
     describe "when the cursor is after a starting pair", ->
       it "highlights the starting pair and ending pair", ->
         editor.moveToEndOfLine()
-        expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
-        expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editor.pixelPositionForBufferPosition([0,28])
-        expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editor.pixelPositionForBufferPosition([12,0])
+        expectHighlights([0,28], [12,0])
 
     describe "when the cursor is before an ending pair", ->
       it "highlights the starting pair and ending pair", ->
         editor.moveToBottom()
         editor.moveLeft()
         editor.moveLeft()
-        expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
-        expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editor.pixelPositionForBufferPosition([12,0])
-        expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editor.pixelPositionForBufferPosition([0,28])
+        expectHighlights([12,0], [0,28])
 
     describe "when the cursor is after an ending pair", ->
       it "highlights the starting pair and ending pair", ->
         editor.moveToBottom()
         editor.moveLeft()
-        expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
-        expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editor.pixelPositionForBufferPosition([12,0])
-        expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editor.pixelPositionForBufferPosition([0,28])
+        expectHighlights([12,0], [0,28])
 
     describe "when there are unpaired brackets", ->
       it "highlights the correct start/end pairs", ->
         editor.setText '(()'
         editor.setCursorBufferPosition([0,0])
-        expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 0
+        expectNoHighlights()
 
         editor.setCursorBufferPosition([0,1])
-        expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
-        expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editor.pixelPositionForBufferPosition([0,1])
-        expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editor.pixelPositionForBufferPosition([0,2])
+        expectHighlights([0,1], [0,2])
 
         editor.setCursorBufferPosition([0,2])
-        expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
-        expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editor.pixelPositionForBufferPosition([0,1])
-        expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editor.pixelPositionForBufferPosition([0,2])
+        expectHighlights([0,1], [0,2])
 
         editor.setText ('())')
         editor.setCursorBufferPosition([0,0])
-        expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
-        expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editor.pixelPositionForBufferPosition([0,0])
-        expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editor.pixelPositionForBufferPosition([0,1])
+        expectHighlights([0,0], [0,1])
 
         editor.setCursorBufferPosition([0,1])
-        expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
-        expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editor.pixelPositionForBufferPosition([0,0])
-        expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editor.pixelPositionForBufferPosition([0,1])
+        expectHighlights([0,0], [0,1])
 
         editor.setCursorBufferPosition([0,2])
-        expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 0
+        expectNoHighlights()
 
     describe "when the cursor is moved off a pair", ->
       it "removes the starting pair and ending pair highlights", ->
         editor.moveToEndOfLine()
-        expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
+        expectHighlights([0,28], [12,0])
+
         editor.moveToBeginningOfLine()
-        expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 0
+        expectNoHighlights()
 
     describe "when the pair moves", ->
       it "repositions the highlights", ->
         editor.moveToEndOfLine()
         editor.moveLeft()
-        expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
+        expectHighlights([0,28], [12,0])
+
         editor.deleteToBeginningOfLine()
-        expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
+        expectHighlights([0,0], [12,0])
 
     describe "when the font size changes", ->
       it "repositions the highlights", ->
         editor.moveToBottom()
         editor.moveLeft()
         atom.config.set('editor.fontSize', editorView.getFontSize() + 10)
-        expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
-        expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editor.pixelPositionForBufferPosition([12,0])
-        expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editor.pixelPositionForBufferPosition([0,28])
+        expectHighlights([12,0], [0,28])
 
     describe "when the soft wrap setting changes on the editor", ->
       it "repositions the highlights", ->
@@ -126,49 +121,40 @@ describe "bracket matching", ->
         editor.moveLeft()
         editorView.setWidthInChars(23)
 
-        expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
-        expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editor.pixelPositionForBufferPosition([12,0])
-        expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editor.pixelPositionForBufferPosition([0,28])
+        expectHighlights([12,0], [0,28])
 
         editor.setSoftWrapped(false)
-        expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
-        expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editor.pixelPositionForBufferPosition([12,0])
-        expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editor.pixelPositionForBufferPosition([0,28])
+        expectHighlights([12,0], [0,28])
 
     describe "when code is folded", ->
       it "repositions the highlights", ->
         editor.moveToEndOfLine()
-        expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
-        expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editor.pixelPositionForBufferPosition([0,28])
-        expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editor.pixelPositionForBufferPosition([12,0])
+        expectHighlights([0,28], [12,0])
 
         editor.foldBufferRow(1)
         # Explicitly trigger an editor:display-updated event since this happens
         # synchronously in specs and so it will fire before screen-lines-changed
         # fires
         editorView.trigger('editor:display-updated')
-
-        expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
-        expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editor.pixelPositionForBufferPosition([0,28])
-        expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editor.pixelPositionForBufferPosition([12,0])
+        expectHighlights([0,28], [12,0])
 
     describe "pair balancing", ->
       describe "when a second starting pair preceeds the first ending pair", ->
         it "advances to the second ending pair", ->
           editor.setCursorBufferPosition([8,42])
-          expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
-          expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editor.pixelPositionForBufferPosition([8,42])
-          expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editor.pixelPositionForBufferPosition([8,54])
+          expectHighlights([8,42], [8,54])
 
     describe "when the cursor is destroyed", ->
       it "updates the highlights to use the editor's last cursor", ->
         editor.setCursorBufferPosition([0,29])
         editor.addCursorAtBufferPosition([9,0])
-        expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
+        expectHighlights([0,28], [12,0])
+
         editor.consolidateSelections()
-        expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 0
+        expectNoHighlights()
+
         editor.setCursorBufferPosition([0,29])
-        expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
+        expectHighlights([0,28], [12,0])
 
     describe "HTML/XML tag matching", ->
       beforeEach ->
@@ -177,6 +163,7 @@ describe "bracket matching", ->
 
         runs ->
           editorView = atom.workspaceView.getActiveView()
+          editorElement = editorView.element
           {editor} = editorView
           {buffer} = editor
 
@@ -190,14 +177,10 @@ describe "bracket matching", ->
           """
 
           editor.setCursorBufferPosition([0,0])
-          expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
-          expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editor.pixelPositionForBufferPosition([0,1])
-          expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editor.pixelPositionForBufferPosition([3,2])
+          expectHighlights([0,1], [3,2])
 
           editor.setCursorBufferPosition([0,1])
-          expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
-          expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editor.pixelPositionForBufferPosition([0,1])
-          expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editor.pixelPositionForBufferPosition([3,2])
+          expectHighlights([0,1], [3,2])
 
       describe "when on a closing tag", ->
         it "highlight the opening and closing tag", ->
@@ -209,14 +192,10 @@ describe "bracket matching", ->
           """
 
           editor.setCursorBufferPosition([3,0])
-          expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
-          expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editor.pixelPositionForBufferPosition([3,2])
-          expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editor.pixelPositionForBufferPosition([0,1])
+          expectHighlights([3,2], [0,1])
 
           editor.setCursorBufferPosition([3,2])
-          expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
-          expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editor.pixelPositionForBufferPosition([3,2])
-          expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editor.pixelPositionForBufferPosition([0,1])
+          expectHighlights([3,2], [0,1])
 
           buffer.setText """
             <test>
@@ -226,14 +205,10 @@ describe "bracket matching", ->
           """
 
           editor.setCursorBufferPosition([1,Infinity])
-          expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
-          expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editor.pixelPositionForBufferPosition([1,14])
-          expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editor.pixelPositionForBufferPosition([1,3])
+          expectHighlights([1,14], [1,3])
 
           editor.setCursorBufferPosition([2,Infinity])
-          expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
-          expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editor.pixelPositionForBufferPosition([2,14])
-          expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editor.pixelPositionForBufferPosition([2,3])
+          expectHighlights([2,14], [2,3])
 
 
       describe "when the tag spans multiple lines", ->
@@ -246,14 +221,10 @@ describe "bracket matching", ->
           """
 
           editor.setCursorBufferPosition([3,2])
-          expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
-          expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editor.pixelPositionForBufferPosition([3,2])
-          expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editor.pixelPositionForBufferPosition([0,1])
+          expectHighlights([3,2], [0,1])
 
           editor.setCursorBufferPosition([0,1])
-          expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
-          expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editor.pixelPositionForBufferPosition([0,1])
-          expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editor.pixelPositionForBufferPosition([3,2])
+          expectHighlights([0,1], [3,2])
 
       describe "when the tag has attributes", ->
         it "highlights the opening and closing tags", ->
@@ -264,66 +235,58 @@ describe "bracket matching", ->
           """
 
           editor.setCursorBufferPosition([2,2])
-          expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
-          expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editor.pixelPositionForBufferPosition([2,2])
-          expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editor.pixelPositionForBufferPosition([0,1])
+          expectHighlights([2,2], [0,1])
 
           editor.setCursorBufferPosition([0,7])
-          expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
-          expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editor.pixelPositionForBufferPosition([0,1])
-          expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editor.pixelPositionForBufferPosition([2,2])
+          expectHighlights([0,1], [2,2])
 
       describe "when the opening and closing tags are on the same line", ->
         it "highlight the opening and closing tags", ->
           buffer.setText "<test>text</test>"
 
           editor.setCursorBufferPosition([0,2])
-          expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
-          expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editor.pixelPositionForBufferPosition([0,1])
-          expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editor.pixelPositionForBufferPosition([0,12])
+          expectHighlights([0,1], [0,12])
 
           editor.setCursorBufferPosition([0,12])
-          expect(editorView.underlayer.find('.bracket-matcher:visible').length).toBe 2
-          expect(editorView.underlayer.find('.bracket-matcher:first').position()).toEqual editor.pixelPositionForBufferPosition([0,12])
-          expect(editorView.underlayer.find('.bracket-matcher:last').position()).toEqual editor.pixelPositionForBufferPosition([0,1])
+          expectHighlights([0,12], [0,1])
 
   describe "when bracket-matcher:go-to-matching-bracket is triggered", ->
     describe "when the cursor is before the starting pair", ->
       it "moves the cursor to after the ending pair", ->
         editor.moveToEndOfLine()
         editor.moveLeft()
-        editorView.trigger "bracket-matcher:go-to-matching-bracket"
+        atom.commands.dispatch(editorElement, "bracket-matcher:go-to-matching-bracket")
         expect(editor.getCursorBufferPosition()).toEqual [12, 1]
 
     describe "when the cursor is after the starting pair", ->
       it "moves the cursor to before the ending pair", ->
         editor.moveToEndOfLine()
-        editorView.trigger "bracket-matcher:go-to-matching-bracket"
+        atom.commands.dispatch(editorElement, "bracket-matcher:go-to-matching-bracket")
         expect(editor.getCursorBufferPosition()).toEqual [12, 0]
 
     describe "when the cursor is before the ending pair", ->
       it "moves the cursor to after the starting pair", ->
         editor.setCursorBufferPosition([12, 0])
-        editorView.trigger "bracket-matcher:go-to-matching-bracket"
+        atom.commands.dispatch(editorElement, "bracket-matcher:go-to-matching-bracket")
         expect(editor.getCursorBufferPosition()).toEqual [0, 29]
 
     describe "when the cursor is after the ending pair", ->
       it "moves the cursor to before the starting pair", ->
         editor.setCursorBufferPosition([12, 1])
-        editorView.trigger "bracket-matcher:go-to-matching-bracket"
+        atom.commands.dispatch(editorElement, "bracket-matcher:go-to-matching-bracket")
         expect(editor.getCursorBufferPosition()).toEqual [0, 28]
 
     describe "when the cursor is not adjacent to a pair", ->
       describe "when within a `{}` pair", ->
         it "moves the cursor to before the enclosing brace", ->
           editor.setCursorBufferPosition([11, 2])
-          editorView.trigger "bracket-matcher:go-to-matching-bracket"
+          atom.commands.dispatch(editorElement, "bracket-matcher:go-to-matching-bracket")
           expect(editor.getCursorBufferPosition()).toEqual [0, 28]
 
       describe "when within a `()` pair", ->
         it "moves the cursor to before the enclosing brace", ->
           editor.setCursorBufferPosition([2, 14])
-          editorView.trigger "bracket-matcher:go-to-matching-bracket"
+          atom.commands.dispatch(editorElement, "bracket-matcher:go-to-matching-bracket")
           expect(editor.getCursorBufferPosition()).toEqual [2, 7]
 
       describe 'in HTML/XML files', ->
@@ -333,121 +296,122 @@ describe "bracket matching", ->
 
           runs ->
             editorView = atom.workspaceView.getActiveView()
+            editorElement = editorView.element
             {editor} = editorView
             {buffer} = editor
 
         describe 'when within a <tag></tag> pair', ->
           it "moves the cursor to the starting tag", ->
             editor.setCursorBufferPosition([5, 10])
-            editorView.trigger "bracket-matcher:go-to-matching-bracket"
+            atom.commands.dispatch(editorElement, "bracket-matcher:go-to-matching-bracket")
             expect(editor.getCursorBufferPosition()).toEqual [4, 9]
 
         describe 'when on a starting <tag>', ->
           it 'moves the cursor to the end </tag>', ->
             editor.setCursorBufferPosition([1, 2])
-            editorView.trigger "bracket-matcher:go-to-matching-bracket"
+            atom.commands.dispatch(editorElement, "bracket-matcher:go-to-matching-bracket")
             expect(editor.getCursorBufferPosition()).toEqual [15, 2]
 
             editor.setCursorBufferPosition([1, 3])
-            editorView.trigger "bracket-matcher:go-to-matching-bracket"
+            atom.commands.dispatch(editorElement, "bracket-matcher:go-to-matching-bracket")
             expect(editor.getCursorBufferPosition()).toEqual [15, 4]
 
             editor.setCursorBufferPosition([1, 4])
-            editorView.trigger "bracket-matcher:go-to-matching-bracket"
+            atom.commands.dispatch(editorElement, "bracket-matcher:go-to-matching-bracket")
             expect(editor.getCursorBufferPosition()).toEqual [15, 5]
 
             editor.setCursorBufferPosition([1, 5])
-            editorView.trigger "bracket-matcher:go-to-matching-bracket"
+            atom.commands.dispatch(editorElement, "bracket-matcher:go-to-matching-bracket")
             expect(editor.getCursorBufferPosition()).toEqual [15, 6]
 
             editor.setCursorBufferPosition([1, 6])
-            editorView.trigger "bracket-matcher:go-to-matching-bracket"
+            atom.commands.dispatch(editorElement, "bracket-matcher:go-to-matching-bracket")
             expect(editor.getCursorBufferPosition()).toEqual [15, 7]
 
             editor.setCursorBufferPosition([1, 7])
-            editorView.trigger "bracket-matcher:go-to-matching-bracket"
+            atom.commands.dispatch(editorElement, "bracket-matcher:go-to-matching-bracket")
             expect(editor.getCursorBufferPosition()).toEqual [15, 8]
 
             editor.setCursorBufferPosition([1, 8])
-            editorView.trigger "bracket-matcher:go-to-matching-bracket"
+            atom.commands.dispatch(editorElement, "bracket-matcher:go-to-matching-bracket")
             expect(editor.getCursorBufferPosition()).toEqual [15, 8]
 
             editor.setCursorBufferPosition([1, 9])
-            editorView.trigger "bracket-matcher:go-to-matching-bracket"
+            atom.commands.dispatch(editorElement, "bracket-matcher:go-to-matching-bracket")
             expect(editor.getCursorBufferPosition()).toEqual [15, 8]
 
             editor.setCursorBufferPosition([1, 10])
-            editorView.trigger "bracket-matcher:go-to-matching-bracket"
+            atom.commands.dispatch(editorElement, "bracket-matcher:go-to-matching-bracket")
             expect(editor.getCursorBufferPosition()).toEqual [15, 8]
 
             editor.setCursorBufferPosition([1, 16])
-            editorView.trigger "bracket-matcher:go-to-matching-bracket"
+            atom.commands.dispatch(editorElement, "bracket-matcher:go-to-matching-bracket")
             expect(editor.getCursorBufferPosition()).toEqual [15, 8]
 
         describe 'when on an ending </tag>', ->
           it 'moves the cursor to the start <tag>', ->
             editor.setCursorBufferPosition([15, 2])
-            editorView.trigger "bracket-matcher:go-to-matching-bracket"
+            atom.commands.dispatch(editorElement, "bracket-matcher:go-to-matching-bracket")
             expect(editor.getCursorBufferPosition()).toEqual [1, 2]
 
             editor.setCursorBufferPosition([15, 3])
-            editorView.trigger "bracket-matcher:go-to-matching-bracket"
+            atom.commands.dispatch(editorElement, "bracket-matcher:go-to-matching-bracket")
             expect(editor.getCursorBufferPosition()).toEqual [1, 3]
 
             editor.setCursorBufferPosition([15, 4])
-            editorView.trigger "bracket-matcher:go-to-matching-bracket"
+            atom.commands.dispatch(editorElement, "bracket-matcher:go-to-matching-bracket")
             expect(editor.getCursorBufferPosition()).toEqual [1, 3]
 
             editor.setCursorBufferPosition([15, 5])
-            editorView.trigger "bracket-matcher:go-to-matching-bracket"
+            atom.commands.dispatch(editorElement, "bracket-matcher:go-to-matching-bracket")
             expect(editor.getCursorBufferPosition()).toEqual [1, 4]
 
             editor.setCursorBufferPosition([15, 6])
-            editorView.trigger "bracket-matcher:go-to-matching-bracket"
+            atom.commands.dispatch(editorElement, "bracket-matcher:go-to-matching-bracket")
             expect(editor.getCursorBufferPosition()).toEqual [1, 5]
 
             editor.setCursorBufferPosition([15, 7])
-            editorView.trigger "bracket-matcher:go-to-matching-bracket"
+            atom.commands.dispatch(editorElement, "bracket-matcher:go-to-matching-bracket")
             expect(editor.getCursorBufferPosition()).toEqual [1, 6]
 
             editor.setCursorBufferPosition([15, 8])
-            editorView.trigger "bracket-matcher:go-to-matching-bracket"
+            atom.commands.dispatch(editorElement, "bracket-matcher:go-to-matching-bracket")
             expect(editor.getCursorBufferPosition()).toEqual [1, 7]
 
             editor.setCursorBufferPosition([15, 9])
-            editorView.trigger "bracket-matcher:go-to-matching-bracket"
+            atom.commands.dispatch(editorElement, "bracket-matcher:go-to-matching-bracket")
             expect(editor.getCursorBufferPosition()).toEqual [1, 7]
 
   describe "when bracket-matcher:go-to-enclosing-bracket is triggered", ->
     describe "when within a `{}` pair", ->
       it "moves the cursor to before the enclosing brace", ->
         editor.setCursorBufferPosition([11, 2])
-        editorView.trigger "bracket-matcher:go-to-enclosing-bracket"
+        atom.commands.dispatch(editorElement, "bracket-matcher:go-to-enclosing-bracket")
         expect(editor.getCursorBufferPosition()).toEqual [0, 28]
 
     describe "when within a `()` pair", ->
       it "moves the cursor to before the enclosing brace", ->
         editor.setCursorBufferPosition([2, 14])
-        editorView.trigger "bracket-matcher:go-to-enclosing-bracket"
+        atom.commands.dispatch(editorElement, "bracket-matcher:go-to-enclosing-bracket")
         expect(editor.getCursorBufferPosition()).toEqual [2, 7]
 
   describe "when bracket-match:select-inside-brackets is triggered", ->
     describe "when the cursor on the left side of a bracket", ->
       it "selects the text inside the brackets", ->
         editor.setCursorBufferPosition([0,28])
-        editorView.trigger "bracket-matcher:select-inside-brackets"
+        atom.commands.dispatch(editorElement, "bracket-matcher:select-inside-brackets")
         expect(editor.getSelectedBufferRange()).toEqual [[0, 29], [12, 0]]
 
     describe "when the cursor on the right side of a bracket", ->
       it "selects the text inside the brackets", ->
         editor.setCursorBufferPosition([1,30])
-        editorView.trigger "bracket-matcher:select-inside-brackets"
+        atom.commands.dispatch(editorElement, "bracket-matcher:select-inside-brackets")
         expect(editor.getSelectedBufferRange()).toEqual [[1, 30], [9, 2]]
 
     describe "when the cursor is inside the brackets", ->
       it "selects the text for the closest outer brackets", ->
         editor.setCursorBufferPosition([6,6])
-        editorView.trigger "bracket-matcher:select-inside-brackets"
+        atom.commands.dispatch(editorElement, "bracket-matcher:select-inside-brackets")
         expect(editor.getSelectedBufferRange()).toEqual [[4, 29], [7, 4]]
 
     describe 'HTML/XML text', ->
@@ -457,60 +421,61 @@ describe "bracket matching", ->
 
         runs ->
           editorView = atom.workspaceView.getActiveView()
+          editorElement = editorView.element
           {editor} = editorView
           {buffer} = editor
 
       describe 'when the cursor is on a starting tag', ->
         it 'selects the text inside the starting/closing tag', ->
           editor.setCursorBufferPosition([4,9])
-          editorView.trigger "bracket-matcher:select-inside-brackets"
+          atom.commands.dispatch(editorElement, "bracket-matcher:select-inside-brackets")
           expect(editor.getSelectedBufferRange()).toEqual [[4, 13], [6, 8]]
 
       describe 'when the cursor is on an ending tag', ->
         it 'selects the text inside the starting/closing tag', ->
           editor.setCursorBufferPosition([15,8])
-          editorView.trigger "bracket-matcher:select-inside-brackets"
+          atom.commands.dispatch(editorElement, "bracket-matcher:select-inside-brackets")
           expect(editor.getSelectedBufferRange()).toEqual [[1, 8], [15, 2]]
 
       describe 'when the cursor is inside a tag', ->
         it 'selects the text inside the starting/closing tag', ->
           editor.setCursorBufferPosition([12,8])
-          editorView.trigger "bracket-matcher:select-inside-brackets"
+          atom.commands.dispatch(editorElement, "bracket-matcher:select-inside-brackets")
           expect(editor.getSelectedBufferRange()).toEqual [[11, 11], [13, 6]]
 
   describe "when bracket-matcher:remove-matching-brackets is triggered", ->
     describe "when the cursor is not in front of any pair", ->
       it "performs a regular backspace action", ->
         editor.setCursorBufferPosition([0,1])
-        editorView.trigger "bracket-matcher:remove-matching-brackets"
+        atom.commands.dispatch(editorElement, "bracket-matcher:remove-matching-brackets")
         expect(editor.lineForBufferRow(0)).toEqual('ar quicksort = function () {')
         expect(editor.getCursorBufferPosition()).toEqual([0,0])
 
     describe "when the cursor is at the beginning of a line", ->
       it "performs a regular backspace action", ->
         editor.setCursorBufferPosition([12,0])
-        editorView.trigger "bracket-matcher:remove-matching-brackets"
+        atom.commands.dispatch(editorElement, "bracket-matcher:remove-matching-brackets")
         expect(editor.lineForBufferRow(11)).toEqual('  return sort(Array.apply(this, arguments));};')
         expect(editor.getCursorBufferPosition()).toEqual([11,44])
 
     describe "when the cursor is on the left side of a starting pair", ->
       it "performs a regular backspace action", ->
         editor.setCursorBufferPosition([0,28])
-        editorView.trigger "bracket-matcher:remove-matching-brackets"
+        atom.commands.dispatch(editorElement, "bracket-matcher:remove-matching-brackets")
         expect(editor.lineForBufferRow(0)).toEqual('var quicksort = function (){')
         expect(editor.getCursorBufferPosition()).toEqual([0,27])
 
     describe "when the cursor is on the left side of an ending pair", ->
       it "performs a regular backspace action", ->
         editor.setCursorBufferPosition([7,4])
-        editorView.trigger "bracket-matcher:remove-matching-brackets"
+        atom.commands.dispatch(editorElement, "bracket-matcher:remove-matching-brackets")
         expect(editor.lineForBufferRow(7)).toEqual('  }')
         expect(editor.getCursorBufferPosition()).toEqual([7,2])
 
     describe "when the cursor is on the right side of a starting pair, the ending pair on another line", ->
       it "removes both pairs", ->
         editor.setCursorBufferPosition([0,29])
-        editorView.trigger "bracket-matcher:remove-matching-brackets"
+        atom.commands.dispatch(editorElement, "bracket-matcher:remove-matching-brackets")
         expect(editor.lineForBufferRow(0)).toEqual('var quicksort = function () ')
         expect(editor.lineForBufferRow(12)).toEqual(';')
         expect(editor.getCursorBufferPosition()).toEqual([0,28])
@@ -518,7 +483,7 @@ describe "bracket matching", ->
     describe "when the cursor is on the right side of an ending pair, the starting pair on another line", ->
       it "removes both pairs", ->
         editor.setCursorBufferPosition([7,5])
-        editorView.trigger "bracket-matcher:remove-matching-brackets"
+        atom.commands.dispatch(editorElement, "bracket-matcher:remove-matching-brackets")
         expect(editor.lineForBufferRow(4)).toEqual('    while(items.length > 0) ')
         expect(editor.lineForBufferRow(7)).toEqual('    ')
         expect(editor.getCursorBufferPosition()).toEqual([7,4])
@@ -526,28 +491,28 @@ describe "bracket matching", ->
     describe "when the cursor is on the right side of a starting pair, the ending pair on the same line", ->
       it "removes both pairs", ->
         editor.setCursorBufferPosition([11,14])
-        editorView.trigger "bracket-matcher:remove-matching-brackets"
+        atom.commands.dispatch(editorElement, "bracket-matcher:remove-matching-brackets")
         expect(editor.lineForBufferRow(11)).toEqual('  return sortArray.apply(this, arguments);')
         expect(editor.getCursorBufferPosition()).toEqual([11,13])
 
     describe "when the cursor is on the right side of an ending pair, the starting pair on the same line", ->
       it "removes both pairs", ->
         editor.setCursorBufferPosition([11,43])
-        editorView.trigger "bracket-matcher:remove-matching-brackets"
+        atom.commands.dispatch(editorElement, "bracket-matcher:remove-matching-brackets")
         expect(editor.lineForBufferRow(11)).toEqual('  return sortArray.apply(this, arguments);')
         expect(editor.getCursorBufferPosition()).toEqual([11,41])
 
     describe "when a starting pair is selected", ->
       it "removes both pairs", ->
         editor.setSelectedBufferRange([[11,13], [11,14]])
-        editorView.trigger "bracket-matcher:remove-matching-brackets"
+        atom.commands.dispatch(editorElement, "bracket-matcher:remove-matching-brackets")
         expect(editor.lineForBufferRow(11)).toEqual('  return sortArray.apply(this, arguments);')
         expect(editor.getCursorBufferPosition()).toEqual([11,13])
 
     describe "when an ending pair is selected", ->
       it "removes both pairs", ->
         editor.setSelectedBufferRange([[11,42], [11,43]])
-        editorView.trigger "bracket-matcher:remove-matching-brackets"
+        atom.commands.dispatch(editorElement, "bracket-matcher:remove-matching-brackets")
         expect(editor.lineForBufferRow(11)).toEqual('  return sortArray.apply(this, arguments);')
         expect(editor.getCursorBufferPosition()).toEqual([11,41])
 
@@ -559,7 +524,7 @@ describe "bracket matching", ->
       it "does not change the text", ->
         editor.insertText("\"woah(")
         editor.selectAll()
-        editorView.trigger "bracket-matcher:remove-brackets-from-selection"
+        atom.commands.dispatch(editorElement, "bracket-matcher:remove-brackets-from-selection")
         expect(editor.buffer.getText()).toBe "\"woah("
 
     describe "when selecting a matching pair of brackets", ->
@@ -567,7 +532,7 @@ describe "bracket matching", ->
         beforeEach ->
           editor.buffer.setText("it \"does something\", :meta => true")
           editor.setSelectedBufferRange([[0, 3],[0,19]])
-          editorView.trigger "bracket-matcher:remove-brackets-from-selection"
+          atom.commands.dispatch(editorElement, "bracket-matcher:remove-brackets-from-selection")
 
         it "removes the brackets", ->
           expect(editor.buffer.getText()).toBe "it does something, :meta => true"
@@ -579,7 +544,7 @@ describe "bracket matching", ->
         beforeEach ->
           editor.buffer.setText("it (\"does something\" do\nend)")
           editor.setSelectedBufferRange([[0, 3],[1,4]])
-          editorView.trigger "bracket-matcher:remove-brackets-from-selection"
+          atom.commands.dispatch(editorElement, "bracket-matcher:remove-brackets-from-selection")
 
         it "removes the brackets", ->
           expect(editor.buffer.getText()).toBe "it \"does something\" do\nend"
@@ -1006,56 +971,57 @@ describe "bracket matching", ->
 
       runs ->
         editorView = atom.workspaceView.getActiveView()
+        editorElement = editorView.element
         {editor} = editorView
         {buffer} = editor
 
     it 'closes the first unclosed tag', ->
       editor.setCursorBufferPosition([5,14])
-      editorView.trigger('bracket-matcher:close-tag')
+      atom.commands.dispatch(editorElement, 'bracket-matcher:close-tag')
 
       expect(editor.getCursorBufferPosition()).toEqual [5, 18]
       expect(editor.getTextInRange([[5,14], [5,18]])).toEqual '</a>'
 
     it 'closes the following unclosed tags if called repeatedly', ->
       editor.setCursorBufferPosition([5,14])
-      editorView.trigger('bracket-matcher:close-tag')
-      editorView.trigger('bracket-matcher:close-tag')
+      atom.commands.dispatch(editorElement, 'bracket-matcher:close-tag')
+      atom.commands.dispatch(editorElement, 'bracket-matcher:close-tag')
 
       expect(editor.getCursorBufferPosition()).toEqual [5, 22]
       expect(editor.getTextInRange([[5,18], [5,22]])).toEqual '</p>'
 
     it 'does not close any tag if no unclosed tag can be found at the insertion point', ->
       editor.setCursorBufferPosition([5,14])
-      editorView.trigger('bracket-matcher:close-tag')
+      atom.commands.dispatch(editorElement, 'bracket-matcher:close-tag')
 
       #closing all currently open tags
-      editorView.trigger('bracket-matcher:close-tag')
+      atom.commands.dispatch(editorElement, 'bracket-matcher:close-tag')
       editor.setCursorBufferPosition([13,11])
-      editorView.trigger('bracket-matcher:close-tag')
-      editorView.trigger('bracket-matcher:close-tag')
+      atom.commands.dispatch(editorElement, 'bracket-matcher:close-tag')
+      atom.commands.dispatch(editorElement, 'bracket-matcher:close-tag')
       editor.setCursorBufferPosition([15,0])
-      editorView.trigger('bracket-matcher:close-tag')
-      editorView.trigger('bracket-matcher:close-tag')
+      atom.commands.dispatch(editorElement, 'bracket-matcher:close-tag')
+      atom.commands.dispatch(editorElement, 'bracket-matcher:close-tag')
 
       # positioning on an already closed tag
       editor.setCursorBufferPosition([11,9])
-      editorView.trigger('bracket-matcher:close-tag')
+      atom.commands.dispatch(editorElement, 'bracket-matcher:close-tag')
       expect(editor.getCursorBufferPosition()).toEqual [11,9]
 
     it 'does not get confused in case of nested identical tags -- tag not closing', ->
       editor.setCursorBufferPosition([13,11])
-      editorView.trigger('bracket-matcher:close-tag')
-      editorView.trigger('bracket-matcher:close-tag')
+      atom.commands.dispatch(editorElement, 'bracket-matcher:close-tag')
+      atom.commands.dispatch(editorElement, 'bracket-matcher:close-tag')
 
       expect(editor.getCursorBufferPosition()).toEqual [13,16]
 
     it 'does not get confused in case of nested identical tags -- tag closing', ->
       editor.setCursorBufferPosition([13,11])
-      editorView.trigger('bracket-matcher:close-tag')
+      atom.commands.dispatch(editorElement, 'bracket-matcher:close-tag')
 
       expect(editor.getCursorBufferPosition()).toEqual [13,16]
       expect(editor.getTextInRange([[13,10], [13,16]])).toEqual '</div>'
 
-      editorView.trigger('bracket-matcher:close-tag')
+      atom.commands.dispatch(editorElement, 'bracket-matcher:close-tag')
 
       expect(editor.getCursorBufferPosition()).toEqual [13,16]
