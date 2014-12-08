@@ -18,11 +18,11 @@ class TagFinder
     new RegExp("(<#{tagName}([\\s>]|$))|(</#{tagName}>)", 'gi')
 
   isRangeCommented: (range) ->
-    scopes = @editor.scopesForBufferPosition(range.start)
+    scopes = @editor.scopeDescriptorForBufferPosition(range.start).getScopesArray()
     @commentSelector.matches(scopes)
 
   isTagRange: (range) ->
-    scopes = @editor.scopesForBufferPosition(range.start)
+    scopes = @editor.scopeDescriptorForBufferPosition(range.start).getScopesArray()
     @tagSelector.matches(scopes)
 
   isCursorOnTag: ->

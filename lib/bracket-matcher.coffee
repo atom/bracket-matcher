@@ -51,8 +51,8 @@ class BracketMatcher
     return true if @editor.hasMultipleCursors()
 
     cursorBufferPosition = @editor.getCursorBufferPosition()
-    previousCharacters = @editor.getTextInBufferRange([cursorBufferPosition.add([0, -2]), cursorBufferPosition])
-    nextCharacter = @editor.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0,1])])
+    previousCharacters = @editor.getTextInBufferRange([cursorBufferPosition.traverse([0, -2]), cursorBufferPosition])
+    nextCharacter = @editor.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.traverse([0,1])])
 
     previousCharacter = previousCharacters.slice(-1)
 
@@ -82,7 +82,7 @@ class BracketMatcher
     else if autoCompleteOpeningBracket
       @editor.insertText(text + pair)
       @editor.moveLeft()
-      range = [cursorBufferPosition, cursorBufferPosition.add([0, text.length])]
+      range = [cursorBufferPosition, cursorBufferPosition.traverse([0, text.length])]
       @bracketMarkers.push @editor.markBufferRange(range)
       false
 
@@ -91,8 +91,8 @@ class BracketMatcher
     return unless @editor.getLastSelection().isEmpty()
 
     cursorBufferPosition = @editor.getCursorBufferPosition()
-    previousCharacters = @editor.getTextInBufferRange([cursorBufferPosition.add([0, -2]), cursorBufferPosition])
-    nextCharacter = @editor.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0,1])])
+    previousCharacters = @editor.getTextInBufferRange([cursorBufferPosition.traverse([0, -2]), cursorBufferPosition])
+    nextCharacter = @editor.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.traverse([0,1])])
 
     previousCharacter = previousCharacters.slice(-1)
 
@@ -111,8 +111,8 @@ class BracketMatcher
     return unless @editor.getLastSelection().isEmpty()
 
     cursorBufferPosition = @editor.getCursorBufferPosition()
-    previousCharacters = @editor.getTextInBufferRange([cursorBufferPosition.add([0, -2]), cursorBufferPosition])
-    nextCharacter = @editor.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0,1])])
+    previousCharacters = @editor.getTextInBufferRange([cursorBufferPosition.traverse([0, -2]), cursorBufferPosition])
+    nextCharacter = @editor.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.traverse([0,1])])
 
     previousCharacter = previousCharacters.slice(-1)
 
@@ -133,9 +133,9 @@ class BracketMatcher
       options = reversed: selection.isReversed()
       selectionStart = range.start
       if range.start.row is range.end.row
-        selectionEnd = range.end.add([0, -2])
+        selectionEnd = range.end.traverse([0, -2])
       else
-        selectionEnd = range.end.add([0, -1])
+        selectionEnd = range.end.traverse([0, -1])
 
       text = selection.getText()
       selection.insertText(text.substring(1, text.length - 1))
@@ -165,9 +165,9 @@ class BracketMatcher
       range = selection.getBufferRange()
       options = reversed: selection.isReversed()
       selection.insertText("#{bracket}#{selection.getText()}#{pair}")
-      selectionStart = range.start.add([0, bracket.length])
+      selectionStart = range.start.traverse([0, bracket.length])
       if range.start.row is range.end.row
-        selectionEnd = range.end.add([0, bracket.length])
+        selectionEnd = range.end.traverse([0, bracket.length])
       else
         selectionEnd = range.end
       selection.setBufferRange([selectionStart, selectionEnd], options)
@@ -187,7 +187,7 @@ class BracketMatcher
         'string.unquoted.heredoc.ruby'
       ]
       @interpolatedStringSelector = SelectorCache.get(segments.join(' | '))
-    @interpolatedStringSelector.matches(@editor.scopesAtCursor())
+    @interpolatedStringSelector.matches(@editor.getLastCursor().getScopeDescriptor().getScopesArray())
 
   getInvertedPairedCharacters: ->
     return @invertedPairedCharacters if @invertedPairedCharacters
