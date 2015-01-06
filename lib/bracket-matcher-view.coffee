@@ -1,4 +1,4 @@
-{CompositeDisposable} = require 'event-kit'
+{CompositeDisposable} = require 'atom'
 _ = require 'underscore-plus'
 {Range} = require 'atom'
 TagFinder = require './tag-finder'

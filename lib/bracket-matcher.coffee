@@ -1,5 +1,5 @@
 _ = require 'underscore-plus'
-{CompositeDisposable} = require 'event-kit'
+{CompositeDisposable} = require 'atom'
 SelectorCache = require './selector-cache'
 
 module.exports =
@@ -25,7 +25,7 @@ class BracketMatcher
 
   toggleQuotes: (includeSmartQuotes) ->
     if includeSmartQuotes
-      @pairedCharacters = _.extend(@defaultPairs, @smartQuotePairs)
+      @pairedCharacters = _.extend({}, @defaultPairs, @smartQuotePairs)
     else
       @pairedCharacters = @defaultPairs
 
