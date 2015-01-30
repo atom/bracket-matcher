@@ -46,6 +46,7 @@ class BracketMatcher
     @subscriptions.add @editor.on 'destroyed', => @unsubscribe()
 
   insertText: (text, options) =>
+    return true unless text
     return true if options?.select or options?.undo is 'skip'
     return false if @wrapSelectionInBrackets(text)
     return true if @editor.hasMultipleCursors()
