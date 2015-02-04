@@ -30,6 +30,9 @@ class BracketMatcherView
 
     @subscriptions.add @editor.onDidChangeGrammar =>
       @updateMatch()
+      
+    @subscriptions.add @editor.onDidChangeSelectionRange =>
+      @updateMatch()      
 
     @subscribeToCursor()
 
