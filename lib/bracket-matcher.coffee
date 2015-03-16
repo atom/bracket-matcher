@@ -43,7 +43,7 @@ class BracketMatcher
     @subscriptions.add atom.config.observe 'bracket-matcher.autocompleteSmartQuotes', (newValue) =>
       @toggleQuotes(newValue)
 
-    @subscriptions.add @editor.on 'destroyed', => @unsubscribe()
+    @subscriptions.add @editor.onDidDestroy => @unsubscribe()
 
   insertText: (text, options) =>
     return true unless text
