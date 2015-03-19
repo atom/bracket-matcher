@@ -186,6 +186,8 @@ class BracketMatcher
         'string.regexp.interpolated.ruby'
         'string.quoted.double.coffee'
         'string.unquoted.heredoc.ruby'
+        'string.quoted.double.livescript'
+        'string.quoted.double.heredoc.livescript'
       ]
       @interpolatedStringSelector = SelectorCache.get(segments.join(' | '))
     @interpolatedStringSelector.matches(@editor.getLastCursor().getScopeDescriptor().getScopesArray())
