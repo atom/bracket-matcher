@@ -9,7 +9,6 @@
     "atom": "*"
   },
   "dependencies": {
-    "emissary": "1.x",
     "first-mate": "^3.0",
     "underscore-plus": "1.x"
   }
