@@ -124,11 +124,18 @@ class BracketMatcherView
       else
         @editor.backspace()
 
+  positionIsInComment: (position) ->
+    !!@editor.scopeDescriptorForBufferPosition(position).
+              getScopeChain().match(/\B\.comment([^\w]|$)/)
+
   findMatchingEndPair: (startPairPosition, startPair, endPair) ->
+    inComment = @positionIsInComment(startPairPosition)
     scanRange = new Range(startPairPosition.traverse([0, 1]), @editor.buffer.getEndPosition())
     endPairPosition = null
     unpairedCount = 0
-    @editor.scanInBufferRange pairRegexes[startPair], scanRange, ({match, range, stop}) ->
+    @editor.scanInBufferRange pairRegexes[startPair], scanRange, ({match, range, stop}) =>
+      return unless inComment == @positionIsInComment(range.start)
+
       switch match[0]
         when startPair
           unpairedCount++
@@ -141,10 +148,13 @@ class BracketMatcherView
     endPairPosition
 
   findMatchingStartPair: (endPairPosition, startPair, endPair) ->
+    inComment = @positionIsInComment(endPairPosition)
     scanRange = new Range([0, 0], endPairPosition)
     startPairPosition = null
     unpairedCount = 0
-    @editor.backwardsScanInBufferRange pairRegexes[startPair], scanRange, ({match, range, stop}) ->
+    @editor.backwardsScanInBufferRange pairRegexes[startPair], scanRange, ({match, range, stop}) =>
+      return unless inComment == @positionIsInComment(range.start)
+
       switch match[0]
         when startPair
           unpairedCount--
@@ -156,6 +166,7 @@ class BracketMatcherView
     startPairPosition
 
   findAnyStartPair: (cursorPosition) ->
+    inComment = @positionIsInComment(cursorPosition)
     scanRange = new Range([0, 0], cursorPosition)
     startPair = _.escapeRegExp(_.keys(startPairMatches).join(''))
     endPair = _.escapeRegExp(_.keys(endPairMatches).join(''))
@@ -165,13 +176,15 @@ class BracketMatcherView
     startPosition = null
     unpairedCount = 0
     @editor.backwardsScanInBufferRange combinedRegExp, scanRange, ({match, range, stop}) =>
+      return unless inComment == @positionIsInComment(range.start)
+
       if match[0].match(endPairRegExp)
         unpairedCount++
       else if match[0].match(startPairRegExp)
         unpairedCount--
         startPosition = range.start
         stop() if unpairedCount < 0
-     startPosition
+    startPosition
 
   createMarker: (bufferRange) ->
     marker = @editor.markBufferRange(bufferRange)
