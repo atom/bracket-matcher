@@ -164,7 +164,7 @@ class BracketMatcherView
     endPairRegExp = new RegExp("[#{endPair}]", 'g')
     startPosition = null
     unpairedCount = 0
-    @editor.backwardsScanInBufferRange combinedRegExp, scanRange, ({match, range, stop}) =>
+    @editor.backwardsScanInBufferRange combinedRegExp, scanRange, ({match, range, stop}) ->
       if match[0].match(endPairRegExp)
         unpairedCount++
       else if match[0].match(startPairRegExp)
