@@ -53,7 +53,7 @@ class BracketMatcher
 
     cursorBufferPosition = @editor.getCursorBufferPosition()
     previousCharacters = @editor.getTextInBufferRange([cursorBufferPosition.traverse([0, -2]), cursorBufferPosition])
-    nextCharacter = @editor.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.traverse([0,1])])
+    nextCharacter = @editor.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.traverse([0, 1])])
 
     previousCharacter = previousCharacters.slice(-1)
 
@@ -71,8 +71,8 @@ class BracketMatcher
       pair = @pairedCharacters[text]
 
     skipOverExistingClosingBracket = false
-    if @isClosingBracket(text) and nextCharacter == text and not hasEscapeSequenceBeforeCursor
-      if bracketMarker = _.find(@bracketMarkers, (marker) => marker.isValid() and marker.getBufferRange().end.isEqual(cursorBufferPosition))
+    if @isClosingBracket(text) and nextCharacter is text and not hasEscapeSequenceBeforeCursor
+      if bracketMarker = _.find(@bracketMarkers, (marker) -> marker.isValid() and marker.getBufferRange().end.isEqual(cursorBufferPosition))
         skipOverExistingClosingBracket = true
 
     if skipOverExistingClosingBracket
@@ -93,7 +93,7 @@ class BracketMatcher
 
     cursorBufferPosition = @editor.getCursorBufferPosition()
     previousCharacters = @editor.getTextInBufferRange([cursorBufferPosition.traverse([0, -2]), cursorBufferPosition])
-    nextCharacter = @editor.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.traverse([0,1])])
+    nextCharacter = @editor.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.traverse([0, 1])])
 
     previousCharacter = previousCharacters.slice(-1)
 
@@ -113,7 +113,7 @@ class BracketMatcher
 
     cursorBufferPosition = @editor.getCursorBufferPosition()
     previousCharacters = @editor.getTextInBufferRange([cursorBufferPosition.traverse([0, -2]), cursorBufferPosition])
-    nextCharacter = @editor.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.traverse([0,1])])
+    nextCharacter = @editor.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.traverse([0, 1])])
 
     previousCharacter = previousCharacters.slice(-1)
 
