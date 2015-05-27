@@ -881,7 +881,9 @@ describe "bracket matching", ->
           editor.setSelectedBufferRange([[0, 9], [0, 12]])
 
           editor.insertText '#'
+          # coffeelint: disable=no_interpolation_in_single_quotes
           expect(editor.getText()).toBe 'foo = "a #{bar}"'
+          # coffeelint: enable=no_interpolation_in_single_quotes
           expect(editor.getSelectedBufferRange()).toEqual [[0, 11], [0, 14]]
 
           editor.undo()
