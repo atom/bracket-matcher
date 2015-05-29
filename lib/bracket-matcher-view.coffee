@@ -128,15 +128,15 @@ class BracketMatcherView
     scanRange = new Range(startPairPosition.traverse([0, 1]), @editor.buffer.getEndPosition())
     endPairPosition = null
     unpairedCount = 0
-    @editor.scanInBufferRange pairRegexes[startPair], scanRange, ({match, range, stop}) ->
-      switch match[0]
+    @editor.scanInBufferRange pairRegexes[startPair], scanRange, (result) ->
+      switch result.match[0]
         when startPair
           unpairedCount++
         when endPair
           unpairedCount--
           if unpairedCount < 0
-            endPairPosition = range.start
-            stop()
+            endPairPosition = result.range.start
+            result.stop()
 
     endPairPosition
 
@@ -144,13 +144,13 @@ class BracketMatcherView
     scanRange = new Range([0, 0], endPairPosition)
     startPairPosition = null
     unpairedCount = 0
-    @editor.backwardsScanInBufferRange pairRegexes[startPair], scanRange, ({match, range, stop}) ->
-      switch match[0]
+    @editor.backwardsScanInBufferRange pairRegexes[startPair], scanRange, (result) ->
+      switch result.match[0]
         when startPair
           unpairedCount--
           if unpairedCount < 0
-            startPairPosition = range.start
-            stop()
+            startPairPosition = result.range.start
+            result.stop()
         when endPair
           unpairedCount++
     startPairPosition
@@ -164,13 +164,14 @@ class BracketMatcherView
     endPairRegExp = new RegExp("[#{endPair}]", 'g')
     startPosition = null
     unpairedCount = 0
-    @editor.backwardsScanInBufferRange combinedRegExp, scanRange, ({match, range, stop}) ->
-      if match[0].match(endPairRegExp)
+    @editor.backwardsScanInBufferRange combinedRegExp, scanRange, (result) ->
+      if result.match[0].match(endPairRegExp)
         unpairedCount++
-      else if match[0].match(startPairRegExp)
+      else if result.match[0].match(startPairRegExp)
         unpairedCount--
-        startPosition = range.start
-        stop() if unpairedCount < 0
+        if unpairedCount < 0
+          startPosition = result.range.start
+          result.stop()
      startPosition
 
   createMarker: (bufferRange) ->
