@@ -1,5 +1,5 @@
 _ = require 'underscore-plus'
-{CompositeDisposable} = require 'atom'
+{CompositeDisposable, Disposable} = require 'atom'
 SelectorCache = require './selector-cache'
 
 module.exports =
@@ -33,9 +33,7 @@ class BracketMatcher
     @subscriptions = new CompositeDisposable
     @bracketMarkers = []
 
-    _.adviseBefore(@editor, 'insertText', @insertText)
-    _.adviseBefore(@editor, 'insertNewline', @insertNewline)
-    _.adviseBefore(@editor, 'backspace', @backspace)
+    @subscriptions.add @adviseBeforeEditor()
 
     @subscriptions.add atom.commands.add editorElement, 'bracket-matcher:remove-brackets-from-selection', (event) =>
       event.abortKeyBinding() unless @removeBrackets()
@@ -43,7 +41,25 @@ class BracketMatcher
     @subscriptions.add atom.config.observe 'bracket-matcher.autocompleteSmartQuotes', (newValue) =>
       @toggleQuotes(newValue)
 
-    @subscriptions.add @editor.onDidDestroy => @unsubscribe()
+    @subscriptions.add @editor.onDidDestroy => @destroy()
+
+  destroy: ->
+    @unsubscribe()
+    @editor = null
+
+  adviseBeforeEditor: ->
+    originalInsertText  = @editor.insertText
+    originalInsertNewline  = @editor.insertNewline
+    originalBackspace  = @editor.backspace
+
+    _.adviseBefore(@editor, 'insertText', @insertText)
+    _.adviseBefore(@editor, 'insertNewline', @insertNewline)
+    _.adviseBefore(@editor, 'backspace', @backspace)
+
+    new Disposable =>
+      @editor.insertText = originalInsertText
+      @editor.insertNewline = originalInsertNewline
+      @editor.backspace = originalBackspace
 
   insertText: (text, options) =>
     return true unless text
@@ -215,3 +231,4 @@ class BracketMatcher
 
   unsubscribe: ->
     @subscriptions.dispose()
+    @subscriptions = null
