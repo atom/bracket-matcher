@@ -31,6 +31,9 @@ class BracketMatcherView
     @subscriptions.add @editor.onDidChangeGrammar =>
       @updateMatch()
 
+    @subscriptions.add @editor.onDidDestroy =>
+      @destroy()
+
     @subscribeToCursor()
 
     @subscriptions.add atom.commands.add editorElement, 'bracket-matcher:go-to-matching-bracket', =>
@@ -49,6 +52,12 @@ class BracketMatcherView
       @removeMatchingBrackets()
 
     @updateMatch()
+
+  destroy: ->
+    @subscriptions.dispose()
+    @subscriptions = null
+    @editor = null
+    @tagFinder = null
 
   subscribeToCursor: ->
     cursor = @editor.getLastCursor()
