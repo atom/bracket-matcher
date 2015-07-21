@@ -60,7 +60,8 @@ class BracketMatcher
     hasWordAfterCursor = /\w/.test(nextCharacter)
     hasWordBeforeCursor = /\w/.test(previousCharacter)
     hasQuoteBeforeCursor = previousCharacter is text[0]
-    hasEscapeSequenceBeforeCursor = previousCharacters.match(/\\/g)?.length >= 1 # To guard against the "\\" sequence
+    hasEscapeSequenceBeforeCursor = previousCharacters.match(/\\/g)?.length >= 1 # To guard against the "\\" sequence (last 2 char)
+    hasEscapeSequenceAtCursor = previousCharacter is "\\"  # To guard against the "\\" sequence (last char)
 
     if text is '#' and @isCursorOnInterpolatedString()
       autoCompleteOpeningBracket = atom.config.get('bracket-matcher.autocompleteBrackets') and not hasEscapeSequenceBeforeCursor
@@ -71,7 +72,7 @@ class BracketMatcher
       pair = @pairedCharacters[text]
 
     skipOverExistingClosingBracket = false
-    if @isClosingBracket(text) and nextCharacter is text and not hasEscapeSequenceBeforeCursor
+    if @isClosingBracket(text) and nextCharacter is text and not hasEscapeSequenceAtCursor
       if bracketMarker = _.find(@bracketMarkers, (marker) -> marker.isValid() and marker.getBufferRange().end.isEqual(cursorBufferPosition))
         skipOverExistingClosingBracket = true
 
