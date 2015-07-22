@@ -63,7 +63,7 @@ class BracketMatcher
     hasEscapeSequenceBeforeCursor = previousCharacters.match(/\\/g)?.length >= 1 # To guard against the "\\" sequence
 
     # if we type { inside a newly created interpolation #{}, suppress opening brace
-    if text is '{' and previousCharacters=='#\{' and @isCursorOnInterpolatedString()
+    if text is '{' and previousCharacters is '#\{' and @isCursorOnInterpolatedString()
       return false
 
     if text is '#' and @isCursorOnInterpolatedString()
