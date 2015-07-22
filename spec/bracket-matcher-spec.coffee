@@ -859,7 +859,7 @@ describe "bracket matching", ->
           expect(editor.getText()).toBe 'foo = "#{}"'
           editor.insertText "{"
           editor.insertText "bar"
-          expect(editor.getText()).toBe 'foo = "#{bar}"'
+          expect(editor.getText()).toBe 'foo = "#\{bar}"'
 
         it "should not insert curly braces inside singly quoted string", ->
           editor.insertText "foo = "
