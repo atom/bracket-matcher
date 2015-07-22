@@ -62,6 +62,10 @@ class BracketMatcher
     hasQuoteBeforeCursor = previousCharacter is text[0]
     hasEscapeSequenceBeforeCursor = previousCharacters.match(/\\/g)?.length >= 1 # To guard against the "\\" sequence
 
+    # if we type { inside a newly created interpolation #{}, suppress opening brace
+    if text is '{' and previousCharacters=='#\{' and @isCursorOnInterpolatedString()
+      return false
+
     if text is '#' and @isCursorOnInterpolatedString()
       autoCompleteOpeningBracket = atom.config.get('bracket-matcher.autocompleteBrackets') and not hasEscapeSequenceBeforeCursor
       text += '{'

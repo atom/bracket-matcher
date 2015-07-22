@@ -852,6 +852,15 @@ describe "bracket matching", ->
           editor.undo()
           expect(editor.getText()).toBe 'foo = ""'
 
+        it "should skip opening interpolation brace if already inserted", ->
+          editor.insertText "foo = "
+          editor.insertText '"'
+          editor.insertText "#"
+          expect(editor.getText()).toBe 'foo = "#{}"'
+          editor.insertText "{"
+          editor.insertText "bar"
+          expect(editor.getText()).toBe 'foo = "#{bar}"'
+
         it "should not insert curly braces inside singly quoted string", ->
           editor.insertText "foo = "
           editor.insertText "'"
