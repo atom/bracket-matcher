@@ -64,9 +64,9 @@ class TagFinder
 
     endRange
 
-  findStartEndTags: ->
+  findStartEndTags: (endPosition) ->
     ranges = null
-    endPosition = @editor.getLastCursor().getCurrentWordBufferRange({@wordRegex}).end
+    endPosition = endPosition || @editor.getLastCursor().getCurrentWordBufferRange({@wordRegex}).end
     @editor.backwardsScanInBufferRange @tagPattern, [[0, 0], endPosition], ({match, range, stop}) =>
       stop()
 
@@ -85,8 +85,8 @@ class TagFinder
       ranges = {startRange, endRange} if startRange? and endRange?
     ranges
 
-  findEnclosingTags: ->
-    if ranges = @findStartEndTags()
+  findEnclosingTags: (endPosition) ->
+    if ranges = @findStartEndTags(endPosition)
       if @isTagRange(ranges.startRange) and @isTagRange(ranges.endRange)
         return ranges
 

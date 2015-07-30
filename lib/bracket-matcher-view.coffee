@@ -261,7 +261,7 @@ class BracketMatcherView
         startPair = @editor.getTextInRange(Range.fromPointWithDelta(startPosition, 0, 1))
         endPosition = @findMatchingEndPair(startPosition, startPair, startPairMatches[startPair])
         endPositionExternal = endPosition.traverse([0, 1])
-      else if pair = @tagFinder.findEnclosingTags()
+      else if pair = @tagFinder.findEnclosingTags(@editor.getSelectedBufferRange().start)
         {startRange, endRange} = pair
         if startRange.compare(endRange) > 0
           [startRange, endRange] = [endRange, startRange]
