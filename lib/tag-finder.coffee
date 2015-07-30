@@ -66,7 +66,7 @@ class TagFinder
 
   findStartEndTags: (endPosition) ->
     ranges = null
-    endPosition = endPosition || @editor.getLastCursor().getCurrentWordBufferRange({@wordRegex}).end
+    endPosition = endPosition or @editor.getLastCursor().getCurrentWordBufferRange({@wordRegex}).end
     @editor.backwardsScanInBufferRange @tagPattern, [[0, 0], endPosition], ({match, range, stop}) =>
       stop()
 
