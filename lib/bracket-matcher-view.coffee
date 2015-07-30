@@ -279,9 +279,11 @@ class BracketMatcherView
       endPosition = endRange.start
     else
       if startPosition = @findAnyStartPair(@editor.getCursorBufferPosition())
+        startPositionExternal = startPosition
         startPair = @editor.getTextInRange(Range.fromPointWithDelta(startPosition, 0, 1))
-        endPosition = @findMatchingEndPair(startPosition, startPair, @matchManager.pairedCharacters[startPair])
         startPosition = startPosition.traverse([0, 1])
+        endPosition = @findMatchingEndPair(startPosition, startPair, @matchManager.pairedCharacters[startPair])
+        endPositionExternal = endPosition.traverse([0, 1])
       else if pair = @tagFinder.findStartEndTags(true)
         # NOTE: findEnclosingTags is not used as it has a scope check
         # that will fail on very long lines
@@ -294,6 +296,8 @@ class BracketMatcherView
 
     if startPosition? and endPosition?
       rangeToSelect = new Range(startPosition, endPosition)
+      if @editor.getSelectedBufferRange().containsRange(rangeToSelect)
+        rangeToSelect = new Range(startPositionExternal, endPositionExternal)
       @editor.setSelectedBufferRange(rangeToSelect)
 
   # Insert at the current cursor position a closing tag if there exists an
