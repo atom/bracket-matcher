@@ -33,6 +33,7 @@ class BracketMatcher
     @subscriptions = new CompositeDisposable
     @bracketMarkers = []
 
+    @origEditorInsertText = @editor.insertText.bind(@editor)
     _.adviseBefore(@editor, 'insertText', @insertText)
     _.adviseBefore(@editor, 'insertNewline', @insertNewline)
     _.adviseBefore(@editor, 'backspace', @backspace)
@@ -81,7 +82,7 @@ class BracketMatcher
       @editor.moveRight()
       false
     else if autoCompleteOpeningBracket
-      @editor.insertText(text + pair)
+      @origEditorInsertText(text + pair)
       @editor.moveLeft()
       range = [cursorBufferPosition, cursorBufferPosition.traverse([0, text.length])]
       @bracketMarkers.push @editor.markBufferRange(range)
@@ -100,7 +101,7 @@ class BracketMatcher
     hasEscapeSequenceBeforeCursor = previousCharacters.match(/\\/g)?.length >= 1 # To guard against the "\\" sequence
     if @pairsToIndent[previousCharacter] is nextCharacter and not hasEscapeSequenceBeforeCursor
       @editor.transact =>
-        @editor.insertText "\n\n"
+        @origEditorInsertText "\n\n"
         @editor.moveUp()
         if atom.config.get('editor.autoIndent')
           cursorRow = @editor.getCursorBufferPosition().row
