@@ -110,7 +110,7 @@ describe "bracket matching", ->
         editor.addCursorAtBufferPosition([9, 0])
         expectHighlights([0, 28], [12, 0])
 
-        editor.consolidateSelections()
+        editor.getCursors()[0].destroy()
         expectNoHighlights()
 
         editor.setCursorBufferPosition([0, 29])
