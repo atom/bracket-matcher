@@ -13,13 +13,13 @@ endPairMatches =
   ']': '['
   '}': '{'
 
-pairClasses =
-  '(': 'bracket-matcher-parentessis-open'
-  ')': 'bracket-matcher-parentessis-close'
-  '{': 'bracket-matcher-brace-open'
-  '}': 'bracket-matcher-brace-close'
-  '[': 'bracket-matcher-square-open'
-  ']': 'bracket-matcher-square-close'
+braceClasses =
+  '(': 'bracket-matcher-round-brace-open'
+  ')': 'bracket-matcher-round-brace-close'
+  '{': 'bracket-matcher-curly-brace-open'
+  '}': 'bracket-matcher-curly-brace-close'
+  '[': 'bracket-matcher-square-brace-open'
+  ']': 'bracket-matcher-square-brace-close'
 
 pairRegexes = {}
 for startPair, endPair of startPairMatches
@@ -32,7 +32,7 @@ class BracketMatcherView
     @tagFinder = new TagFinder(@editor)
     @pairHighlighted = false
     @tagHighlighted = false
-    @gutter = if atom.config.get('bracket-matcher.show-in-gutter') then @editor.addGutter({name:'bracketMatcherGutter'}) else null
+    @gutter = if atom.config.get('bracket-matcher.show-brackets-in-gutter') then @editor.addGutter({name: 'bracketMatcherGutter'}) else null
 
     @subscriptions.add @editor.onDidChange =>
       @updateMatch()
@@ -57,8 +57,8 @@ class BracketMatcherView
     @subscriptions.add atom.commands.add editorElement, 'bracket-matcher:remove-matching-brackets', =>
       @removeMatchingBrackets()
 
-    @subscriptions.add atom.commands.add editorElement, 'bracket-matcher:show-in-gutter', =>
-      @showInGutter()
+    @subscriptions.add atom.commands.add editorElement, 'bracket-matcher:show-brackets-in-gutter', =>
+      @showBracketsInGutter()
 
     @updateMatch()
 
@@ -101,7 +101,7 @@ class BracketMatcherView
     else
       if pair = @tagFinder.findMatchingTags()
         @startMarker = @createMarker(pair.startRange, {brace: currentPair})
-        @endMarker = @createMarker(pair.endRange, {brace: mathcingPair })
+        @endMarker = @createMarker(pair.endRange, {brace: matchingPair})
         @pairHighlighted = true
         @tagHighlighted = true
 
@@ -189,7 +189,7 @@ class BracketMatcherView
   createMarker: (bufferRange, options) ->
     marker = @editor.markBufferRange(bufferRange)
     @editor.decorateMarker(marker, type: 'highlight', class: 'bracket-matcher', deprecatedRegionClass: 'bracket-matcher')
-    @gutter?.decorateMarker(marker, {class: pairClasses[options.brace]})
+    @gutter?.decorateMarker(marker, {class: braceClasses[options.brace]})
     marker
 
   findCurrentPair: (matches) ->
@@ -294,10 +294,10 @@ class BracketMatcherView
     if tag = @tagFinder.closingTagForFragments(preFragment, postFragment)
       @editor.insertText("</#{tag}>")
 
-  showInGutter: ->
+  showBracketsInGutter: ->
     if @gutter
       @gutter.destroy()
       @gutter = null
     else
-      @gutter = @editor.addGutter({name:'bracketMatcherGutter'})
+      @gutter = @editor.addGutter({name: 'bracketMatcherGutter'})
       @updateMatch()
