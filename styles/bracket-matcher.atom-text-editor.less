@@ -2,3 +2,27 @@
   border-bottom: 1px dotted lime;
   position: absolute;
 }
+
+.bracket-matcher-curly-brace-open::before {
+  content: '{';
+}
+
+.bracket-matcher-curly-brace-close::after {
+  content: '}';
+}
+
+.bracket-matcher-round-brace-open::before {
+  content: '(';
+}
+
+.bracket-matcher-round-brace-close::after {
+  content: ')';
+}
+
+.bracket-matcher-square-brace-open::before {
+  content: '[';
+}
+
+.bracket-matcher-square-brace-close::after {
+  content: ']';
+}
