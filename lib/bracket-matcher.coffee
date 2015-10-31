@@ -155,6 +155,11 @@ class BracketMatcher
       return false unless @isOpeningBracket(bracket)
       pair = @pairedCharacters[bracket]
 
+    defaultPairs = @defaultPairs
+    cursorBufferPosition = @editor.getCursorBufferPosition()
+    endPosition = @editor.buffer.getEndPosition()
+    editor = @editor
+
     selectionWrapped = false
     @editor.mutateSelectedText (selection) ->
       return if selection.isEmpty()
@@ -165,12 +170,33 @@ class BracketMatcher
       selectionWrapped = true
       range = selection.getBufferRange()
       options = reversed: selection.isReversed()
-      selection.insertText("#{bracket}#{selection.getText()}#{pair}")
+
+      selectionIsQuote = defaultPairs.hasOwnProperty(selection.getText()) and defaultPairs[selection.getText()] == selection.getText()
+
+      if selectionIsQuote
+        #
+        # scanRange = new Range(cursorBufferPosition, endPosition)
+        # endPairPosition = null
+        # unpairedCount = 0
+        # console.log(selection)
+        # editor.scanInBufferRange new RegExp(selection.getText()), [selection.getBufferRange().end, [Infinity, 0]], ({range, stop}) ->
+        #     unpairedCount--
+        #     if unpairedCount < 0
+        #         endPairPosition = range.start
+        #         stop()
+        #
+        # console.log(endPairPosition)
+
+        selection.insertText("#{bracket}")
+      else
+        selection.insertText("#{bracket}#{selection.getText()}#{pair}")
+
       selectionStart = range.start.traverse([0, bracket.length])
-      if range.start.row is range.end.row
+      if not selectionIsQuote and range.start.row is range.end.row
         selectionEnd = range.end.traverse([0, bracket.length])
       else
         selectionEnd = range.end
+
       selection.setBufferRange([selectionStart, selectionEnd], options)
 
     selectionWrapped
