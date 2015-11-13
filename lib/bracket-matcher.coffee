@@ -23,6 +23,11 @@ class BracketMatcher
     "«": "»"
     "‹": "›"
 
+  selectionOnlyPairs:
+    "*": "*"
+    "_": "_"
+    "~": "~"
+
   toggleQuotes: (includeSmartQuotes) ->
     if includeSmartQuotes
       @pairedCharacters = _.extend({}, @defaultPairs, @smartQuotePairs)
@@ -147,10 +152,14 @@ class BracketMatcher
   wrapSelectionInBrackets: (bracket) ->
     return false unless atom.config.get('bracket-matcher.wrapSelectionsInBrackets')
 
+    doMarkdownPunctuation = atom.config.get('bracket-matcher.wrapSelectionsInMarkdownPunctuation')
+
     if bracket is '#'
       return false unless @isCursorOnInterpolatedString()
       bracket = '#{'
       pair = '}'
+    else if @selectionOnlyPairs[bracket] && doMarkdownPunctuation
+      pair = @selectionOnlyPairs[bracket]
     else
       return false unless @isOpeningBracket(bracket)
       pair = @pairedCharacters[bracket]

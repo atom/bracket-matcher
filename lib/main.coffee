@@ -15,6 +15,10 @@ module.exports =
       type: 'boolean'
       default: true
       description: 'Wrap selected text in brackets or quotes when the editor contains selections and the openeing bracket or quote is typed.'
+    wrapSelectionsInMarkdownPunctuation:
+      type: 'boolean'
+      default: true
+      description: 'Wrap selected text in *, _, or ~ when the editor contains selections those characters are typed.'
 
   activate: ->
     atom.workspace.observeTextEditors (editor) ->
