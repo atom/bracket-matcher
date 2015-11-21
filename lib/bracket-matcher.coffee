@@ -158,7 +158,7 @@ class BracketMatcher
       return false unless @isCursorOnInterpolatedString()
       bracket = '#{'
       pair = '}'
-    else if @selectionOnlyPairs[bracket] && doMarkdownPunctuation
+    else if @selectionOnlyPairs[bracket] and doMarkdownPunctuation
       pair = @selectionOnlyPairs[bracket]
     else
       return false unless @isOpeningBracket(bracket)
