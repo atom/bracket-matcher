@@ -71,7 +71,7 @@ class BracketMatcher
       pair = @pairedCharacters[text]
 
     skipOverExistingClosingBracket = false
-    if @isClosingBracket(text) and nextCharacter is text and not hasEscapeSequenceBeforeCursor
+    if @isClosingBracket(text) and nextCharacter is text and (previousCharacter isnt '\\' or '\\\\' is previousCharacters)
       if bracketMarker = _.find(@bracketMarkers, (marker) -> marker.isValid() and marker.getBufferRange().end.isEqual(cursorBufferPosition))
         skipOverExistingClosingBracket = true
 
