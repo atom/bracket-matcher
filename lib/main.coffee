@@ -14,7 +14,7 @@ module.exports =
     wrapSelectionsInBrackets:
       type: 'boolean'
       default: true
-      description: 'Wrap selected text in brackets or quotes when the editor contains selections and the openeing bracket or quote is typed.'
+      description: 'Wrap selected text in brackets or quotes when the editor contains selections and the opening bracket or quote is typed.'
     wrapSelectionsInMarkdownPunctuation:
       type: 'boolean'
       default: true
