@@ -56,18 +56,22 @@ class BracketMatcher
     nextCharacter = @editor.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.traverse([0, 1])])
 
     previousCharacter = previousCharacters.slice(-1)
-
-    hasWordAfterCursor = /\w/.test(nextCharacter)
+    hasWordAfterCursor = /\S/.test(nextCharacter)
     hasWordBeforeCursor = /\w/.test(previousCharacter)
     hasQuoteBeforeCursor = previousCharacter is text[0]
     hasEscapeSequenceBeforeCursor = previousCharacters.match(/\\/g)?.length >= 1 # To guard against the "\\" sequence
+    hasClosingBracketAfterCursor = do (@pairsToIndent) ->
+        for op, cl of pairsToIndent
+            if cl is nextCharacter[0]
+                return true
+        return false
 
     if text is '#' and @isCursorOnInterpolatedString()
       autoCompleteOpeningBracket = atom.config.get('bracket-matcher.autocompleteBrackets') and not hasEscapeSequenceBeforeCursor
       text += '{'
       pair = '}'
     else
-      autoCompleteOpeningBracket = atom.config.get('bracket-matcher.autocompleteBrackets') and @isOpeningBracket(text) and not hasWordAfterCursor and not (@isQuote(text) and (hasWordBeforeCursor or hasQuoteBeforeCursor)) and not hasEscapeSequenceBeforeCursor
+      autoCompleteOpeningBracket = atom.config.get('bracket-matcher.autocompleteBrackets') and @isOpeningBracket(text) and (not hasWordAfterCursor or hasClosingBracketAfterCursor) and not (@isQuote(text) and (hasWordBeforeCursor or hasQuoteBeforeCursor)) and not hasEscapeSequenceBeforeCursor
       pair = @pairedCharacters[text]
 
     skipOverExistingClosingBracket = false
