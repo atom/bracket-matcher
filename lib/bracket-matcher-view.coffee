@@ -25,8 +25,13 @@ class BracketMatcherView
     @pairHighlighted = false
     @tagHighlighted = false
 
-    @subscriptions.add @editor.getBuffer().onDidChangeText =>
-      @updateMatch()
+    # TODO: remove conditional when `onDidChangeText` ships on stable.
+    if typeof @editor.getBuffer().onDidChangeText is "function"
+      @subscriptions.add @editor.getBuffer().onDidChangeText =>
+        @updateMatch()
+    else
+      @subscriptions.add @editor.onDidChange =>
+        @updateMatch()
 
     @subscriptions.add @editor.onDidChangeGrammar =>
       @updateMatch()
