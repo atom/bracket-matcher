@@ -25,7 +25,7 @@ class BracketMatcherView
     @pairHighlighted = false
     @tagHighlighted = false
 
-    @subscriptions.add @editor.onDidChange =>
+    @subscriptions.add @editor.getBuffer().onDidChangeText =>
       @updateMatch()
 
     @subscriptions.add @editor.onDidChangeGrammar =>
@@ -55,8 +55,8 @@ class BracketMatcherView
     return unless cursor?
 
     cursorSubscriptions = new CompositeDisposable
-    cursorSubscriptions.add cursor.onDidChangePosition =>
-      @updateMatch()
+    cursorSubscriptions.add cursor.onDidChangePosition ({textChanged}) =>
+      @updateMatch() unless textChanged
 
     cursorSubscriptions.add cursor.onDidDestroy =>
       cursorSubscriptions.dispose()
