@@ -53,7 +53,12 @@ class BracketMatcherView
     @subscriptions.add atom.commands.add editorElement, 'bracket-matcher:remove-matching-brackets', =>
       @removeMatchingBrackets()
 
+    @subscriptions.add @editor.onDidDestroy @destroy
+
     @updateMatch()
+
+  destroy: =>
+    @subscriptions.dispose()
 
   subscribeToCursor: ->
     cursor = @editor.getLastCursor()
