@@ -25,8 +25,13 @@ class BracketMatcherView
     @pairHighlighted = false
     @tagHighlighted = false
 
-    @subscriptions.add @editor.onDidChange =>
-      @updateMatch()
+    # TODO: remove conditional when `onDidChangeText` ships on stable.
+    if typeof @editor.getBuffer().onDidChangeText is "function"
+      @subscriptions.add @editor.getBuffer().onDidChangeText =>
+        @updateMatch()
+    else
+      @subscriptions.add @editor.onDidChange =>
+        @updateMatch()
 
     @subscriptions.add @editor.onDidChangeGrammar =>
       @updateMatch()
@@ -48,15 +53,20 @@ class BracketMatcherView
     @subscriptions.add atom.commands.add editorElement, 'bracket-matcher:remove-matching-brackets', =>
       @removeMatchingBrackets()
 
+    @subscriptions.add @editor.onDidDestroy @destroy
+
     @updateMatch()
+
+  destroy: =>
+    @subscriptions.dispose()
 
   subscribeToCursor: ->
     cursor = @editor.getLastCursor()
     return unless cursor?
 
     cursorSubscriptions = new CompositeDisposable
-    cursorSubscriptions.add cursor.onDidChangePosition =>
-      @updateMatch()
+    cursorSubscriptions.add cursor.onDidChangePosition ({textChanged}) =>
+      @updateMatch() unless textChanged
 
     cursorSubscriptions.add cursor.onDidDestroy =>
       cursorSubscriptions.dispose()
