@@ -2,6 +2,10 @@ BracketMatcherView = null
 BracketMatcher = null
 
 module.exports =
+    wrapSelectionsInMarkdownPunctuation:
+      type: 'boolean'
+      default: true
+      description: 'Wrap selected text in *, _, or ~ when the editor contains selections those characters are typed.'
   activate: ->
     atom.workspace.observeTextEditors (editor) ->
       editorElement = atom.views.getView(editor)

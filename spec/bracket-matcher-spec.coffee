@@ -902,6 +902,41 @@ describe "bracket matching", ->
           expect(editor.getText()).toBe 'foo = "a bar"\nfoo = "a bar"'
           expect(editor.getSelectedBufferRange()).toEqual [[0, 9], [1, 12]]
 
+    describe "when inserting Markdown punctuation", ->
+      describe "when there is a selection", ->
+        beforeEach ->
+          atom.config.set('bracket-matcher.wrapSelectionsInMarkdownPunctuation', true)
+          editor.setText 'text'
+          editor.moveToBottom()
+          editor.selectToTop()
+          editor.selectAll()
+
+        it "should wrap the selection in asterisks", ->
+          editor.insertText '*'
+          expect(buffer.getText()).toBe '*text*'
+
+        it "should wrap the selection in underscores", ->
+          editor.insertText '_'
+          expect(buffer.getText()).toBe '_text_'
+
+        it "should wrap the selection in tildes", ->
+          editor.insertText '~'
+          expect(buffer.getText()).toBe '~text~'
+
+        describe "when wrapSelectionsInMarkdownPunctuation is false", ->
+          it "should not insert Markdown characters", ->
+            atom.config.set('bracket-matcher.wrapSelectionsInMarkdownPunctuation', false)
+            editor.insertText '*'
+            expect(buffer.getText()).toBe '*'
+
+      describe "when there is no selection", ->
+        it "should not insert any extra Markdown punctuation", ->
+          atom.config.set('bracket-matcher.wrapSelectionsInMarkdownPunctuation', true)
+          editor.setText '  '
+          editor.setCursorBufferPosition([0, 1])
+          editor.insertText '*'
+          expect(buffer.getText()).toBe ' * '
+
   describe "matching bracket deletion", ->
     it "deletes the end bracket when it directly precedes a begin bracket that is being backspaced", ->
       buffer.setText("")

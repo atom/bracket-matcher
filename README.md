@@ -10,6 +10,8 @@ You can toggle whether English/French style quotation marks (`“”`, `‘’`,
 and `‹›`) are autocompleted via the *Autocomplete Smart Quotes*  setting in the
 settings view.
 
+Autocompletes `*`, `_`, and  `~`, but only when there is an active selection (togglable via the *Wrap Selections In Markdown Punctuation* setting).
+
 Use `ctrl-m` to jump to the bracket matching the one adjacent to the cursor.
 It jumps to the nearest enclosing bracket when there's no adjacent bracket,
 
