@@ -527,9 +527,19 @@ describe "bracket matching", ->
 
         expect(editor.buffer.getText()).toBe "a(b"
 
-    describe "when autocompleteBrackets configuration is disabled", ->
+    describe "when autocompleteBrackets configuration is disabled globally", ->
       it "does not insert a matching bracket", ->
         atom.config.set 'bracket-matcher.autocompleteBrackets', false
+        editor.buffer.setText("}")
+        editor.setCursorBufferPosition([0, 0])
+        editor.insertText '{'
+        expect(buffer.lineForRow(0)).toBe "{}"
+        expect(editor.getCursorBufferPosition()).toEqual([0, 1])
+
+    describe "when autocompleteBrackets configuration is disabled in scope", ->
+      it "does not insert a matching bracket", ->
+        atom.config.set 'bracket-matcher.autocompleteBrackets', true
+        atom.config.set 'bracket-matcher.autocompleteBrackets', false, scopeSelector: '.source.js'
         editor.buffer.setText("}")
         editor.setCursorBufferPosition([0, 0])
         editor.insertText '{'
