@@ -24,7 +24,6 @@ class BracketMatcher
     "‹": "›"
 
   toggleQuotes: (includeSmartQuotes) ->
-    return if @pairedCharacters? and includeSmartQuotes is (@pairedCharacters isnt @defaultPairs)
     if includeSmartQuotes
       @pairedCharacters = _.extend({}, @defaultPairs, @smartQuotePairs)
     else
