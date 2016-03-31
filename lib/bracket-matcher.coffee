@@ -40,14 +40,14 @@ class BracketMatcher
     @subscriptions.add atom.commands.add editorElement, 'bracket-matcher:remove-brackets-from-selection', (event) =>
       event.abortKeyBinding() unless @removeBrackets()
 
-    @subscriptions.add atom.config.observe 'bracket-matcher.autocompleteSmartQuotes', (newValue) =>
-      @toggleQuotes(newValue)
-
     @subscriptions.add @editor.onDidDestroy => @unsubscribe()
 
   insertText: (text, options) =>
     return true unless text
     return true if options?.select or options?.undo is 'skip'
+
+    @toggleQuotes(@getScopedSetting('bracket-matcher.autocompleteSmartQuotes'))
+
     return false if @wrapSelectionInBrackets(text)
     return true if @editor.hasMultipleCursors()
 
@@ -63,11 +63,11 @@ class BracketMatcher
     hasEscapeSequenceBeforeCursor = previousCharacters.match(/\\/g)?.length >= 1 # To guard against the "\\" sequence
 
     if text is '#' and @isCursorOnInterpolatedString()
-      autoCompleteOpeningBracket = atom.config.get('bracket-matcher.autocompleteBrackets') and not hasEscapeSequenceBeforeCursor
+      autoCompleteOpeningBracket = @getScopedSetting('bracket-matcher.autocompleteBrackets') and not hasEscapeSequenceBeforeCursor
       text += '{'
       pair = '}'
     else
-      autoCompleteOpeningBracket = atom.config.get('bracket-matcher.autocompleteBrackets') and @isOpeningBracket(text) and not hasWordAfterCursor and not (@isQuote(text) and (hasWordBeforeCursor or hasQuoteBeforeCursor)) and not hasEscapeSequenceBeforeCursor
+      autoCompleteOpeningBracket = @getScopedSetting('bracket-matcher.autocompleteBrackets') and @isOpeningBracket(text) and not hasWordAfterCursor and not (@isQuote(text) and (hasWordBeforeCursor or hasQuoteBeforeCursor)) and not hasEscapeSequenceBeforeCursor
       pair = @pairedCharacters[text]
 
     skipOverExistingClosingBracket = false
@@ -91,6 +91,8 @@ class BracketMatcher
     return if @editor.hasMultipleCursors()
     return unless @editor.getLastSelection().isEmpty()
 
+    @toggleQuotes(@getScopedSetting('bracket-matcher.autocompleteSmartQuotes'))
+
     cursorBufferPosition = @editor.getCursorBufferPosition()
     previousCharacters = @editor.getTextInBufferRange([cursorBufferPosition.traverse([0, -2]), cursorBufferPosition])
     nextCharacter = @editor.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.traverse([0, 1])])
@@ -102,7 +104,7 @@ class BracketMatcher
       @editor.transact =>
         @editor.insertText "\n\n"
         @editor.moveUp()
-        if atom.config.get('editor.autoIndent')
+        if @getScopedSetting('editor.autoIndent')
           cursorRow = @editor.getCursorBufferPosition().row
           @editor.autoIndentBufferRows(cursorRow, cursorRow + 1)
       false
@@ -111,6 +113,8 @@ class BracketMatcher
     return if @editor.hasMultipleCursors()
     return unless @editor.getLastSelection().isEmpty()
 
+    @toggleQuotes(@getScopedSetting('bracket-matcher.autocompleteSmartQuotes'))
+
     cursorBufferPosition = @editor.getCursorBufferPosition()
     previousCharacters = @editor.getTextInBufferRange([cursorBufferPosition.traverse([0, -2]), cursorBufferPosition])
     nextCharacter = @editor.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.traverse([0, 1])])
@@ -118,7 +122,7 @@ class BracketMatcher
     previousCharacter = previousCharacters.slice(-1)
 
     hasEscapeSequenceBeforeCursor = previousCharacters.match(/\\/g)?.length >= 1 # To guard against the "\\" sequence
-    if (@pairedCharacters[previousCharacter] is nextCharacter) and not hasEscapeSequenceBeforeCursor and atom.config.get('bracket-matcher.autocompleteBrackets')
+    if (@pairedCharacters[previousCharacter] is nextCharacter) and not hasEscapeSequenceBeforeCursor and @getScopedSetting('bracket-matcher.autocompleteBrackets')
       @editor.transact =>
         @editor.moveLeft()
         @editor.delete()
@@ -127,6 +131,7 @@ class BracketMatcher
 
   removeBrackets: ->
     bracketsRemoved = false
+    @toggleQuotes(@getScopedSetting('bracket-matcher.autocompleteSmartQuotes'))
     @editor.mutateSelectedText (selection) =>
       return unless @selectionIsWrappedByMatchingBrackets(selection)
 
@@ -145,7 +150,7 @@ class BracketMatcher
     bracketsRemoved
 
   wrapSelectionInBrackets: (bracket) ->
-    return false unless atom.config.get('bracket-matcher.wrapSelectionsInBrackets')
+    return false unless @getScopedSetting('bracket-matcher.wrapSelectionsInBrackets')
 
     if bracket is '#'
       return false unless @isCursorOnInterpolatedString()
@@ -218,3 +223,6 @@ class BracketMatcher
 
   unsubscribe: ->
     @subscriptions.dispose()
+
+  getScopedSetting: (key) ->
+    atom.config.get(key, scope: @editor.getLastCursor().getScopeDescriptor())

@@ -527,9 +527,19 @@ describe "bracket matching", ->
 
         expect(editor.buffer.getText()).toBe "a(b"
 
-    describe "when autocompleteBrackets configuration is disabled", ->
+    describe "when autocompleteBrackets configuration is disabled globally", ->
       it "does not insert a matching bracket", ->
         atom.config.set 'bracket-matcher.autocompleteBrackets', false
+        editor.buffer.setText("}")
+        editor.setCursorBufferPosition([0, 0])
+        editor.insertText '{'
+        expect(buffer.lineForRow(0)).toBe "{}"
+        expect(editor.getCursorBufferPosition()).toEqual([0, 1])
+
+    describe "when autocompleteBrackets configuration is disabled in scope", ->
+      it "does not insert a matching bracket", ->
+        atom.config.set 'bracket-matcher.autocompleteBrackets', true
+        atom.config.set 'bracket-matcher.autocompleteBrackets', false, scopeSelector: '.source.js'
         editor.buffer.setText("}")
         editor.setCursorBufferPosition([0, 0])
         editor.insertText '{'
@@ -656,9 +666,21 @@ describe "bracket matching", ->
         expect(editor.getSelectedBufferRange()).toEqual [[0, 1], [0, 5]]
         expect(editor.getLastSelection().isReversed()).toBeTruthy()
 
-      describe "when the bracket-matcher.wrapSelectionsInBrackets is falsy", ->
+      describe "when the bracket-matcher.wrapSelectionsInBrackets is falsy globally", ->
         it "does not wrap the selection in brackets", ->
           atom.config.set('bracket-matcher.wrapSelectionsInBrackets', false)
+          editor.setText 'text'
+          editor.moveToBottom()
+          editor.selectToTop()
+          editor.selectAll()
+          editor.insertText '('
+          expect(buffer.getText()).toBe '('
+          expect(editor.getSelectedBufferRange()).toEqual [[0, 1], [0, 1]]
+
+      describe "when the bracket-matcher.wrapSelectionsInBrackets is falsy in scope", ->
+        it "does not wrap the selection in brackets", ->
+          atom.config.set('bracket-matcher.wrapSelectionsInBrackets', true)
+          atom.config.set('bracket-matcher.wrapSelectionsInBrackets', false, scopeSelector: '.source.js')
           editor.setText 'text'
           editor.moveToBottom()
           editor.selectToTop()
@@ -911,8 +933,21 @@ describe "bracket matching", ->
       editor.backspace()
       expect(buffer.lineForRow(0)).toBe ""
 
-    it "does not delete end bracket even if it directly precedes a begin bracket if autocomplete is turned off", ->
+    it "does not delete end bracket even if it directly precedes a begin bracket if autocomplete is turned off globally", ->
       atom.config.set 'bracket-matcher.autocompleteBrackets', false
+      buffer.setText("")
+      editor.setCursorBufferPosition([0, 0])
+      editor.insertText "{"
+      expect(buffer.lineForRow(0)).toBe "{"
+      editor.insertText "}"
+      expect(buffer.lineForRow(0)).toBe "{}"
+      editor.setCursorBufferPosition([0, 1])
+      editor.backspace()
+      expect(buffer.lineForRow(0)).toBe "}"
+
+    it "does not delete end bracket even if it directly precedes a begin bracket if autocomplete is turned off in scope", ->
+      atom.config.set 'bracket-matcher.autocompleteBrackets', true
+      atom.config.set 'bracket-matcher.autocompleteBrackets', false, scopeSelector: '.source.js'
       buffer.setText("")
       editor.setCursorBufferPosition([0, 0])
       editor.insertText "{"
