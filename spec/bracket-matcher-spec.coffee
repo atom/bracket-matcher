@@ -874,6 +874,33 @@ describe "bracket matching", ->
           editor.undo()
           expect(editor.getText()).toBe 'foo = ""'
 
+        it "should not insert curly braces right before doubly quoted string", ->
+          editor.insertText "foo = "
+          editor.insertText '"'
+          editor.moveLeft()
+          editor.insertText "#"
+          expect(editor.getText()).toBe 'foo = #""'
+
+        it "should not insert curly braces right after double quoted string", ->
+          editor.insertText "foo =  "
+          editor.moveLeft()
+          editor.insertText '"'
+          editor.moveRight()
+          editor.insertText "#"
+          expect(editor.getText()).toBe 'foo = ""# '
+
+        it "should not insert curly braces right before doubly quoted string at the beginning of a line", ->
+          editor.insertText '"'
+          editor.moveLeft()
+          editor.insertText "#"
+          expect(editor.getText()).toBe '#""'
+
+        it "should not insert curly braces right after doubly quoted string at the end of a line", ->
+          editor.insertText '"'
+          editor.moveRight()
+          editor.insertText "#"
+          expect(editor.getText()).toBe '""#'
+
         it "should not insert curly braces inside singly quoted string", ->
           editor.insertText "foo = "
           editor.insertText "'"
