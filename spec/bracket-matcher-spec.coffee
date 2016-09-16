@@ -1,5 +1,3 @@
-{Point} = require 'atom'
-
 describe "bracket matching", ->
   [editorElement, editor, buffer] = []
 
