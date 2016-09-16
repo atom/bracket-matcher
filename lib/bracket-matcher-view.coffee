@@ -284,7 +284,6 @@ class BracketMatcherView
   # open tag that is not closed afterwards.
   closeTag: ->
     cursorPosition = @editor.getCursorBufferPosition()
-    textLimits = @editor.getBuffer().getRange()
     preFragment = @editor.getTextInBufferRange([[0, 0], cursorPosition])
     postFragment = @editor.getTextInBufferRange([cursorPosition, [Infinity, Infinity]])
 
