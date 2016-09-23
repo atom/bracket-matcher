@@ -5,12 +5,12 @@ TagFinder = require './tag-finder'
 
 module.exports =
 class BracketMatcherView
-  startPairMatches:
+  startDefaultMatches:
     '(': ')'
     '[': ']'
     '{': '}'
 
-  endPairMatches:
+  endDefaultMatches:
     ')': '('
     ']': '['
     '}': '{'
@@ -21,10 +21,7 @@ class BracketMatcherView
     @pairHighlighted = false
     @tagHighlighted = false
 
-    @pairRegexes = {}
     @updatePairs()
-    for startPair, endPair of @startPairMatches
-      @pairRegexes[startPair] = new RegExp("[#{_.escapeRegExp(startPair + endPair)}]", 'g')
 
     # TODO: remove conditional when `onDidChangeText` ships on stable.
     if typeof @editor.getBuffer().onDidChangeText is "function"
@@ -56,6 +53,18 @@ class BracketMatcherView
 
     @subscriptions.add @editor.onDidDestroy @destroy
 
+    # Subscribe to config changes
+    @subscriptions.add atom.config.observe 'bracket-matcher.autocompleteBrackets', (updateBracketsConfig) =>
+      @updatePairs()
+    @subscriptions.add atom.config.observe 'bracket-matcher.autocompleteSmartQuotes', (updateBracketsConfig) =>
+      @updatePairs()
+    @subscriptions.add atom.config.observe 'bracket-matcher.wrapSelectionsInBrackets', (updateBracketsConfig) =>
+      @updatePairs()
+    @subscriptions.add atom.config.observe 'bracket-matcher.excludePairs', (updateExcludePairs) =>
+      @updatePairs()
+    @subscriptions.add atom.config.observe 'bracket-matcher.addPairs', (updateAddPairs) =>
+      @updatePairs()
+
     @updateMatch()
 
   destroy: =>
@@ -65,8 +74,11 @@ class BracketMatcherView
     if excludePairs.length
       for excludePair in excludePairs
         pairArray = excludePair.split ':'
-        @startPairMatches = _.omit(@startPairMatches, pairArray[0])
-        @endPairMatches = _.omit(@endPairMatches, pairArray[1])
+        @startPairMatches = _.omit(@startDefaultMatches, pairArray[0])
+        @endPairMatches = _.omit(@endDefaultMatches, pairArray[1])
+    else
+      @startPairMatches = @startDefaultMatches
+      @endPairMatches = @endDefaultMatches
 
   addPairs: (addPairs) ->
     if addPairs.length
@@ -80,8 +92,11 @@ class BracketMatcherView
         @endPairMatches = _.extend(@endPairMatches, newEndPair)
 
   updatePairs: () ->
+    @pairRegexes = {}
     @excludePairs(@getScopedSetting('bracket-matcher.excludePairs'))
     @addPairs(@getScopedSetting('bracket-matcher.addPairs'))
+    for startPair, endPair of @startPairMatches
+      @pairRegexes[startPair] = new RegExp("[#{_.escapeRegExp(startPair + endPair)}]", 'g')
 
   getScopedSetting: (key) ->
     atom.config.get(key, scope: @editor.getLastCursor().getScopeDescriptor())

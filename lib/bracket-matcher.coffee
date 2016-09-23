@@ -43,7 +43,7 @@ class BracketMatcher
         newPair[pairArray[0]] = pairArray[1]
         @pairedCharacters = _.extend(@pairedCharacters, newPair)
 
-  applyConfig: () ->
+  updateConfig: () ->
     @toggleQuotes(@getScopedSetting('bracket-matcher.autocompleteSmartQuotes'))
     @excludePairs(@getScopedSetting('bracket-matcher.excludePairs'))
     @addPairs(@getScopedSetting('bracket-matcher.addPairs'))
@@ -56,16 +56,28 @@ class BracketMatcher
     _.adviseBefore(@editor, 'insertNewline', @insertNewline)
     _.adviseBefore(@editor, 'backspace', @backspace)
 
+    @updateConfig()
+
     @subscriptions.add atom.commands.add editorElement, 'bracket-matcher:remove-brackets-from-selection', (event) =>
       event.abortKeyBinding() unless @removeBrackets()
 
     @subscriptions.add @editor.onDidDestroy => @unsubscribe()
 
+    # Subscribe to config changes
+    @subscriptions.add atom.config.observe 'bracket-matcher.autocompleteBrackets', (updateBracketsConfig) =>
+      @updateConfig()
+    @subscriptions.add atom.config.observe 'bracket-matcher.autocompleteSmartQuotes', (updateBracketsConfig) =>
+      @updateConfig()
+    @subscriptions.add atom.config.observe 'bracket-matcher.wrapSelectionsInBrackets', (updateBracketsConfig) =>
+      @updateConfig()
+    @subscriptions.add atom.config.observe 'bracket-matcher.excludePairs', (updateBracketsConfig) =>
+      @updateConfig()
+    @subscriptions.add atom.config.observe 'bracket-matcher.addPairs', (updateBracketsConfig) =>
+      @updateConfig()
+
   insertText: (text, options) =>
     return true unless text
     return true if options?.select or options?.undo is 'skip'
-
-    @applyConfig()
 
     return false if @wrapSelectionInBrackets(text)
     return true if @editor.hasMultipleCursors()
@@ -110,8 +122,6 @@ class BracketMatcher
     return if @editor.hasMultipleCursors()
     return unless @editor.getLastSelection().isEmpty()
 
-    @applyConfig()
-
     cursorBufferPosition = @editor.getCursorBufferPosition()
     previousCharacters = @editor.getTextInBufferRange([cursorBufferPosition.traverse([0, -2]), cursorBufferPosition])
     nextCharacter = @editor.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.traverse([0, 1])])
@@ -132,8 +142,6 @@ class BracketMatcher
     return if @editor.hasMultipleCursors()
     return unless @editor.getLastSelection().isEmpty()
 
-    @applyConfig()
-
     cursorBufferPosition = @editor.getCursorBufferPosition()
     previousCharacters = @editor.getTextInBufferRange([cursorBufferPosition.traverse([0, -2]), cursorBufferPosition])
     nextCharacter = @editor.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.traverse([0, 1])])
@@ -150,7 +158,6 @@ class BracketMatcher
 
   removeBrackets: ->
     bracketsRemoved = false
-    @applyConfig()
     @editor.mutateSelectedText (selection) =>
       return unless @selectionIsWrappedByMatchingBrackets(selection)
 
