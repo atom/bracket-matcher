@@ -29,6 +29,25 @@ class BracketMatcher
     else
       @pairedCharacters = @defaultPairs
 
+  excludePairs: (excludePairs) ->
+    if excludePairs.length
+      for excludePair in excludePairs
+        pairArray = excludePair.split ':'
+        @pairedCharacters = _.omit(@pairedCharacters, pairArray[0])
+
+  addPairs: (addPairs) ->
+    if addPairs.length
+      for addPair in addPairs
+        pairArray = addPair.split ':'
+        newPair = {}
+        newPair[pairArray[0]] = pairArray[1]
+        @pairedCharacters = _.extend(@pairedCharacters, newPair)
+
+  applyConfig: () ->
+    @toggleQuotes(@getScopedSetting('bracket-matcher.autocompleteSmartQuotes'))
+    @excludePairs(@getScopedSetting('bracket-matcher.excludePairs'))
+    @addPairs(@getScopedSetting('bracket-matcher.addPairs'))
+
   constructor: (@editor, editorElement) ->
     @subscriptions = new CompositeDisposable
     @bracketMarkers = []
@@ -46,7 +65,7 @@ class BracketMatcher
     return true unless text
     return true if options?.select or options?.undo is 'skip'
 
-    @toggleQuotes(@getScopedSetting('bracket-matcher.autocompleteSmartQuotes'))
+    @applyConfig()
 
     return false if @wrapSelectionInBrackets(text)
     return true if @editor.hasMultipleCursors()
@@ -91,7 +110,7 @@ class BracketMatcher
     return if @editor.hasMultipleCursors()
     return unless @editor.getLastSelection().isEmpty()
 
-    @toggleQuotes(@getScopedSetting('bracket-matcher.autocompleteSmartQuotes'))
+    @applyConfig()
 
     cursorBufferPosition = @editor.getCursorBufferPosition()
     previousCharacters = @editor.getTextInBufferRange([cursorBufferPosition.traverse([0, -2]), cursorBufferPosition])
@@ -113,7 +132,7 @@ class BracketMatcher
     return if @editor.hasMultipleCursors()
     return unless @editor.getLastSelection().isEmpty()
 
-    @toggleQuotes(@getScopedSetting('bracket-matcher.autocompleteSmartQuotes'))
+    @applyConfig()
 
     cursorBufferPosition = @editor.getCursorBufferPosition()
     previousCharacters = @editor.getTextInBufferRange([cursorBufferPosition.traverse([0, -2]), cursorBufferPosition])
@@ -131,7 +150,7 @@ class BracketMatcher
 
   removeBrackets: ->
     bracketsRemoved = false
-    @toggleQuotes(@getScopedSetting('bracket-matcher.autocompleteSmartQuotes'))
+    @applyConfig()
     @editor.mutateSelectedText (selection) =>
       return unless @selectionIsWrappedByMatchingBrackets(selection)
 
