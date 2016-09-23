@@ -3,27 +3,28 @@ _ = require 'underscore-plus'
 {Range} = require 'atom'
 TagFinder = require './tag-finder'
 
-startPairMatches =
-  '(': ')'
-  '[': ']'
-  '{': '}'
-
-endPairMatches =
-  ')': '('
-  ']': '['
-  '}': '{'
-
-pairRegexes = {}
-for startPair, endPair of startPairMatches
-  pairRegexes[startPair] = new RegExp("[#{_.escapeRegExp(startPair + endPair)}]", 'g')
-
 module.exports =
 class BracketMatcherView
+  startPairMatches:
+    '(': ')'
+    '[': ']'
+    '{': '}'
+
+  endPairMatches:
+    ')': '('
+    ']': '['
+    '}': '{'
+
   constructor: (@editor, editorElement) ->
     @subscriptions = new CompositeDisposable
     @tagFinder = new TagFinder(@editor)
     @pairHighlighted = false
     @tagHighlighted = false
+
+    @pairRegexes = {}
+    @updatePairs()
+    for startPair, endPair of @startPairMatches
+      @pairRegexes[startPair] = new RegExp("[#{_.escapeRegExp(startPair + endPair)}]", 'g')
 
     # TODO: remove conditional when `onDidChangeText` ships on stable.
     if typeof @editor.getBuffer().onDidChangeText is "function"
@@ -60,6 +61,31 @@ class BracketMatcherView
   destroy: =>
     @subscriptions.dispose()
 
+  excludePairs: (excludePairs) ->
+    if excludePairs.length
+      for excludePair in excludePairs
+        pairArray = excludePair.split ':'
+        @startPairMatches = _.omit(@startPairMatches, pairArray[0])
+        @endPairMatches = _.omit(@endPairMatches, pairArray[1])
+
+  addPairs: (addPairs) ->
+    if addPairs.length
+      for addPair in addPairs
+        pairArray = addPair.split ':'
+        newStartPair = {}
+        newStartPair[pairArray[0]] = pairArray[1]
+        @startPairMatches = _.extend(@startPairMatches, newStartPair)
+        newEndPair = {}
+        newEndPair[pairArray[1]] = pairArray[0]
+        @endPairMatches = _.extend(@endPairMatches, newEndPair)
+
+  updatePairs: () ->
+    @excludePairs(@getScopedSetting('bracket-matcher.excludePairs'))
+    @addPairs(@getScopedSetting('bracket-matcher.addPairs'))
+
+  getScopedSetting: (key) ->
+    atom.config.get(key, scope: @editor.getLastCursor().getScopeDescriptor())
+
   subscribeToCursor: ->
     cursor = @editor.getLastCursor()
     return unless cursor?
@@ -84,11 +110,11 @@ class BracketMatcherView
     return unless @editor.getLastSelection().isEmpty()
     return if @editor.isFoldedAtCursorRow()
 
-    {position, currentPair, matchingPair} = @findCurrentPair(startPairMatches)
+    {position, currentPair, matchingPair} = @findCurrentPair(@startPairMatches)
     if position
       matchPosition = @findMatchingEndPair(position, currentPair, matchingPair)
     else
-      {position, currentPair, matchingPair} = @findCurrentPair(endPairMatches)
+      {position, currentPair, matchingPair} = @findCurrentPair(@endPairMatches)
       if position
         matchPosition = @findMatchingStartPair(position, matchingPair, currentPair)
 
@@ -111,12 +137,12 @@ class BracketMatcherView
       text = @editor.getSelectedText()
 
       #check if the character to the left is part of a pair
-      if startPairMatches.hasOwnProperty(text) or endPairMatches.hasOwnProperty(text)
-        {position, currentPair, matchingPair} = @findCurrentPair(startPairMatches)
+      if @startPairMatches.hasOwnProperty(text) or @endPairMatches.hasOwnProperty(text)
+        {position, currentPair, matchingPair} = @findCurrentPair(@startPairMatches)
         if position
           matchPosition = @findMatchingEndPair(position, currentPair, matchingPair)
         else
-          {position, currentPair, matchingPair} = @findCurrentPair(endPairMatches)
+          {position, currentPair, matchingPair} = @findCurrentPair(@endPairMatches)
           if position
             matchPosition = @findMatchingStartPair(position, matchingPair, currentPair)
 
@@ -125,7 +151,7 @@ class BracketMatcherView
           @editor.delete()
           # if on the same line and the cursor is in front of an end pair
           # offset by one to make up for the missing character
-          if position.row is matchPosition.row and endPairMatches.hasOwnProperty(currentPair)
+          if position.row is matchPosition.row and @endPairMatches.hasOwnProperty(currentPair)
             position = position.traverse([0, -1])
           @editor.setCursorBufferPosition(position)
           @editor.delete()
@@ -138,7 +164,7 @@ class BracketMatcherView
     scanRange = new Range(startPairPosition.traverse([0, 1]), @editor.buffer.getEndPosition())
     endPairPosition = null
     unpairedCount = 0
-    @editor.scanInBufferRange pairRegexes[startPair], scanRange, (result) ->
+    @editor.scanInBufferRange @pairRegexes[startPair], scanRange, (result) ->
       switch result.match[0]
         when startPair
           unpairedCount++
@@ -154,7 +180,7 @@ class BracketMatcherView
     scanRange = new Range([0, 0], endPairPosition)
     startPairPosition = null
     unpairedCount = 0
-    @editor.backwardsScanInBufferRange pairRegexes[startPair], scanRange, (result) ->
+    @editor.backwardsScanInBufferRange @pairRegexes[startPair], scanRange, (result) ->
       switch result.match[0]
         when startPair
           unpairedCount--
@@ -167,8 +193,8 @@ class BracketMatcherView
 
   findAnyStartPair: (cursorPosition) ->
     scanRange = new Range([0, 0], cursorPosition)
-    startPair = _.escapeRegExp(_.keys(startPairMatches).join(''))
-    endPair = _.escapeRegExp(_.keys(endPairMatches).join(''))
+    startPair = _.escapeRegExp(_.keys(@startPairMatches).join(''))
+    endPair = _.escapeRegExp(_.keys(@endPairMatches).join(''))
     combinedRegExp = new RegExp("[#{startPair}#{endPair}]", 'g')
     startPairRegExp = new RegExp("[#{startPair}]", 'g')
     endPairRegExp = new RegExp("[#{endPair}]", 'g')
@@ -268,7 +294,7 @@ class BracketMatcherView
     else
       if startPosition = @findAnyStartPair(@editor.getCursorBufferPosition())
         startPair = @editor.getTextInRange(Range.fromPointWithDelta(startPosition, 0, 1))
-        endPosition = @findMatchingEndPair(startPosition, startPair, startPairMatches[startPair])
+        endPosition = @findMatchingEndPair(startPosition, startPair, @startPairMatches[startPair])
       else if pair = @tagFinder.findEnclosingTags()
         {startRange, endRange} = pair
         if startRange.compare(endRange) > 0
