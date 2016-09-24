@@ -64,15 +64,15 @@ class BracketMatcher
     @subscriptions.add @editor.onDidDestroy => @unsubscribe()
 
     # Subscribe to config changes
-    @subscriptions.add atom.config.observe 'bracket-matcher.autocompleteBrackets', (updateBracketsConfig) =>
+    @subscriptions.add atom.config.observe 'bracket-matcher.autocompleteBrackets', {scope: @editor.getRootScopeDescriptor()}, (newConfig) =>
       @updateConfig()
-    @subscriptions.add atom.config.observe 'bracket-matcher.autocompleteSmartQuotes', (updateBracketsConfig) =>
+    @subscriptions.add atom.config.observe 'bracket-matcher.autocompleteSmartQuotes', {scope: @editor.getRootScopeDescriptor()}, (newConfig) =>
       @updateConfig()
-    @subscriptions.add atom.config.observe 'bracket-matcher.wrapSelectionsInBrackets', (updateBracketsConfig) =>
+    @subscriptions.add atom.config.observe 'bracket-matcher.wrapSelectionsInBrackets', {scope: @editor.getRootScopeDescriptor()}, (newConfig) =>
       @updateConfig()
-    @subscriptions.add atom.config.observe 'bracket-matcher.excludePairs', (updateBracketsConfig) =>
+    @subscriptions.add atom.config.observe 'bracket-matcher.excludePairs', {scope: @editor.getRootScopeDescriptor()}, (newConfig) =>
       @updateConfig()
-    @subscriptions.add atom.config.observe 'bracket-matcher.addPairs', (updateBracketsConfig) =>
+    @subscriptions.add atom.config.observe 'bracket-matcher.addPairs', {scope: @editor.getRootScopeDescriptor()}, (newConfig) =>
       @updateConfig()
 
   insertText: (text, options) =>
@@ -251,4 +251,4 @@ class BracketMatcher
     @subscriptions.dispose()
 
   getScopedSetting: (key) ->
-    atom.config.get(key, scope: @editor.getLastCursor().getScopeDescriptor())
+    atom.config.get(key, scope: @editor.getRootScopeDescriptor())
