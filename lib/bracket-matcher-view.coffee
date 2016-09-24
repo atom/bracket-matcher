@@ -91,7 +91,7 @@ class BracketMatcherView
         newEndPair[pairArray[1]] = pairArray[0]
         @endPairMatches = _.extend(@endPairMatches, newEndPair)
 
-  updatePairs: () ->
+  updatePairs: ->
     @pairRegexes = {}
     @excludePairs(@getScopedSetting('bracket-matcher.excludePairs'))
     @addPairs(@getScopedSetting('bracket-matcher.addPairs'))

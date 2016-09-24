@@ -43,7 +43,7 @@ class BracketMatcher
         newPair[pairArray[0]] = pairArray[1]
         @pairedCharacters = _.extend(@pairedCharacters, newPair)
 
-  updateConfig: () ->
+  updateConfig: ->
     @toggleQuotes(@getScopedSetting('bracket-matcher.autocompleteSmartQuotes'))
     @excludePairs(@getScopedSetting('bracket-matcher.excludePairs'))
     @addPairs(@getScopedSetting('bracket-matcher.addPairs'))
