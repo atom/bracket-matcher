@@ -16,18 +16,18 @@
     "coffeelint": "^1.9.7"
   },
   "configSchema": {
-    "excludePairs": {
-      "description": "Disable autocomplete of provided pairs of bracket and quote characters, such as `(:)`, and `\":\"`.",
+    "autocompleteCharacters": {
+      "description": "Autocompleted characters treated as matching pairs, such as `<>`, and `%%`.",
       "type": "array",
-      "default": [],
+      "default": ["()","[]","{}","\"\"","''","``"],
       "items": {
         "type": "string"
       }
     },
-    "addPairs": {
-      "description": "Add autocomplete of provided pair of characters, such as `<:>`, and `%:%`.",
+    "pairsToIndent": {
+      "description": "Pairs that are automatically indented.",
       "type": "array",
-      "default": [],
+      "default": ["()","[]","{}"],
       "items": {
         "type": "string"
       }

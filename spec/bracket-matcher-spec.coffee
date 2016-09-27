@@ -544,42 +544,22 @@ describe "bracket matching", ->
         expect(buffer.lineForRow(0)).toBe "{}"
         expect(editor.getCursorBufferPosition()).toEqual([0, 1])
 
-    describe "when addPairs configuration is set globally", ->
-      it "inserts a matching carat", ->
-        atom.config.set 'bracket-matcher.addPairs', ['<:>']
+    describe "when autocompleteCharacters configuration is set globally", ->
+      it "inserts a matching angle bracket", ->
+        atom.config.set 'bracket-matcher.autocompleteCharacters', ['<>']
         editor.setCursorBufferPosition([0, 0])
         editor.insertText '<'
         expect(buffer.lineForRow(0)).toBe "<>"
         expect(editor.getCursorBufferPosition()).toEqual([0, 1])
 
     # Scope tests inexplicably fail
-    xdescribe "when addPairs configuration is set in scope", ->
-      it "inserts a matching carat", ->
-        atom.config.set 'bracket-matcher.addPairs', []
-        atom.config.set 'bracket-matcher.addPairs', ['<:>'], scopeSelector: '.source.js'
+    describe "when autocompleteCharacters configuration is set in scope", ->
+      xit "inserts a matching angle bracket", ->
+        atom.config.set 'bracket-matcher.autocompleteCharacters', []
+        atom.config.set 'bracket-matcher.autocompleteCharacters', ['<>'], scopeSelector: '.source.js'
         editor.setCursorBufferPosition([0, 0])
         editor.insertText '<'
         expect(buffer.lineForRow(0)).toBe "<>"
-        expect(editor.getCursorBufferPosition()).toEqual([0, 1])
-
-    describe "when excludePairs configuration is set globally", ->
-      it "does not insert a matching bracket", ->
-        atom.config.set 'bracket-matcher.excludePairs', ['{:}']
-        editor.buffer.setText("}")
-        editor.setCursorBufferPosition([0, 0])
-        editor.insertText '{'
-        expect(buffer.lineForRow(0)).toBe "{}"
-        expect(editor.getCursorBufferPosition()).toEqual([0, 1])
-
-    # Scope tests inexplicably fail
-    xdescribe "when excludePairs configuration is set in scope", ->
-      it "does not insert a matching bracket", ->
-        atom.config.set 'bracket-matcher.excludePairs', []
-        atom.config.set 'bracket-matcher.excludePairs', ['{:}'], scopeSelector: '.source.js'
-        editor.buffer.setText("}")
-        editor.setCursorBufferPosition([0, 0])
-        editor.insertText '{'
-        expect(buffer.lineForRow(0)).toBe "{}"
         expect(editor.getCursorBufferPosition()).toEqual([0, 1])
 
     describe "when there are multiple cursors", ->

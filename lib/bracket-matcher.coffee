@@ -4,51 +4,7 @@ SelectorCache = require './selector-cache'
 
 module.exports =
 class BracketMatcher
-  pairsToIndent:
-    '(': ')'
-    '[': ']'
-    '{': '}'
-
-  defaultPairs:
-    '(': ')'
-    '[': ']'
-    '{': '}'
-    '"': '"'
-    "'": "'"
-    '`': '`'
-
-  smartQuotePairs:
-    "“": "”"
-    '‘': '’'
-    "«": "»"
-    "‹": "›"
-
-  toggleQuotes: (includeSmartQuotes) ->
-    if includeSmartQuotes
-      @pairedCharacters = _.extend({}, @defaultPairs, @smartQuotePairs)
-    else
-      @pairedCharacters = @defaultPairs
-
-  excludePairs: (excludePairs) ->
-    if excludePairs.length
-      for excludePair in excludePairs
-        pairArray = excludePair.split ':'
-        @pairedCharacters = _.omit(@pairedCharacters, pairArray[0])
-
-  addPairs: (addPairs) ->
-    if addPairs.length
-      for addPair in addPairs
-        pairArray = addPair.split ':'
-        newPair = {}
-        newPair[pairArray[0]] = pairArray[1]
-        @pairedCharacters = _.extend(@pairedCharacters, newPair)
-
-  updateConfig: ->
-    @toggleQuotes(@getScopedSetting('bracket-matcher.autocompleteSmartQuotes'))
-    @excludePairs(@getScopedSetting('bracket-matcher.excludePairs'))
-    @addPairs(@getScopedSetting('bracket-matcher.addPairs'))
-
-  constructor: (@editor, editorElement) ->
+  constructor: (@editor, editorElement, @matchManager) ->
     @subscriptions = new CompositeDisposable
     @bracketMarkers = []
 
@@ -56,24 +12,10 @@ class BracketMatcher
     _.adviseBefore(@editor, 'insertNewline', @insertNewline)
     _.adviseBefore(@editor, 'backspace', @backspace)
 
-    @updateConfig()
-
     @subscriptions.add atom.commands.add editorElement, 'bracket-matcher:remove-brackets-from-selection', (event) =>
       event.abortKeyBinding() unless @removeBrackets()
 
     @subscriptions.add @editor.onDidDestroy => @unsubscribe()
-
-    # Subscribe to config changes
-    @subscriptions.add atom.config.observe 'bracket-matcher.autocompleteBrackets', {scope: @editor.getRootScopeDescriptor()}, (newConfig) =>
-      @updateConfig()
-    @subscriptions.add atom.config.observe 'bracket-matcher.autocompleteSmartQuotes', {scope: @editor.getRootScopeDescriptor()}, (newConfig) =>
-      @updateConfig()
-    @subscriptions.add atom.config.observe 'bracket-matcher.wrapSelectionsInBrackets', {scope: @editor.getRootScopeDescriptor()}, (newConfig) =>
-      @updateConfig()
-    @subscriptions.add atom.config.observe 'bracket-matcher.excludePairs', {scope: @editor.getRootScopeDescriptor()}, (newConfig) =>
-      @updateConfig()
-    @subscriptions.add atom.config.observe 'bracket-matcher.addPairs', {scope: @editor.getRootScopeDescriptor()}, (newConfig) =>
-      @updateConfig()
 
   insertText: (text, options) =>
     return true unless text
@@ -99,7 +41,7 @@ class BracketMatcher
       pair = '}'
     else
       autoCompleteOpeningBracket = @getScopedSetting('bracket-matcher.autocompleteBrackets') and @isOpeningBracket(text) and not hasWordAfterCursor and not (@isQuote(text) and (hasWordBeforeCursor or hasQuoteBeforeCursor)) and not hasEscapeSequenceBeforeCursor
-      pair = @pairedCharacters[text]
+      pair = @matchManager.pairedCharacters[text]
 
     skipOverExistingClosingBracket = false
     if @isClosingBracket(text) and nextCharacter is text and not hasEscapeSequenceBeforeCursor
@@ -129,7 +71,7 @@ class BracketMatcher
     previousCharacter = previousCharacters.slice(-1)
 
     hasEscapeSequenceBeforeCursor = previousCharacters.match(/\\/g)?.length >= 1 # To guard against the "\\" sequence
-    if @pairsToIndent[previousCharacter] is nextCharacter and not hasEscapeSequenceBeforeCursor
+    if @matchManager.pairsToIndent[previousCharacter] is nextCharacter and not hasEscapeSequenceBeforeCursor
       @editor.transact =>
         @editor.insertText "\n\n"
         @editor.moveUp()
@@ -149,7 +91,7 @@ class BracketMatcher
     previousCharacter = previousCharacters.slice(-1)
 
     hasEscapeSequenceBeforeCursor = previousCharacters.match(/\\/g)?.length >= 1 # To guard against the "\\" sequence
-    if (@pairedCharacters[previousCharacter] is nextCharacter) and not hasEscapeSequenceBeforeCursor and @getScopedSetting('bracket-matcher.autocompleteBrackets')
+    if (@matchManager.pairedCharacters[previousCharacter] is nextCharacter) and not hasEscapeSequenceBeforeCursor and @getScopedSetting('bracket-matcher.autocompleteBrackets')
       @editor.transact =>
         @editor.moveLeft()
         @editor.delete()
@@ -184,7 +126,7 @@ class BracketMatcher
       pair = '}'
     else
       return false unless @isOpeningBracket(bracket)
-      pair = @pairedCharacters[bracket]
+      pair = @matchManager.pairedCharacters[bracket]
 
     selectionWrapped = false
     @editor.mutateSelectedText (selection) ->
@@ -226,26 +168,18 @@ class BracketMatcher
       @interpolatedStringSelector = SelectorCache.get(segments.join(' | '))
     @interpolatedStringSelector.matches(@editor.getLastCursor().getScopeDescriptor().getScopesArray())
 
-  getInvertedPairedCharacters: ->
-    return @invertedPairedCharacters if @invertedPairedCharacters
-
-    @invertedPairedCharacters = {}
-    for open, close of @pairedCharacters
-      @invertedPairedCharacters[close] = open
-    @invertedPairedCharacters
-
   isOpeningBracket: (string) ->
-    @pairedCharacters.hasOwnProperty(string)
+    @matchManager.pairedCharacters.hasOwnProperty(string)
 
   isClosingBracket: (string) ->
-    @getInvertedPairedCharacters().hasOwnProperty(string)
+    @matchManager.pairedCharactersInverse.hasOwnProperty(string)
 
   selectionIsWrappedByMatchingBrackets: (selection) ->
     return false if selection.isEmpty()
     selectedText = selection.getText()
     firstCharacter = selectedText[0]
     lastCharacter = selectedText[selectedText.length - 1]
-    @pairedCharacters[firstCharacter] is lastCharacter
+    @matchManager.pairedCharacters[firstCharacter] is lastCharacter
 
   unsubscribe: ->
     @subscriptions.dispose()

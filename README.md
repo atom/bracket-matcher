@@ -31,22 +31,22 @@ settings view.
 
 #### Custom Pairs
 
-You can add or remove matching pairs from Bracket Matcher at any time. You can do so either Globally via the Settings view (<kbd>cmd-,</kbd>) or at the Scope level via `config.cson` (<kbd>cmd-shift-p</kbd> + "config"). Changes take effect immediately.
+You can customize matching pairs in Bracket Matcher at any time. You can do so either Globally via the Settings view (<kbd>cmd-,</kbd>) or at the Scope level via `config.cson` (<kbd>cmd-shift-p</kbd> + "config"). Changes take effect immediately.
 
-* <b>Add Pairs</b> - Comma-separated pairs to append to package defaults.
-  * ie: `<:>, %:%, @:@`
-* <b>Exclude Pairs</b> - Comma-separated pairs to remove from package defaults.
-  * ie: `':', [:]`
+* <b>Autocomplete Characters</b> - Comma-separated pairs which override the package defaults.
+  * ie: `<>, (), []`
 
 ###### config.cson
 In addition to Global configs, you are able to add scope-specific modifications to Atom in `config.cson`. This is especially useful for editor rule changes specific to each language. Example:
 ```
 ".rust.source":
-  "bracket-matcher":
-    addPairs: [
-      "<:>"
-    ]
-    excludePairs: [
-      "':'"
-    ]
+"bracket-matcher":
+  autocompleteCharacters: [
+    "()"
+    "[]"
+    "{}"
+    "<>"
+    "\"\""
+    "``"
+  ]
 ```
