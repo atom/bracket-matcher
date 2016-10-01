@@ -23,12 +23,6 @@ Matching brackets and quotes are sensibly inserted for you. If you dislike this
 functionality, you can disable it from the Bracket Matcher section of the
 Settings view (<kbd>cmd-,</kbd>).
 
-#### Smart Quotes
-
-You can toggle whether English/French style quotation marks (`“”`, `‘’`, `«»`
-and `‹›`) are autocompleted via the *Autocomplete Smart Quotes*  setting in the
-settings view.
-
 #### Custom Pairs
 
 You can customize matching pairs in Bracket Matcher at any time. You can do so either Globally via the Settings view (<kbd>cmd-,</kbd>) or at the Scope level via `config.cson` (<kbd>cmd-shift-p</kbd> + "config"). Changes take effect immediately.

@@ -19,7 +19,7 @@
     "autocompleteCharacters": {
       "description": "Autocompleted characters treated as matching pairs, such as `<>`, and `%%`.",
       "type": "array",
-      "default": ["()","[]","{}","\"\"","''","``"],
+      "default": ["()","[]","{}","\"\"","''","``","“”","‘’","«»","‹›"],
       "items": {
         "type": "string"
       }
@@ -36,11 +36,6 @@
       "type": "boolean",
       "default": true,
       "description": "Autocomplete bracket and quote characters, such as `(` and `)`, and `\"`."
-    },
-    "autocompleteSmartQuotes": {
-      "type": "boolean",
-      "default": true,
-      "description": "Autocomplete smart quote characters, such as `“` and `”`, and `«` and `»`."
     },
     "wrapSelectionsInBrackets": {
       "type": "boolean",
