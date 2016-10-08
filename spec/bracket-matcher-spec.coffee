@@ -114,6 +114,13 @@ describe "bracket matching", ->
         editor.setCursorBufferPosition([0, 29])
         expectHighlights([0, 28], [12, 0])
 
+    describe "when the cursor moves off (clears) a selection next to a starting or ending pair", ->
+      it "highlights the starting pair and ending pair", ->
+        editor.moveToEndOfLine()
+        editor.selectLeft()
+        editor.getLastCursor().clearSelection()
+        expectHighlights([0, 28], [12, 0])
+
     describe "HTML/XML tag matching", ->
       beforeEach ->
         waitsForPromise ->
