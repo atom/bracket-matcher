@@ -25,20 +25,11 @@ class BracketMatcherView
     @pairHighlighted = false
     @tagHighlighted = false
 
-    # TODO: remove conditional when `onDidChangeText` ships on stable.
-    if typeof @editor.getBuffer().onDidChangeText is "function"
-      @subscriptions.add @editor.getBuffer().onDidChangeText =>
-        @updateMatch()
-    else
-      @subscriptions.add @editor.onDidChange =>
-        @updateMatch()
-
-    @subscriptions.add @editor.onDidChangeGrammar =>
-      @updateMatch()
-
-    @subscribeToCursor()
-    @subscriptions.add @editor.onDidChangeSelectionRange =>
-      @updateMatch()
+    @subscriptions.add @editor.getBuffer().onDidChangeText(@updateMatch)
+    @subscriptions.add @editor.onDidChangeGrammar(@updateMatch)
+    @subscriptions.add @editor.onDidChangeSelectionRange(@updateMatch)
+    @subscriptions.add @editor.onDidAddCursor(@updateMatch)
+    @subscriptions.add @editor.onDidRemoveCursor(@updateMatch)
 
     @subscriptions.add atom.commands.add editorElement, 'bracket-matcher:go-to-matching-bracket', =>
       @goToMatchingPair()
@@ -62,20 +53,7 @@ class BracketMatcherView
   destroy: =>
     @subscriptions.dispose()
 
-  subscribeToCursor: ->
-    cursor = @editor.getLastCursor()
-    return unless cursor?
-
-    cursorSubscriptions = new CompositeDisposable
-    cursorSubscriptions.add cursor.onDidChangePosition ({textChanged}) =>
-      @updateMatch() unless textChanged
-
-    cursorSubscriptions.add cursor.onDidDestroy =>
-      cursorSubscriptions.dispose()
-      @subscribeToCursor()
-      @updateMatch() if @editor.isAlive()
-
-  updateMatch: ->
+  updateMatch: =>
     if @pairHighlighted
       @editor.destroyMarker(@startMarker.id)
       @editor.destroyMarker(@endMarker.id)

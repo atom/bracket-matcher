@@ -102,16 +102,18 @@ describe "bracket matching", ->
           editor.setCursorBufferPosition([8, 42])
           expectHighlights([8, 42], [8, 54])
 
-    describe "when the cursor is destroyed", ->
-      it "updates the highlights to use the editor's last cursor", ->
-        editor.setCursorBufferPosition([0, 29])
-        editor.addCursorAtBufferPosition([9, 0])
-        expectHighlights([0, 28], [12, 0])
-
-        editor.getCursors()[0].destroy()
+    describe "when a cursor is added or destroyed", ->
+      it "updates the highlights to use the new cursor", ->
+        editor.setCursorBufferPosition([9, 0])
         expectNoHighlights()
 
-        editor.setCursorBufferPosition([0, 29])
+        editor.addCursorAtBufferPosition([0, 29])
+        expectHighlights([0, 28], [12, 0])
+
+        editor.addCursorAtBufferPosition([0, 4])
+        expectNoHighlights()
+
+        editor.getLastCursor().destroy()
         expectHighlights([0, 28], [12, 0])
 
     describe "when the cursor moves off (clears) a selection next to a starting or ending pair", ->
