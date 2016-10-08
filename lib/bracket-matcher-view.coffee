@@ -37,6 +37,8 @@ class BracketMatcherView
       @updateMatch()
 
     @subscribeToCursor()
+    @subscriptions.add @editor.onDidChangeSelectionRange =>
+      @updateMatch()
 
     @subscriptions.add atom.commands.add editorElement, 'bracket-matcher:go-to-matching-bracket', =>
       @goToMatchingPair()
