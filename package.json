@@ -1,6 +1,6 @@
 {
   "name": "bracket-matcher",
-  "version": "0.79.0",
+  "version": "0.82.2",
   "main": "./lib/main",
   "description": "Highlight the matching bracket for the `(){}[]` character under the cursor. Move the cursor to the matching bracket with `ctrl-m`.",
   "repository": "https://github.com/atom/bracket-matcher",
@@ -9,10 +9,27 @@
     "atom": "*"
   },
   "dependencies": {
-    "first-mate": "^5",
+    "first-mate": "^6.0.0",
     "underscore-plus": "1.x"
   },
   "devDependencies": {
     "coffeelint": "^1.9.7"
+  },
+  "configSchema": {
+    "autocompleteBrackets": {
+      "type": "boolean",
+      "default": true,
+      "description": "Autocomplete bracket and quote characters, such as `(` and `)`, and `\"`."
+    },
+    "autocompleteSmartQuotes": {
+      "type": "boolean",
+      "default": true,
+      "description": "Autocomplete smart quote characters, such as `“` and `”`, and `«` and `»`."
+    },
+    "wrapSelectionsInBrackets": {
+      "type": "boolean",
+      "default": true,
+      "description": "Wrap selected text in brackets or quotes when the editor contains selections and the opening bracket or quote is typed."
+    }
   }
 }

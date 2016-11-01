@@ -25,13 +25,11 @@ class BracketMatcherView
     @pairHighlighted = false
     @tagHighlighted = false
 
-    @subscriptions.add @editor.onDidChange =>
-      @updateMatch()
-
-    @subscriptions.add @editor.onDidChangeGrammar =>
-      @updateMatch()
-
-    @subscribeToCursor()
+    @subscriptions.add @editor.getBuffer().onDidChangeText(@updateMatch)
+    @subscriptions.add @editor.onDidChangeGrammar(@updateMatch)
+    @subscriptions.add @editor.onDidChangeSelectionRange(@updateMatch)
+    @subscriptions.add @editor.onDidAddCursor(@updateMatch)
+    @subscriptions.add @editor.onDidRemoveCursor(@updateMatch)
 
     @subscriptions.add atom.commands.add editorElement, 'bracket-matcher:go-to-matching-bracket', =>
       @goToMatchingPair()
@@ -48,22 +46,14 @@ class BracketMatcherView
     @subscriptions.add atom.commands.add editorElement, 'bracket-matcher:remove-matching-brackets', =>
       @removeMatchingBrackets()
 
+    @subscriptions.add @editor.onDidDestroy @destroy
+
     @updateMatch()
 
-  subscribeToCursor: ->
-    cursor = @editor.getLastCursor()
-    return unless cursor?
+  destroy: =>
+    @subscriptions.dispose()
 
-    cursorSubscriptions = new CompositeDisposable
-    cursorSubscriptions.add cursor.onDidChangePosition =>
-      @updateMatch()
-
-    cursorSubscriptions.add cursor.onDidDestroy =>
-      cursorSubscriptions.dispose()
-      @subscribeToCursor()
-      @updateMatch() if @editor.isAlive()
-
-  updateMatch: ->
+  updateMatch: =>
     if @pairHighlighted
       @editor.destroyMarker(@startMarker.id)
       @editor.destroyMarker(@endMarker.id)
@@ -274,7 +264,6 @@ class BracketMatcherView
   # open tag that is not closed afterwards.
   closeTag: ->
     cursorPosition = @editor.getCursorBufferPosition()
-    textLimits = @editor.getBuffer().getRange()
     preFragment = @editor.getTextInBufferRange([[0, 0], cursorPosition])
     postFragment = @editor.getTextInBufferRange([cursorPosition, [Infinity, Infinity]])
 
