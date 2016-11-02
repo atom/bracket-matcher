@@ -2,6 +2,7 @@
 _ = require 'underscore-plus'
 {Range} = require 'atom'
 TagFinder = require './tag-finder'
+SelectorCache = require './selector-cache'
 
 startPairMatches =
   '(': ')'
@@ -24,7 +25,9 @@ class BracketMatcherView
     @tagFinder = new TagFinder(@editor)
     @pairHighlighted = false
     @tagHighlighted = false
+    @commentOrStringSelector = SelectorCache.get('comment.* | string.*')
 
+    @subscriptions.add @editor.onDidTokenize(@updateMatch)
     @subscriptions.add @editor.getBuffer().onDidChangeText(@updateMatch)
     @subscriptions.add @editor.onDidChangeGrammar(@updateMatch)
     @subscriptions.add @editor.onDidChangeSelectionRange(@updateMatch)
@@ -63,6 +66,7 @@ class BracketMatcherView
 
     return unless @editor.getLastSelection().isEmpty()
     return if @editor.isFoldedAtCursorRow()
+    return if @isCursorOnCommentOrString()
 
     {position, currentPair, matchingPair} = @findCurrentPair(startPairMatches)
     if position
@@ -118,7 +122,8 @@ class BracketMatcherView
     scanRange = new Range(startPairPosition.traverse([0, 1]), @editor.buffer.getEndPosition())
     endPairPosition = null
     unpairedCount = 0
-    @editor.scanInBufferRange pairRegexes[startPair], scanRange, (result) ->
+    @editor.scanInBufferRange pairRegexes[startPair], scanRange, (result) =>
+      return if @isRangeCommentedOrString(result.range)
       switch result.match[0]
         when startPair
           unpairedCount++
@@ -134,7 +139,8 @@ class BracketMatcherView
     scanRange = new Range([0, 0], endPairPosition)
     startPairPosition = null
     unpairedCount = 0
-    @editor.backwardsScanInBufferRange pairRegexes[startPair], scanRange, (result) ->
+    @editor.backwardsScanInBufferRange pairRegexes[startPair], scanRange, (result) =>
+      return if @isRangeCommentedOrString(result.range)
       switch result.match[0]
         when startPair
           unpairedCount--
@@ -154,7 +160,8 @@ class BracketMatcherView
     endPairRegExp = new RegExp("[#{endPair}]", 'g')
     startPosition = null
     unpairedCount = 0
-    @editor.backwardsScanInBufferRange combinedRegExp, scanRange, (result) ->
+    @editor.backwardsScanInBufferRange combinedRegExp, scanRange, (result) =>
+      return if @isRangeCommentedOrString(result.range)
       if result.match[0].match(endPairRegExp)
         unpairedCount++
       else if result.match[0].match(startPairRegExp)
@@ -269,3 +276,9 @@ class BracketMatcherView
 
     if tag = @tagFinder.closingTagForFragments(preFragment, postFragment)
       @editor.insertText("</#{tag}>")
+
+  isCursorOnCommentOrString: ->
+    @commentOrStringSelector.matches(@editor.getLastCursor().getScopeDescriptor().getScopesArray())
+
+  isRangeCommentedOrString: (range) ->
+    @commentOrStringSelector.matches(@editor.scopeDescriptorForBufferPosition(range.start).getScopesArray())

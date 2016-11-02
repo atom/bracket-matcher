@@ -79,6 +79,72 @@ describe "bracket matching", ->
         editor.setCursorBufferPosition([0, 2])
         expectNoHighlights()
 
+    describe "when there are commented brackets", ->
+      it "highlights the correct start/end pairs", ->
+        editor.setText '(//)'
+        editor.setCursorBufferPosition([0, 0])
+        expectNoHighlights()
+
+        editor.setCursorBufferPosition([0, 2])
+        expectNoHighlights()
+
+        editor.setCursorBufferPosition([0, 3])
+        expectNoHighlights()
+
+        editor.setText '{/*}*/'
+        editor.setCursorBufferPosition([0, 0])
+        expectNoHighlights()
+
+        editor.setCursorBufferPosition([0, 2])
+        expectNoHighlights()
+
+        editor.setCursorBufferPosition([0, 3])
+        expectNoHighlights()
+
+        editor.setText '[/*]*/]'
+        editor.setCursorBufferPosition([0, 0])
+        expectHighlights([0, 0], [0, 6])
+
+        editor.setCursorBufferPosition([0, 6])
+        expectHighlights([0, 6], [0, 0])
+
+        editor.setCursorBufferPosition([0, 2])
+        expectNoHighlights()
+
+    describe "when there are quoted brackets", ->
+      it "highlights the correct start/end pairs", ->
+        editor.setText "(')')"
+        editor.setCursorBufferPosition([0, 0])
+        expectHighlights([0, 0], [0, 4])
+
+        editor.setCursorBufferPosition([0, 4])
+        expectHighlights([0, 4], [0, 0])
+
+        editor.setCursorBufferPosition([0, 2])
+        expectNoHighlights()
+
+        editor.setText '["]"]'
+        editor.setCursorBufferPosition([0, 0])
+        expectHighlights([0, 0], [0, 4])
+
+        editor.setCursorBufferPosition([0, 4])
+        expectHighlights([0, 4], [0, 0])
+
+        editor.setCursorBufferPosition([0, 2])
+        expectNoHighlights()
+
+    describe "when there are brackets in regular expressions", ->
+      it "highlights the correct start/end pairs", ->
+        editor.setText "(/[)]/)"
+        editor.setCursorBufferPosition([0, 0])
+        expectHighlights([0, 0], [0, 6])
+
+        editor.setCursorBufferPosition([0, 7])
+        expectHighlights([0, 6], [0, 0])
+
+        editor.setCursorBufferPosition([0, 3])
+        expectNoHighlights()
+
     describe "when the cursor is moved off a pair", ->
       it "removes the starting pair and ending pair highlights", ->
         editor.moveToEndOfLine()
