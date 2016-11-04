@@ -56,7 +56,7 @@ class BracketMatcher
     nextCharacter = @editor.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.traverse([0, 1])])
 
     previousCharacter = previousCharacters.slice(-1)
-    hasWordAfterCursor = /\S/.test(nextCharacter)
+    hasNonWhitespaceAfterCursor = /\S/.test(nextCharacter)
     hasWordBeforeCursor = /\w/.test(previousCharacter)
     hasQuoteBeforeCursor = previousCharacter is text[0]
     hasEscapeSequenceBeforeCursor = previousCharacters.match(/\\/g)?.length >= 1 # To guard against the "\\" sequence
@@ -71,7 +71,7 @@ class BracketMatcher
       text += '{'
       pair = '}'
     else
-      autoCompleteOpeningBracket = @getScopedSetting('bracket-matcher.autocompleteBrackets') and @isOpeningBracket(text) and (not hasWordAfterCursor or hasClosingBracketAfterCursor) and not (@isQuote(text) and (hasWordBeforeCursor or hasQuoteBeforeCursor)) and not hasEscapeSequenceBeforeCursor
+      autoCompleteOpeningBracket = @getScopedSetting('bracket-matcher.autocompleteBrackets') and @isOpeningBracket(text) and (not hasNonWhitespaceAfterCursor or hasClosingBracketAfterCursor) and not (@isQuote(text) and (hasWordBeforeCursor or hasQuoteBeforeCursor)) and not hasEscapeSequenceBeforeCursor
       pair = @pairedCharacters[text]
 
     skipOverExistingClosingBracket = false
