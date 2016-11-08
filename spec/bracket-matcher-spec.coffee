@@ -630,15 +630,7 @@ describe "bracket matching", ->
 
         expect(editor.buffer.getText()).toBe "())\na)b\n[)]\n1)2"
 
-    describe "when there is a non-whitespace character that isn't a closing bracket after the cursor", ->
-      it "does not insert a closing bracket after an opening bracket is inserted", ->
-        editor.buffer.setText('"')
-        editor.setCursorBufferPosition([0, 0])
-        editor.insertText '{'
-        expect(buffer.lineForRow(0)).toBe '{"'
-        expect(editor.getCursorBufferPosition()).toEqual([0, 1])
-
-    describe "when there is a closing bracket after the cursor", ->
+    describe "when there is a non-word character after the cursor", ->
       it "inserts a closing bracket after an opening bracket is inserted", ->
         editor.buffer.setText("}")
         editor.setCursorBufferPosition([0, 0])
