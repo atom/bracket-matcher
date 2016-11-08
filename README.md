@@ -7,7 +7,7 @@ Highlights and jumps between `[]`, `()`, and `{}`. Also highlights matching XML
 and HTML tags.
 
 Autocompletes `[]`, `()`, and `{}`, `""`, `''`, `“”`, `‘’`, `«»`, `‹›`, and
-backticks. See [below](#character-pair-completion-behavior) for specific behavior.
+backticks. See below for specific behavior.
 
 You can toggle whether English/French style quotation marks (`“”`, `‘’`, `«»`
 and `‹›`) are autocompleted via the *Autocomplete Smart Quotes*  setting in the
@@ -24,7 +24,7 @@ Matching brackets and quotes are sensibly inserted for you. If you dislike this
 functionality, you can disable it from the Bracket Matcher section of the
 Settings view (<kbd>cmd-,</kbd>).
 
-#### Character pair completion behavior
+#### Autocomplete behavior
 * When typing an opening bracket key, a closing bracket is inserted if the cursor is followed by either a whitespace character or a closing bracket.
 * When typing a closing character, if the cursor is followed by that same character, the cursor will simply move forward and no insertion will be made.
 * When typing an opening character while text is selected, brackets will be inserted around the selection.
