@@ -2,6 +2,7 @@
 _ = require 'underscore-plus'
 {Range} = require 'atom'
 TagFinder = require './tag-finder'
+SelectorCache = require './selector-cache'
 
 module.exports =
 class BracketMatcherView
@@ -10,19 +11,14 @@ class BracketMatcherView
     @tagFinder = new TagFinder(@editor)
     @pairHighlighted = false
     @tagHighlighted = false
+    @commentOrStringSelector = SelectorCache.get('comment.* | string.*')
 
-    # TODO: remove conditional when `onDidChangeText` ships on stable.
-    if typeof @editor.getBuffer().onDidChangeText is "function"
-      @subscriptions.add @editor.getBuffer().onDidChangeText =>
-        @updateMatch()
-    else
-      @subscriptions.add @editor.onDidChange =>
-        @updateMatch()
-
-    @subscriptions.add @editor.onDidChangeGrammar =>
-      @updateMatch()
-
-    @subscribeToCursor()
+    @subscriptions.add @editor.onDidTokenize(@updateMatch)
+    @subscriptions.add @editor.getBuffer().onDidChangeText(@updateMatch)
+    @subscriptions.add @editor.onDidChangeGrammar(@updateMatch)
+    @subscriptions.add @editor.onDidChangeSelectionRange(@updateMatch)
+    @subscriptions.add @editor.onDidAddCursor(@updateMatch)
+    @subscriptions.add @editor.onDidRemoveCursor(@updateMatch)
 
     @subscriptions.add atom.commands.add editorElement, 'bracket-matcher:go-to-matching-bracket', =>
       @goToMatchingPair()
@@ -46,20 +42,7 @@ class BracketMatcherView
   destroy: =>
     @subscriptions.dispose()
 
-  subscribeToCursor: ->
-    cursor = @editor.getLastCursor()
-    return unless cursor?
-
-    cursorSubscriptions = new CompositeDisposable
-    cursorSubscriptions.add cursor.onDidChangePosition ({textChanged}) =>
-      @updateMatch() unless textChanged
-
-    cursorSubscriptions.add cursor.onDidDestroy =>
-      cursorSubscriptions.dispose()
-      @subscribeToCursor()
-      @updateMatch() if @editor.isAlive()
-
-  updateMatch: ->
+  updateMatch: =>
     if @pairHighlighted
       @editor.destroyMarker(@startMarker.id)
       @editor.destroyMarker(@endMarker.id)
@@ -69,6 +52,7 @@ class BracketMatcherView
 
     return unless @editor.getLastSelection().isEmpty()
     return if @editor.isFoldedAtCursorRow()
+    return if @isCursorOnCommentOrString()
 
     {position, currentPair, matchingPair} = @findCurrentPair(@matchManager.pairedCharacters)
     if position
@@ -124,7 +108,8 @@ class BracketMatcherView
     scanRange = new Range(startPairPosition.traverse([0, 1]), @editor.buffer.getEndPosition())
     endPairPosition = null
     unpairedCount = 0
-    @editor.scanInBufferRange @matchManager.pairRegexes[startPair], scanRange, (result) ->
+    @editor.scanInBufferRange @matchManager.pairRegexes[startPair], scanRange, (result) =>
+      return if @isRangeCommentedOrString(result.range)
       switch result.match[0]
         when startPair
           unpairedCount++
@@ -140,7 +125,8 @@ class BracketMatcherView
     scanRange = new Range([0, 0], endPairPosition)
     startPairPosition = null
     unpairedCount = 0
-    @editor.backwardsScanInBufferRange @matchManager.pairRegexes[startPair], scanRange, (result) ->
+    @editor.backwardsScanInBufferRange @matchManager.pairRegexes[startPair], scanRange, (result) =>
+      return if @isRangeCommentedOrString(result.range)
       switch result.match[0]
         when startPair
           unpairedCount--
@@ -160,7 +146,8 @@ class BracketMatcherView
     endPairRegExp = new RegExp("[#{endPair}]", 'g')
     startPosition = null
     unpairedCount = 0
-    @editor.backwardsScanInBufferRange combinedRegExp, scanRange, (result) ->
+    @editor.backwardsScanInBufferRange combinedRegExp, scanRange, (result) =>
+      return if @isRangeCommentedOrString(result.range)
       if result.match[0].match(endPairRegExp)
         unpairedCount++
       else if result.match[0].match(startPairRegExp)
@@ -275,3 +262,9 @@ class BracketMatcherView
 
     if tag = @tagFinder.closingTagForFragments(preFragment, postFragment)
       @editor.insertText("</#{tag}>")
+
+  isCursorOnCommentOrString: ->
+    @commentOrStringSelector.matches(@editor.getLastCursor().getScopeDescriptor().getScopesArray())
+
+  isRangeCommentedOrString: (range) ->
+    @commentOrStringSelector.matches(@editor.scopeDescriptorForBufferPosition(range.start).getScopesArray())
