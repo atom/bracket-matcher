@@ -117,7 +117,7 @@ describe "bracket matching", ->
         editor.setCursorBufferPosition([0, 0])
         expectHighlights([0, 0], [0, 4])
 
-        editor.setCursorBufferPosition([0, 4])
+        editor.setCursorBufferPosition([0, 5])
         expectHighlights([0, 4], [0, 0])
 
         editor.setCursorBufferPosition([0, 2])
@@ -127,7 +127,7 @@ describe "bracket matching", ->
         editor.setCursorBufferPosition([0, 0])
         expectHighlights([0, 0], [0, 4])
 
-        editor.setCursorBufferPosition([0, 4])
+        editor.setCursorBufferPosition([0, 5])
         expectHighlights([0, 4], [0, 0])
 
         editor.setCursorBufferPosition([0, 2])
