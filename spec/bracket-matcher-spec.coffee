@@ -5,9 +5,6 @@ describe "bracket matching", ->
     atom.config.set 'bracket-matcher.autocompleteBrackets', true
 
     waitsForPromise ->
-      atom.workspace.open('sample.js')
-
-    waitsForPromise ->
       atom.packages.activatePackage('bracket-matcher')
 
     waitsForPromise ->
@@ -15,6 +12,9 @@ describe "bracket matching", ->
 
     waitsForPromise ->
       atom.packages.activatePackage('language-xml')
+
+    waitsForPromise ->
+      atom.workspace.open('sample.js')
 
     runs ->
       editor = atom.workspace.getActiveTextEditor()
@@ -627,10 +627,8 @@ describe "bracket matching", ->
         expect(buffer.lineForRow(0)).toBe "<>"
         expect(editor.getCursorBufferPosition()).toEqual([0, 1])
 
-    # Scope tests inexplicably fail
     describe "when autocompleteCharacters configuration is set in scope", ->
-      xit "inserts a matching angle bracket", ->
-        atom.config.set 'bracket-matcher.autocompleteCharacters', []
+      it "inserts a matching angle bracket", ->
         atom.config.set 'bracket-matcher.autocompleteCharacters', ['<>'], scopeSelector: '.source.js'
         editor.setCursorBufferPosition([0, 0])
         editor.insertText '<'

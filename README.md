@@ -27,11 +27,20 @@ Settings view (<kbd>cmd-,</kbd>).
 
 You can customize matching pairs in Bracket Matcher at any time. You can do so either Globally via the Settings view (<kbd>cmd-,</kbd>) or at the Scope level via `config.cson` (<kbd>cmd-shift-p</kbd> + "config"). Changes take effect immediately.
 
-* <b>Autocomplete Characters</b> - Comma-separated pairs which override the package defaults.
+* <b>Autocomplete Characters</b> - Comma-separated pairs that the editor will treat as brackets / quotes. Entries in this field override the package defaults.
   * ie: `<>, (), []`
 
+* <b>Pairs to Indent</b> - Comma-separated pairs that enhance the editor's Auto Indent feature. When used, the indent level is increased following the opening bracket and a newline.
+Example:
+```
+fn main() {
+    | <---- Cursor positioned at one indent level higher
+}
+```
+
 ###### config.cson
-In addition to Global configs, you are able to add scope-specific modifications to Atom in `config.cson`. This is especially useful for editor rule changes specific to each language. Example:
+In addition to Global configs, you are able to add scope-specific modifications to Atom in `config.cson`. This is especially useful for editor rule changes specific to each language. Scope specific configs override package defaults <i>and</i> global configs.
+Example:
 ```
 ".rust.source":
 "bracket-matcher":

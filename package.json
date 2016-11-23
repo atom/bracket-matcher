@@ -17,7 +17,7 @@
   },
   "configSchema": {
     "autocompleteCharacters": {
-      "description": "Autocompleted characters treated as matching pairs, such as `<>`, and `%%`.",
+      "description": "Autocompleted characters treated as matching pairs, such as `()`, and `{}`.",
       "type": "array",
       "default": ["()","[]","{}","\"\"","''","``","“”","‘’","«»","‹›"],
       "items": {
@@ -25,7 +25,7 @@
       }
     },
     "pairsToIndent": {
-      "description": "Pairs that are automatically indented.",
+      "description": "Brackets for which to automatically increase indent level (ie: code blocks).",
       "type": "array",
       "default": ["()","[]","{}"],
       "items": {
