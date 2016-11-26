@@ -3,7 +3,7 @@ BracketMatcher = null
 
 module.exports =
   activate: ->
-    atom.workspace.observeTextEditors (editor) ->
+    @editorsSubscription = atom.workspace.observeTextEditors (editor) ->
       editorElement = atom.views.getView(editor)
 
       BracketMatcherView ?= require './bracket-matcher-view'
@@ -11,3 +11,6 @@ module.exports =
 
       BracketMatcher ?= require './bracket-matcher'
       new BracketMatcher(editor, editorElement)
+
+  deactivate: ->
+    @editorsSubscription.dispose()
