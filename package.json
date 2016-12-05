@@ -24,8 +24,8 @@
         "type": "string"
       }
     },
-    "pairsToIndent": {
-      "description": "Brackets for which to automatically increase indent level (ie: code blocks).",
+    "pairsWithExtraNewline": {
+      "description": "Automatically add a newline between the pair when enter is pressed.",
       "type": "array",
       "default": ["()","[]","{}"],
       "items": {

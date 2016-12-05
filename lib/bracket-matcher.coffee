@@ -71,7 +71,7 @@ class BracketMatcher
     previousCharacter = previousCharacters.slice(-1)
 
     hasEscapeSequenceBeforeCursor = previousCharacters.match(/\\/g)?.length >= 1 # To guard against the "\\" sequence
-    if @matchManager.pairsToIndent[previousCharacter] is nextCharacter and not hasEscapeSequenceBeforeCursor
+    if @matchManager.pairsWithExtraNewline[previousCharacter] is nextCharacter and not hasEscapeSequenceBeforeCursor
       @editor.transact =>
         @editor.insertText "\n\n"
         @editor.moveUp()

@@ -18,10 +18,10 @@ class MatchManager
     @pairedCharacters = {}
     @pairedCharactersInverse = {}
     @pairRegexes = {}
-    @pairsToIndent = {}
+    @pairsWithExtraNewline = {}
     @processAutoPairs(@getScopedSetting('bracket-matcher.autocompleteCharacters'), @pairedCharacters, ((x) -> return [x[0], x[1]]) )
     @processAutoPairs(@getScopedSetting('bracket-matcher.autocompleteCharacters'), @pairedCharactersInverse, ((x) -> return [x[1], x[0]]) )
-    @processAutoPairs(@getScopedSetting('bracket-matcher.pairsToIndent'), @pairsToIndent, ((x) -> return [x[0], x[1]]) )
+    @processAutoPairs(@getScopedSetting('bracket-matcher.pairsWithExtraNewline'), @pairsWithExtraNewline, ((x) -> return [x[0], x[1]]) )
     for startPair, endPair of @pairedCharacters
       @pairRegexes[startPair] = new RegExp("[#{_.escapeRegExp(startPair + endPair)}]", 'g')
 
@@ -40,7 +40,7 @@ class MatchManager
       @updateConfig()
     @subscriptions.add atom.config.observe 'bracket-matcher.autocompleteCharacters', {scope: @editor.getRootScopeDescriptor()}, (newConfig) =>
       @updateConfig()
-    @subscriptions.add atom.config.observe 'bracket-matcher.pairsToIndent', {scope: @editor.getRootScopeDescriptor()}, (newConfig) =>
+    @subscriptions.add atom.config.observe 'bracket-matcher.pairsWithExtraNewline', {scope: @editor.getRootScopeDescriptor()}, (newConfig) =>
       @updateConfig()
 
   destroy: =>
