@@ -30,7 +30,7 @@ You can customize matching pairs in Bracket Matcher at any time. You can do so e
 * <b>Autocomplete Characters</b> - Comma-separated pairs that the editor will treat as brackets / quotes. Entries in this field override the package defaults.
   * ie: `<>, (), []`
 
-* <b>Pairs to Indent</b> - Comma-separated pairs that enhance the editor's Auto Indent feature. When used, the indent level is increased following the opening bracket and a newline.
+* <b>Pairs With Extra Newline</b> - Comma-separated pairs that enhance the editor's Auto Indent feature. When used, a newline is automatically added between the pair when enter is pressed between them. Note: This feature is meant to be used in combination with brackets defined for indentation by the active language mode (increaseIndentPattern / decreaseIndentPattern).
 Example:
 ```
 fn main() {
