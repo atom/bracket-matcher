@@ -16,15 +16,26 @@
     "coffeelint": "^1.9.7"
   },
   "configSchema": {
+    "autocompleteCharacters": {
+      "description": "Autocompleted characters treated as matching pairs, such as `()`, and `{}`.",
+      "type": "array",
+      "default": ["()","[]","{}","\"\"","''","``","“”","‘’","«»","‹›"],
+      "items": {
+        "type": "string"
+      }
+    },
+    "pairsWithExtraNewline": {
+      "description": "Automatically add a newline between the pair when enter is pressed.",
+      "type": "array",
+      "default": ["()","[]","{}"],
+      "items": {
+        "type": "string"
+      }
+    },
     "autocompleteBrackets": {
       "type": "boolean",
       "default": true,
       "description": "Autocomplete bracket and quote characters, such as `(` and `)`, and `\"`."
-    },
-    "autocompleteSmartQuotes": {
-      "type": "boolean",
-      "default": true,
-      "description": "Autocomplete smart quote characters, such as `“` and `”`, and `«` and `»`."
     },
     "wrapSelectionsInBrackets": {
       "type": "boolean",

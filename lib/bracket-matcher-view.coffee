@@ -4,23 +4,9 @@ _ = require 'underscore-plus'
 TagFinder = require './tag-finder'
 SelectorCache = require './selector-cache'
 
-startPairMatches =
-  '(': ')'
-  '[': ']'
-  '{': '}'
-
-endPairMatches =
-  ')': '('
-  ']': '['
-  '}': '{'
-
-pairRegexes = {}
-for startPair, endPair of startPairMatches
-  pairRegexes[startPair] = new RegExp("[#{_.escapeRegExp(startPair + endPair)}]", 'g')
-
 module.exports =
 class BracketMatcherView
-  constructor: (@editor, editorElement) ->
+  constructor: (@editor, editorElement, @matchManager) ->
     @subscriptions = new CompositeDisposable
     @tagFinder = new TagFinder(@editor)
     @pairHighlighted = false
@@ -68,11 +54,11 @@ class BracketMatcherView
     return if @editor.isFoldedAtCursorRow()
     return if @isCursorOnCommentOrString()
 
-    {position, currentPair, matchingPair} = @findCurrentPair(startPairMatches)
+    {position, currentPair, matchingPair} = @findCurrentPair(@matchManager.pairedCharacters)
     if position
       matchPosition = @findMatchingEndPair(position, currentPair, matchingPair)
     else
-      {position, currentPair, matchingPair} = @findCurrentPair(endPairMatches)
+      {position, currentPair, matchingPair} = @findCurrentPair(@matchManager.pairedCharactersInverse)
       if position
         matchPosition = @findMatchingStartPair(position, matchingPair, currentPair)
 
@@ -95,12 +81,12 @@ class BracketMatcherView
       text = @editor.getSelectedText()
 
       #check if the character to the left is part of a pair
-      if startPairMatches.hasOwnProperty(text) or endPairMatches.hasOwnProperty(text)
-        {position, currentPair, matchingPair} = @findCurrentPair(startPairMatches)
+      if @matchManager.pairedCharacters.hasOwnProperty(text) or @matchManager.pairedCharactersInverse.hasOwnProperty(text)
+        {position, currentPair, matchingPair} = @findCurrentPair(@matchManager.pairedCharacters)
         if position
           matchPosition = @findMatchingEndPair(position, currentPair, matchingPair)
         else
-          {position, currentPair, matchingPair} = @findCurrentPair(endPairMatches)
+          {position, currentPair, matchingPair} = @findCurrentPair(@matchManager.pairedCharactersInverse)
           if position
             matchPosition = @findMatchingStartPair(position, matchingPair, currentPair)
 
@@ -109,7 +95,7 @@ class BracketMatcherView
           @editor.delete()
           # if on the same line and the cursor is in front of an end pair
           # offset by one to make up for the missing character
-          if position.row is matchPosition.row and endPairMatches.hasOwnProperty(currentPair)
+          if position.row is matchPosition.row and @matchManager.pairedCharactersInverse.hasOwnProperty(currentPair)
             position = position.traverse([0, -1])
           @editor.setCursorBufferPosition(position)
           @editor.delete()
@@ -122,7 +108,7 @@ class BracketMatcherView
     scanRange = new Range(startPairPosition.traverse([0, 1]), @editor.buffer.getEndPosition())
     endPairPosition = null
     unpairedCount = 0
-    @editor.scanInBufferRange pairRegexes[startPair], scanRange, (result) =>
+    @editor.scanInBufferRange @matchManager.pairRegexes[startPair], scanRange, (result) =>
       return if @isRangeCommentedOrString(result.range)
       switch result.match[0]
         when startPair
@@ -139,7 +125,7 @@ class BracketMatcherView
     scanRange = new Range([0, 0], endPairPosition)
     startPairPosition = null
     unpairedCount = 0
-    @editor.backwardsScanInBufferRange pairRegexes[startPair], scanRange, (result) =>
+    @editor.backwardsScanInBufferRange @matchManager.pairRegexes[startPair], scanRange, (result) =>
       return if @isRangeCommentedOrString(result.range)
       switch result.match[0]
         when startPair
@@ -153,8 +139,8 @@ class BracketMatcherView
 
   findAnyStartPair: (cursorPosition) ->
     scanRange = new Range([0, 0], cursorPosition)
-    startPair = _.escapeRegExp(_.keys(startPairMatches).join(''))
-    endPair = _.escapeRegExp(_.keys(endPairMatches).join(''))
+    startPair = _.escapeRegExp(_.keys(@matchManager.pairedCharacters).join(''))
+    endPair = _.escapeRegExp(_.keys(@matchManager.pairedCharactersInverse).join(''))
     combinedRegExp = new RegExp("[#{startPair}#{endPair}]", 'g')
     startPairRegExp = new RegExp("[#{startPair}]", 'g')
     endPairRegExp = new RegExp("[#{endPair}]", 'g')
@@ -255,7 +241,7 @@ class BracketMatcherView
     else
       if startPosition = @findAnyStartPair(@editor.getCursorBufferPosition())
         startPair = @editor.getTextInRange(Range.fromPointWithDelta(startPosition, 0, 1))
-        endPosition = @findMatchingEndPair(startPosition, startPair, startPairMatches[startPair])
+        endPosition = @findMatchingEndPair(startPosition, startPair, @matchManager.pairedCharacters[startPair])
       else if pair = @tagFinder.findEnclosingTags()
         {startRange, endRange} = pair
         if startRange.compare(endRange) > 0
