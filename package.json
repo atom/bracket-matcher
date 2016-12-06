@@ -1,6 +1,6 @@
 {
   "name": "bracket-matcher",
-  "version": "0.84.0",
+  "version": "0.85.0",
   "main": "./lib/main",
   "description": "Highlight the matching bracket for the `(){}[]` character under the cursor. Move the cursor to the matching bracket with `ctrl-m`.",
   "repository": "https://github.com/atom/bracket-matcher",
@@ -19,7 +19,18 @@
     "autocompleteCharacters": {
       "description": "Autocompleted characters treated as matching pairs, such as `()`, and `{}`.",
       "type": "array",
-      "default": ["()","[]","{}","\"\"","''","``","“”","‘’","«»","‹›"],
+      "default": [
+        "()",
+        "[]",
+        "{}",
+        "\"\"",
+        "''",
+        "``",
+        "“”",
+        "‘’",
+        "«»",
+        "‹›"
+      ],
       "items": {
         "type": "string"
       }
@@ -27,7 +38,11 @@
     "pairsWithExtraNewline": {
       "description": "Automatically add a newline between the pair when enter is pressed.",
       "type": "array",
-      "default": ["()","[]","{}"],
+      "default": [
+        "()",
+        "[]",
+        "{}"
+      ],
       "items": {
         "type": "string"
       }
