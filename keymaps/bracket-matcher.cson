@@ -11,8 +11,10 @@
   'ctrl-alt-m': 'bracket-matcher:select-inside-brackets'
   'alt-ctrl-.': 'bracket-matcher:close-tag'
   'alt-ctrl-backspace': 'bracket-matcher:remove-matching-brackets'
+  'ctrl-shift-m': 'bracket-matcher:select-inside-brackets'
 
 '.platform-win32 atom-text-editor':
   'ctrl-alt-m': 'bracket-matcher:select-inside-brackets'
   'alt-ctrl-.': 'bracket-matcher:close-tag'
+  'ctrl-shift-m': 'bracket-matcher:select-inside-brackets'
   'alt-ctrl-backspace': 'bracket-matcher:remove-matching-brackets'
