@@ -27,10 +27,10 @@ Settings view (<kbd>cmd-,</kbd>).
 
 You can customize matching pairs in Bracket Matcher at any time. You can do so either Globally via the Settings view (<kbd>cmd-,</kbd>) or at the Scope level via `config.cson` (<kbd>cmd-shift-p</kbd> + "config"). Changes take effect immediately.
 
-* <b>Autocomplete Characters</b> - Comma-separated pairs that the editor will treat as brackets / quotes. Entries in this field override the package defaults.
+* **Autocomplete Characters** - Comma-separated pairs that the editor will treat as brackets / quotes. Entries in this field override the package defaults.
   * ie: `<>, (), []`
 
-* <b>Pairs With Extra Newline</b> - Comma-separated pairs that enhance the editor's Auto Indent feature. When used, a newline is automatically added between the pair when enter is pressed between them. Note: This feature is meant to be used in combination with brackets defined for indentation by the active language mode (increaseIndentPattern / decreaseIndentPattern).
+* **Pairs With Extra Newline** - Comma-separated pairs that enhance the editor's Auto Indent feature. When used, a newline is automatically added between the pair when enter is pressed between them. Note: This feature is meant to be used in combination with brackets defined for indentation by the active language mode (`increaseIndentPattern` / `decreaseIndentPattern`).
 Example:
 ```
 fn main() {
@@ -39,17 +39,17 @@ fn main() {
 ```
 
 ###### config.cson
-In addition to Global configs, you are able to add scope-specific modifications to Atom in `config.cson`. This is especially useful for editor rule changes specific to each language. Scope specific configs override package defaults <i>and</i> global configs.
+In addition to the global settings, you are also able to add scope-specific modifications to Atom in `config.cson`. This is especially useful for editor rule changes specific to each language. Scope-specific settings override package defaults _and_ global settings.
 Example:
-```
+```cson
 ".rust.source":
-"bracket-matcher":
-  autocompleteCharacters: [
-    "()"
-    "[]"
-    "{}"
-    "<>"
-    "\"\""
-    "``"
-  ]
+  "bracket-matcher":
+    autocompleteCharacters: [
+      "()"
+      "[]"
+      "{}"
+      "<>"
+      "\"\""
+      "``"
+    ]
 ```

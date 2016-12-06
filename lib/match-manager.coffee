@@ -34,10 +34,6 @@ class MatchManager
     @updateConfig()
 
     # Subscribe to config changes
-    @subscriptions.add atom.config.observe 'bracket-matcher.autocompleteBrackets', {scope: @editor.getRootScopeDescriptor()}, (newConfig) =>
-      @updateConfig()
-    @subscriptions.add atom.config.observe 'bracket-matcher.wrapSelectionsInBrackets', {scope: @editor.getRootScopeDescriptor()}, (newConfig) =>
-      @updateConfig()
     @subscriptions.add atom.config.observe 'bracket-matcher.autocompleteCharacters', {scope: @editor.getRootScopeDescriptor()}, (newConfig) =>
       @updateConfig()
     @subscriptions.add atom.config.observe 'bracket-matcher.pairsWithExtraNewline', {scope: @editor.getRootScopeDescriptor()}, (newConfig) =>
