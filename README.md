@@ -21,16 +21,16 @@ Use <kbd>alt-cmd-.</kbd> to close the current XML/HTML tag.
 
 Matching brackets and quotes are sensibly inserted for you. If you dislike this
 functionality, you can disable it from the Bracket Matcher section of the
-Settings view (<kbd>cmd-,</kbd>).
+Settings view.
 
 #### Custom Pairs
 
-You can customize matching pairs in Bracket Matcher at any time. You can do so either Globally via the Settings view (<kbd>cmd-,</kbd>) or at the Scope level via `config.cson` (<kbd>cmd-shift-p</kbd> + "config"). Changes take effect immediately.
+You can customize matching pairs in Bracket Matcher at any time. You can do so either globally via the Settings View or at the scope level via `config.cson`. Changes take effect immediately.
 
 * **Autocomplete Characters** - Comma-separated pairs that the editor will treat as brackets / quotes. Entries in this field override the package defaults.
-  * ie: `<>, (), []`
+  * For example: `<>, (), []`
 
-* **Pairs With Extra Newline** - Comma-separated pairs that enhance the editor's Auto Indent feature. When used, a newline is automatically added between the pair when enter is pressed between them. Note: This feature is meant to be used in combination with brackets defined for indentation by the active language mode (`increaseIndentPattern` / `decreaseIndentPattern`).
+* **Pairs With Extra Newline** - Comma-separated pairs that enhance the editor's auto indent feature. When used, a newline is automatically added between the pair when enter is pressed between them. Note: This feature is meant to be used in combination with brackets defined for indentation by the active language mode (`increaseIndentPattern` / `decreaseIndentPattern`).
 Example:
 ```
 fn main() {
