@@ -79,6 +79,7 @@ class BracketMatcherView
     @editor.transact =>
       @editor.selectLeft() if @editor.getLastSelection().isEmpty()
       text = @editor.getSelectedText()
+      @editor.moveRight()
 
       #check if the character to the left is part of a pair
       if @matchManager.pairedCharacters.hasOwnProperty(text) or @matchManager.pairedCharactersInverse.hasOwnProperty(text)

@@ -77,6 +77,9 @@ describe "bracket matching", ->
         expectHighlights([0, 0], [0, 1])
 
         editor.setCursorBufferPosition([0, 2])
+        expectHighlights([0, 1], [0, 0])
+
+        editor.setCursorBufferPosition([0, 3])
         expectNoHighlights()
 
     describe "when there are commented brackets", ->
