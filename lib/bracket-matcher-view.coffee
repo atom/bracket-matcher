@@ -54,11 +54,11 @@ class BracketMatcherView
     return if @editor.isFoldedAtCursorRow()
     return if @isCursorOnCommentOrString()
 
-    {position, currentPair, matchingPair} = @findCurrentPair(@matchManager.pairedCharacters)
+    {position, currentPair, matchingPair} = @findCurrentPair(false)
     if position
       matchPosition = @findMatchingEndPair(position, currentPair, matchingPair)
     else
-      {position, currentPair, matchingPair} = @findCurrentPair(@matchManager.pairedCharactersInverse)
+      {position, currentPair, matchingPair} = @findCurrentPair(true)
       if position
         matchPosition = @findMatchingStartPair(position, matchingPair, currentPair)
 
@@ -82,11 +82,11 @@ class BracketMatcherView
 
       #check if the character to the left is part of a pair
       if @matchManager.pairedCharacters.hasOwnProperty(text) or @matchManager.pairedCharactersInverse.hasOwnProperty(text)
-        {position, currentPair, matchingPair} = @findCurrentPair(@matchManager.pairedCharacters)
+        {position, currentPair, matchingPair} = @findCurrentPair(false)
         if position
           matchPosition = @findMatchingEndPair(position, currentPair, matchingPair)
         else
-          {position, currentPair, matchingPair} = @findCurrentPair(@matchManager.pairedCharactersInverse)
+          {position, currentPair, matchingPair} = @findCurrentPair(true)
           if position
             matchPosition = @findMatchingStartPair(position, matchingPair, currentPair)
 
@@ -162,11 +162,19 @@ class BracketMatcherView
     @editor.decorateMarker(marker, type: 'highlight', class: 'bracket-matcher', deprecatedRegionClass: 'bracket-matcher')
     marker
 
-  findCurrentPair: (matches) ->
+  findCurrentPair: (isInverse) ->
     position = @editor.getCursorBufferPosition()
+    if isInverse
+      matches = @matchManager.pairedCharactersInverse
+      position = position.traverse([0, -1])
+    else
+      matches = @matchManager.pairedCharacters
     currentPair = @editor.getTextInRange(Range.fromPointWithDelta(position, 0, 1))
     unless matches[currentPair]
-      position = position.traverse([0, -1])
+      if isInverse
+        position = position.traverse([0, 1])
+      else
+        position = position.traverse([0, -1])
       currentPair = @editor.getTextInRange(Range.fromPointWithDelta(position, 0, 1))
     if matchingPair = matches[currentPair]
       {position, currentPair, matchingPair}
