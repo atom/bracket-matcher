@@ -1,8 +1,10 @@
 {CompositeDisposable} = require 'atom'
 _ = require 'underscore-plus'
-{Range} = require 'atom'
+{Range, Point} = require 'atom'
 TagFinder = require './tag-finder'
 SelectorCache = require './selector-cache'
+
+MAX_ROWS_TO_SCAN = 10000
 
 module.exports =
 class BracketMatcherView
@@ -105,7 +107,7 @@ class BracketMatcherView
         @editor.backspace()
 
   findMatchingEndPair: (startPairPosition, startPair, endPair) ->
-    scanRange = new Range(startPairPosition.traverse([0, 1]), @editor.buffer.getEndPosition())
+    scanRange = new Range(startPairPosition.traverse([0, 1]), startPairPosition.traverse([MAX_ROWS_TO_SCAN, 0]))
     endPairPosition = null
     unpairedCount = 0
     @editor.scanInBufferRange @matchManager.pairRegexes[startPair], scanRange, (result) =>
@@ -122,7 +124,7 @@ class BracketMatcherView
     endPairPosition
 
   findMatchingStartPair: (endPairPosition, startPair, endPair) ->
-    scanRange = new Range([0, 0], endPairPosition)
+    scanRange = new Range(endPairPosition.traverse([-MAX_ROWS_TO_SCAN, 0]), endPairPosition)
     startPairPosition = null
     unpairedCount = 0
     @editor.backwardsScanInBufferRange @matchManager.pairRegexes[startPair], scanRange, (result) =>
