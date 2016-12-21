@@ -8,11 +8,11 @@
   'ctrl-backspace': 'bracket-matcher:remove-matching-brackets'
 
 '.platform-linux atom-text-editor':
-  'ctrl-alt-m': 'bracket-matcher:select-inside-brackets'
-  'alt-ctrl-.': 'bracket-matcher:close-tag'
-  'alt-ctrl-backspace': 'bracket-matcher:remove-matching-brackets'
+  'ctrl-alt-,': 'bracket-matcher:select-inside-brackets'
+  'ctrl-alt-.': 'bracket-matcher:close-tag'
+  'ctrl-alt-backspace': 'bracket-matcher:remove-matching-brackets'
 
 '.platform-win32 atom-text-editor':
-  'ctrl-alt-m': 'bracket-matcher:select-inside-brackets'
-  'alt-ctrl-.': 'bracket-matcher:close-tag'
-  'alt-ctrl-backspace': 'bracket-matcher:remove-matching-brackets'
+  'ctrl-alt-,': 'bracket-matcher:select-inside-brackets'
+  'ctrl-alt-.': 'bracket-matcher:close-tag'
+  'ctrl-alt-backspace': 'bracket-matcher:remove-matching-brackets'
