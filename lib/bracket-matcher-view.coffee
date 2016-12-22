@@ -107,6 +107,8 @@ class BracketMatcherView
         @editor.backspace()
 
   findMatchingEndPair: (startPairPosition, startPair, endPair) ->
+    return if startPair is endPair
+
     scanRange = new Range(startPairPosition.traverse([0, 1]), startPairPosition.traverse([MAX_ROWS_TO_SCAN, 0]))
     endPairPosition = null
     unpairedCount = 0
@@ -124,6 +126,8 @@ class BracketMatcherView
     endPairPosition
 
   findMatchingStartPair: (endPairPosition, startPair, endPair) ->
+    return if startPair is endPair
+
     scanRange = new Range(endPairPosition.traverse([-MAX_ROWS_TO_SCAN, 0]), endPairPosition)
     startPairPosition = null
     unpairedCount = 0

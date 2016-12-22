@@ -145,6 +145,12 @@ describe "bracket matching", ->
         editor.setCursorBufferPosition([0, 3])
         expectNoHighlights()
 
+    describe "when the start character and end character of the pair are equivalent", ->
+      it "does not attempt to highlight pairs", ->
+        editor.setText "'hello'"
+        editor.setCursorBufferPosition([0, 0])
+        expectNoHighlights()
+
     describe "when the cursor is moved off a pair", ->
       it "removes the starting pair and ending pair highlights", ->
         editor.moveToEndOfLine()
