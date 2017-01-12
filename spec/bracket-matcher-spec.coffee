@@ -687,6 +687,24 @@ describe "bracket matching", ->
         expect(buffer.lineForRow(0)).toBe "''"
         expect(editor.getCursorBufferPosition()).toEqual([0, 1])
 
+    describe "when the previous character is a backslash", ->
+      it "doesn't insert a quote to match the escaped quote and overwrites the end quote", ->
+        editor.buffer.setText('')
+        editor.insertText '\"'
+        editor.insertText '\\'
+        editor.insertText '\"'
+        editor.insertText '\"'
+        expect(buffer.lineForRow(0)).toBe '\"\\\"\"'
+
+      describe "when the character before that is also a backslash", ->
+        it "inserts a matching quote and overwrites it", ->
+          editor.buffer.setText('')
+          editor.insertText '\"'
+          editor.insertText '\\'
+          editor.insertText '\\'
+          editor.insertText '\"'
+          expect(buffer.lineForRow(0)).toBe '\"\\\\\"'
+
     describe "when the cursor is on a closing bracket and a closing bracket is inserted", ->
       describe "when the closing bracket was there previously", ->
         it "inserts a closing bracket", ->
