@@ -750,6 +750,26 @@ describe "bracket matching", ->
           expect(buffer.lineForRow(0)).toBe '"ok"'
           expect(editor.getCursorBufferPosition()).toEqual [0, 4]
 
+        it "closes brackets with the same begin/end character correctly (last char is an escaped char)", ->
+          editor.insertText '"'
+          editor.insertText 'ok'
+          expect(buffer.lineForRow(0)).toBe '"ok"'
+          expect(editor.getCursorBufferPosition()).toEqual [0, 3]
+          editor.insertText '\\n'
+          editor.insertText '"'
+          expect(buffer.lineForRow(0)).toBe '"ok\\n"'
+          expect(editor.getCursorBufferPosition()).toEqual [0, 6]
+
+        it "closes brackets with the same begin/end character correctly (last char is backslash)", ->
+          editor.insertText '"'
+          editor.insertText 'ok'
+          expect(buffer.lineForRow(0)).toBe '"ok"'
+          expect(editor.getCursorBufferPosition()).toEqual [0, 3]
+          editor.insertText '\\'
+          editor.insertText '"'
+          expect(buffer.lineForRow(0)).toBe '"ok\\""'
+          expect(editor.getCursorBufferPosition()).toEqual [0, 5]
+
     describe "when there is text selected on a single line", ->
       it "wraps the selection with brackets", ->
         editor.setText 'text'
