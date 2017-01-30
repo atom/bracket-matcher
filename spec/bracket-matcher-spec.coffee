@@ -1113,3 +1113,25 @@ describe "bracket matching", ->
       atom.commands.dispatch(editorElement, 'bracket-matcher:close-tag')
 
       expect(editor.getCursorBufferPosition()).toEqual [13, 16]
+
+    it 'does not get confused in case of self closing tags', ->
+      waitsForPromise ->
+        atom.workspace.open('sample.xml')
+
+      runs ->
+        editor = atom.workspace.getActiveTextEditor()
+        editorElement = atom.views.getView(editor)
+        {buffer} = editor
+
+        buffer.setText """
+          <bar name="test">
+            <foo value="15"/>
+
+        """
+
+        editor.setCursorBufferPosition([3, 1])
+        atom.commands.dispatch(editorElement, 'bracket-matcher:close-tag')
+
+        expect(editor.getCursorBufferPosition().row).toEqual 2
+        expect(editor.getCursorBufferPosition().column).toEqual 6
+        expect(editor.getTextInRange([[2, 0], [2, 6]])).toEqual '</bar>'
