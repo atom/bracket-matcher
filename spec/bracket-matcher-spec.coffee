@@ -5,6 +5,9 @@ describe "bracket matching", ->
     atom.config.set 'bracket-matcher.autocompleteBrackets', true
 
     waitsForPromise ->
+      atom.workspace.open('sample.js')
+
+    waitsForPromise ->
       atom.packages.activatePackage('bracket-matcher')
 
     waitsForPromise ->
@@ -12,9 +15,6 @@ describe "bracket matching", ->
 
     waitsForPromise ->
       atom.packages.activatePackage('language-xml')
-
-    waitsForPromise ->
-      atom.workspace.open('sample.js')
 
     runs ->
       editor = atom.workspace.getActiveTextEditor()
@@ -117,7 +117,7 @@ describe "bracket matching", ->
         editor.setCursorBufferPosition([0, 0])
         expectHighlights([0, 0], [0, 4])
 
-        editor.setCursorBufferPosition([0, 5])
+        editor.setCursorBufferPosition([0, 4])
         expectHighlights([0, 4], [0, 0])
 
         editor.setCursorBufferPosition([0, 2])
@@ -127,7 +127,7 @@ describe "bracket matching", ->
         editor.setCursorBufferPosition([0, 0])
         expectHighlights([0, 0], [0, 4])
 
-        editor.setCursorBufferPosition([0, 5])
+        editor.setCursorBufferPosition([0, 4])
         expectHighlights([0, 4], [0, 0])
 
         editor.setCursorBufferPosition([0, 2])
@@ -143,12 +143,6 @@ describe "bracket matching", ->
         expectHighlights([0, 6], [0, 0])
 
         editor.setCursorBufferPosition([0, 3])
-        expectNoHighlights()
-
-    describe "when the start character and end character of the pair are equivalent", ->
-      it "does not attempt to highlight pairs", ->
-        editor.setText "'hello'"
-        editor.setCursorBufferPosition([0, 0])
         expectNoHighlights()
 
     describe "when the cursor is moved off a pair", ->
@@ -677,22 +671,6 @@ describe "bracket matching", ->
         editor.setCursorBufferPosition([0, 0])
         editor.insertText '{'
         expect(buffer.lineForRow(0)).toBe "{}"
-        expect(editor.getCursorBufferPosition()).toEqual([0, 1])
-
-    describe "when autocompleteCharacters configuration is set globally", ->
-      it "inserts a matching angle bracket", ->
-        atom.config.set 'bracket-matcher.autocompleteCharacters', ['<>']
-        editor.setCursorBufferPosition([0, 0])
-        editor.insertText '<'
-        expect(buffer.lineForRow(0)).toBe "<>"
-        expect(editor.getCursorBufferPosition()).toEqual([0, 1])
-
-    describe "when autocompleteCharacters configuration is set in scope", ->
-      it "inserts a matching angle bracket", ->
-        atom.config.set 'bracket-matcher.autocompleteCharacters', ['<>'], scopeSelector: '.source.js'
-        editor.setCursorBufferPosition([0, 0])
-        editor.insertText '<'
-        expect(buffer.lineForRow(0)).toBe "<>"
         expect(editor.getCursorBufferPosition()).toEqual([0, 1])
 
     describe "when there are multiple cursors", ->
