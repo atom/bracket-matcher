@@ -5,9 +5,6 @@ describe "bracket matching", ->
     atom.config.set 'bracket-matcher.autocompleteBrackets', true
 
     waitsForPromise ->
-      atom.workspace.open('sample.js')
-
-    waitsForPromise ->
       atom.packages.activatePackage('bracket-matcher')
 
     waitsForPromise ->
@@ -15,6 +12,9 @@ describe "bracket matching", ->
 
     waitsForPromise ->
       atom.packages.activatePackage('language-xml')
+
+    waitsForPromise ->
+      atom.workspace.open('sample.js')
 
     runs ->
       editor = atom.workspace.getActiveTextEditor()
@@ -117,7 +117,7 @@ describe "bracket matching", ->
         editor.setCursorBufferPosition([0, 0])
         expectHighlights([0, 0], [0, 4])
 
-        editor.setCursorBufferPosition([0, 4])
+        editor.setCursorBufferPosition([0, 5])
         expectHighlights([0, 4], [0, 0])
 
         editor.setCursorBufferPosition([0, 2])
@@ -127,7 +127,7 @@ describe "bracket matching", ->
         editor.setCursorBufferPosition([0, 0])
         expectHighlights([0, 0], [0, 4])
 
-        editor.setCursorBufferPosition([0, 4])
+        editor.setCursorBufferPosition([0, 5])
         expectHighlights([0, 4], [0, 0])
 
         editor.setCursorBufferPosition([0, 2])
@@ -143,6 +143,12 @@ describe "bracket matching", ->
         expectHighlights([0, 6], [0, 0])
 
         editor.setCursorBufferPosition([0, 3])
+        expectNoHighlights()
+
+    describe "when the start character and end character of the pair are equivalent", ->
+      it "does not attempt to highlight pairs", ->
+        editor.setText "'hello'"
+        editor.setCursorBufferPosition([0, 0])
         expectNoHighlights()
 
     describe "when the cursor is moved off a pair", ->
@@ -242,6 +248,46 @@ describe "bracket matching", ->
           editor.setCursorBufferPosition([2, Infinity])
           expectHighlights([2, 14], [2, 3])
 
+        it "highlights the correct opening tag, skipping self-closing tags", ->
+          buffer.setText """
+            <test>
+              <test />
+            </test>
+          """
+
+          editor.setCursorBufferPosition([2, Infinity])
+          expectHighlights([2, 2], [0, 1])
+
+      describe "when on a self-closing tag", ->
+        it "highlights only the self-closing tag", ->
+          buffer.setText """
+            <test>
+              <test />
+            </test>
+          """
+
+          editor.setCursorBufferPosition([1, Infinity])
+          expectHighlights([1, 3], [1, 3])
+
+        it "highlights a self-closing tag without a space", ->
+          buffer.setText """
+            <test>
+              <test/>
+            </test>
+          """
+
+          editor.setCursorBufferPosition([1, Infinity])
+          expectHighlights([1, 3], [1, 3])
+
+        it "highlights a self-closing tag with many spaces", ->
+          buffer.setText """
+            <test>
+              <test          />
+            </test>
+          """
+
+          editor.setCursorBufferPosition([1, Infinity])
+          expectHighlights([1, 3], [1, 3])
 
       describe "when the tag spans multiple lines", ->
         it "highlights the opening and closing tag", ->
@@ -262,6 +308,20 @@ describe "bracket matching", ->
         it "highlights the opening and closing tags", ->
           buffer.setText """
             <test a="test">
+              text
+            </test>
+          """
+
+          editor.setCursorBufferPosition([2, 2])
+          expectHighlights([2, 2], [0, 1])
+
+          editor.setCursorBufferPosition([0, 7])
+          expectHighlights([0, 1], [2, 2])
+
+      describe "when the tag has an attribute with a value of '/'", ->
+        it "highlights the opening and closing tags", ->
+          buffer.setText """
+            <test a="/">
               text
             </test>
           """
@@ -617,6 +677,22 @@ describe "bracket matching", ->
         editor.setCursorBufferPosition([0, 0])
         editor.insertText '{'
         expect(buffer.lineForRow(0)).toBe "{}"
+        expect(editor.getCursorBufferPosition()).toEqual([0, 1])
+
+    describe "when autocompleteCharacters configuration is set globally", ->
+      it "inserts a matching angle bracket", ->
+        atom.config.set 'bracket-matcher.autocompleteCharacters', ['<>']
+        editor.setCursorBufferPosition([0, 0])
+        editor.insertText '<'
+        expect(buffer.lineForRow(0)).toBe "<>"
+        expect(editor.getCursorBufferPosition()).toEqual([0, 1])
+
+    describe "when autocompleteCharacters configuration is set in scope", ->
+      it "inserts a matching angle bracket", ->
+        atom.config.set 'bracket-matcher.autocompleteCharacters', ['<>'], scopeSelector: '.source.js'
+        editor.setCursorBufferPosition([0, 0])
+        editor.insertText '<'
+        expect(buffer.lineForRow(0)).toBe "<>"
         expect(editor.getCursorBufferPosition()).toEqual([0, 1])
 
     describe "when there are multiple cursors", ->
