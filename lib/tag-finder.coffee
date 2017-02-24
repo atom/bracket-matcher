@@ -143,7 +143,8 @@ class TagFinder
   #
   # fragment - a string containing a fragment of html code.
   #
-  # Returns a string with the name of the most recent unclosed tag.
+  # Returns an array of strings. Each string is a tag that is still to be closed
+  # (the most recent non closed tag is at the end of the array).
   tagsNotClosedInFragment: (fragment) ->
     @parseFragment fragment, [], tagStartOrEndRegex, -> true
 
