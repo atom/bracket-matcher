@@ -687,6 +687,43 @@ describe "bracket matching", ->
         expect(buffer.lineForRow(0)).toBe "''"
         expect(editor.getCursorBufferPosition()).toEqual([0, 1])
 
+    describe "when the cursor follows an escape character", ->
+      it "doesn't insert a quote to match the escaped quote and overwrites the end quote", ->
+        editor.buffer.setText('')
+        editor.insertText '"'
+        editor.insertText '\\'
+        editor.insertText '"'
+        editor.insertText '"'
+        expect(buffer.lineForRow(0)).toBe '"\\""'
+
+    describe "when the cursor follows an escape sequence", ->
+      it "inserts a matching quote and overwrites it", ->
+        editor.buffer.setText('')
+        editor.insertText '"'
+        editor.insertText '\\'
+        editor.insertText '\\'
+        editor.insertText '"'
+        expect(buffer.lineForRow(0)).toBe '"\\\\"'
+
+    describe "when the cursor follows a combination of escape characters", ->
+      it "correctly decides whether to match the quote or not", ->
+        editor.buffer.setText('')
+        editor.insertText '"'
+        editor.insertText '\\'
+        editor.insertText '\\'
+        editor.insertText '\\'
+        editor.insertText '"'
+        expect(buffer.lineForRow(0)).toBe '"\\\\\\""'
+
+        editor.buffer.setText('')
+        editor.insertText '"'
+        editor.insertText '\\'
+        editor.insertText '\\'
+        editor.insertText '\\'
+        editor.insertText '\\'
+        editor.insertText '"'
+        expect(buffer.lineForRow(0)).toBe '"\\\\\\\\"'
+
     describe "when the cursor is on a closing bracket and a closing bracket is inserted", ->
       describe "when the closing bracket was there previously", ->
         it "inserts a closing bracket", ->
@@ -828,7 +865,7 @@ describe "bracket matching", ->
           editor.insertText "'"
           expect(editor.getText()).toBe "abc'"
 
-      describe "when a backslash character is before the cursor", ->
+      describe "when an escape character is before the cursor", ->
         it "does not automatically insert the closing quote", ->
           editor.buffer.setText("\\")
           editor.moveToEndOfLine()
@@ -840,8 +877,6 @@ describe "bracket matching", ->
           editor.insertText "'"
           expect(editor.getText()).toBe "\\'"
 
-      describe "when an escape sequence is before the cursor", ->
-        it "does not automatically insert the closing quote", ->
           editor.buffer.setText('"\\"')
           editor.moveToEndOfLine()
           editor.insertText '"'
@@ -861,6 +896,50 @@ describe "bracket matching", ->
           editor.moveToEndOfLine()
           editor.insertText "'"
           expect(editor.getText()).toBe "'\\''"
+
+      describe "when an escape sequence is before the cursor", ->
+        it "does not create a new quote pair", ->
+          editor.buffer.setText('"\\\\"')
+          editor.moveToEndOfLine()
+          editor.insertText '"'
+          expect(editor.getText()).toBe '"\\\\""'
+
+          editor.buffer.setText("'\\\\'")
+          editor.moveToEndOfLine()
+          editor.insertText "'"
+          expect(editor.getText()).toBe "'\\\\''"
+
+      describe "when a combination of escape characters is before the cursor", ->
+        it "correctly determines whether it is an escape character or sequence", ->
+          editor.buffer.setText("\\\\\\")
+          editor.moveToEndOfLine()
+          editor.insertText '"'
+          expect(editor.getText()).toBe '\\\\\\"'
+
+          editor.buffer.setText("\\\\\\")
+          editor.moveToEndOfLine()
+          editor.insertText "'"
+          expect(editor.getText()).toBe "\\\\\\'"
+
+          editor.buffer.setText('"\\\\\\"')
+          editor.moveToEndOfLine()
+          editor.insertText '"'
+          expect(editor.getText()).toBe '"\\\\\\""'
+
+          editor.buffer.setText("\"\\\\\\'")
+          editor.moveToEndOfLine()
+          editor.insertText '"'
+          expect(editor.getText()).toBe "\"\\\\\\'\""
+
+          editor.buffer.setText("'\\\\\\\"")
+          editor.moveToEndOfLine()
+          editor.insertText "'"
+          expect(editor.getText()).toBe "'\\\\\\\"'"
+
+          editor.buffer.setText("'\\\\\\'")
+          editor.moveToEndOfLine()
+          editor.insertText "'"
+          expect(editor.getText()).toBe "'\\\\\\''"
 
       describe "when a quote is before the cursor", ->
         it "does not automatically insert the closing quote", ->
