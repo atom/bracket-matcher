@@ -3,6 +3,19 @@ _ = require 'underscore-plus'
 SelectorCache = require './selector-cache'
 SelfClosingTags = require './self-closing-tags'
 
+
+# Creates a regex to match opening tag with match[1] and closing tags with match[2]
+#
+# tagNameRegexStr - a regex string describing how to match the tagname.
+#                   Should not contain capturing match groups.
+#
+# The resulting RegExp.
+generateTagStartOrEndRegex = (tagNameRegexStr) ->
+  notSelfClosingTagEnd = "(?:[^>\\/\"']|\"[^\"]*\"|'[^']*')*>"
+  re = new RegExp("<(#{tagNameRegexStr})#{notSelfClosingTagEnd}|<\\/(#{tagNameRegexStr})")
+
+tagStartOrEndRegex = generateTagStartOrEndRegex("\\w[-\\w]*(?:\\:\\w[-\\w]*)?")
+
 # Helper to find the matching start/end tag for the start/end tag under the
 # cursor in XML, HTML, etc. editors.
 module.exports =
@@ -132,7 +145,7 @@ class TagFinder
   #
   # Returns a string with the name of the most recent unclosed tag.
   tagsNotClosedInFragment: (fragment) ->
-    @parseFragment fragment, [], /<(\w[-\w]*(?:\:\w[-\w]*)?)(?![^>]*\/>)|<\/(\w[-\w]*(?:\:\w[-\w]*)?)/, -> true
+    @parseFragment fragment, [], tagStartOrEndRegex, -> true
 
   # Parses the given fragment of html code and returns true if the given tag
   # has a matching closing tag in it. If tag is reopened and reclosed in the
@@ -145,8 +158,7 @@ class TagFinder
     stackLength = stack.length
     tag = tags[tags.length-1]
     escapedTag = _.escapeRegExp(tag)
-    matchExpr = new RegExp("<(#{escapedTag})(?![^>]*\/>)|<\/(#{escapedTag})")
-    stack = @parseFragment fragment, stack, matchExpr, (s) ->
+    stack = @parseFragment fragment, stack, generateTagStartOrEndRegex(escapedTag), (s) ->
       s.length >= stackLength or s[s.length-1] is tag
 
     stack.length > 0 and stack[stack.length-1] is tag
