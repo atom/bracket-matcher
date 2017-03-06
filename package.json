@@ -9,7 +9,7 @@
     "atom": "*"
   },
   "dependencies": {
-    "first-mate": "^6.0.0",
+    "first-mate": "^7.0.1",
     "underscore-plus": "1.x"
   },
   "devDependencies": {
