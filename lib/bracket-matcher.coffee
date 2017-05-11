@@ -127,8 +127,6 @@ class BracketMatcher
     bracketsRemoved
 
   wrapSelectionInBrackets: (bracket) ->
-    return false unless @getScopedSetting('bracket-matcher.wrapSelectionsInBrackets')
-
     if bracket is '#'
       return false unless @isCursorOnInterpolatedString()
       bracket = '#{'
@@ -136,6 +134,9 @@ class BracketMatcher
     else
       return false unless @isOpeningBracket(bracket)
       pair = @matchManager.pairedCharacters[bracket]
+
+    return false unless @editor.selections.some((s) -> not s.isEmpty())
+    return false unless @getScopedSetting('bracket-matcher.wrapSelectionsInBrackets')
 
     selectionWrapped = false
     @editor.mutateSelectedText (selection) ->
