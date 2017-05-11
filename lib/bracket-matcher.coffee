@@ -43,9 +43,13 @@ class BracketMatcher
       text += '{'
       pair = '}'
     else
-      autoCompleteOpeningBracket = @getScopedSetting('bracket-matcher.autocompleteBrackets') and
-        @isOpeningBracket(text) and not hasWordAfterCursor and not
-        (@isQuote(text) and (hasWordBeforeCursor or hasQuoteBeforeCursor or hasEscapeSequenceBeforeCursor)) and not hasEscapeCharacterBeforeCursor
+      autoCompleteOpeningBracket = (
+        @isOpeningBracket(text) and
+        not hasWordAfterCursor and
+        @getScopedSetting('bracket-matcher.autocompleteBrackets') and
+        not (@isQuote(text) and (hasWordBeforeCursor or hasQuoteBeforeCursor or hasEscapeSequenceBeforeCursor)) and
+        not hasEscapeCharacterBeforeCursor
+      )
       pair = @matchManager.pairedCharacters[text]
 
     skipOverExistingClosingBracket = false
