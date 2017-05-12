@@ -8,6 +8,8 @@ MAX_ROWS_TO_SCAN = 10000
 ONE_CHAR_FORWARD_TRAVERSAL = Object.freeze(Point(0, 1))
 ONE_CHAR_BACKWARD_TRAVERSAL = Object.freeze(Point(0, -1))
 TWO_CHARS_BACKWARD_TRAVERSAL = Object.freeze(Point(0, -2))
+MAX_ROWS_TO_SCAN_FORWARD_TRAVERSAL = Object.freeze(Point(MAX_ROWS_TO_SCAN, 0))
+MAX_ROWS_TO_SCAN_BACKWARD_TRAVERSAL = Object.freeze(Point(-MAX_ROWS_TO_SCAN, 0))
 
 module.exports =
 class BracketMatcherView
@@ -123,7 +125,10 @@ class BracketMatcherView
   findMatchingEndPair: (startPairPosition, startPair, endPair) ->
     return if startPair is endPair
 
-    scanRange = new Range(startPairPosition.traverse([0, 1]), startPairPosition.traverse([MAX_ROWS_TO_SCAN, 0]))
+    scanRange = new Range(
+      startPairPosition.traverse(ONE_CHAR_FORWARD_TRAVERSAL),
+      startPairPosition.traverse(MAX_ROWS_TO_SCAN_FORWARD_TRAVERSAL)
+    )
     endPairPosition = null
     unpairedCount = 0
     @editor.scanInBufferRange @matchManager.pairRegexes[startPair], scanRange, (result) =>
@@ -142,7 +147,10 @@ class BracketMatcherView
   findMatchingStartPair: (endPairPosition, startPair, endPair) ->
     return if startPair is endPair
 
-    scanRange = new Range(endPairPosition.traverse([-MAX_ROWS_TO_SCAN, 0]), endPairPosition)
+    scanRange = new Range(
+      endPairPosition.traverse(MAX_ROWS_TO_SCAN_BACKWARD_TRAVERSAL),
+      endPairPosition
+    )
     startPairPosition = null
     unpairedCount = 0
     @editor.backwardsScanInBufferRange @matchManager.pairRegexes[startPair], scanRange, (result) =>
@@ -158,7 +166,7 @@ class BracketMatcherView
     startPairPosition
 
   findAnyStartPair: (cursorPosition) ->
-    scanRange = new Range([0, 0], cursorPosition)
+    scanRange = new Range(Point.ZERO, cursorPosition)
     startPair = _.escapeRegExp(_.keys(@matchManager.pairedCharacters).join(''))
     endPair = _.escapeRegExp(_.keys(@matchManager.pairedCharactersInverse).join(''))
     combinedRegExp = new RegExp("[#{startPair}#{endPair}]", 'g')
@@ -228,11 +236,11 @@ class BracketMatcherView
       endPosition = @endMarker.getStartBufferPosition()
 
       if position.isEqual(startPosition)
-        @editor.setCursorBufferPosition(endPosition.traverse([0, 1]))
+        @editor.setCursorBufferPosition(endPosition.traverse(ONE_CHAR_FORWARD_TRAVERSAL))
       else if previousPosition.isEqual(startPosition)
         @editor.setCursorBufferPosition(endPosition)
       else if position.isEqual(endPosition)
-        @editor.setCursorBufferPosition(startPosition.traverse([0, 1]))
+        @editor.setCursorBufferPosition(startPosition.traverse(ONE_CHAR_FORWARD_TRAVERSAL))
       else if previousPosition.isEqual(endPosition)
         @editor.setCursorBufferPosition(startPosition)
 
@@ -273,15 +281,15 @@ class BracketMatcherView
         endPosition = endRange.start.traverse(TWO_CHARS_BACKWARD_TRAVERSAL) # Don't select </
 
     if startPosition? and endPosition?
-      rangeToSelect = new Range(startPosition.traverse([0, 1]), endPosition)
+      rangeToSelect = new Range(startPosition.traverse(ONE_CHAR_FORWARD_TRAVERSAL), endPosition)
       @editor.setSelectedBufferRange(rangeToSelect)
 
   # Insert at the current cursor position a closing tag if there exists an
   # open tag that is not closed afterwards.
   closeTag: ->
     cursorPosition = @editor.getCursorBufferPosition()
-    preFragment = @editor.getTextInBufferRange([[0, 0], cursorPosition])
-    postFragment = @editor.getTextInBufferRange([cursorPosition, [Infinity, Infinity]])
+    preFragment = @editor.getTextInBufferRange([Point.ZERO, cursorPosition])
+    postFragment = @editor.getTextInBufferRange([cursorPosition, Point.INFINITY])
 
     if tag = @tagFinder.closingTagForFragments(preFragment, postFragment)
       @editor.insertText("</#{tag}>")
