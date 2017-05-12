@@ -5,6 +5,7 @@ TagFinder = require './tag-finder'
 SelectorCache = require './selector-cache'
 
 MAX_ROWS_TO_SCAN = 10000
+ONE_CHAR_FORWARD_TRAVERSAL = Point(0, 1)
 
 module.exports =
 class BracketMatcherView
@@ -53,8 +54,6 @@ class BracketMatcherView
     @tagHighlighted = false
 
     return unless @editor.getLastSelection().isEmpty()
-    return if @editor.isFoldedAtCursorRow()
-    return if @isCursorOnCommentOrString()
 
     {position, currentPair, matchingPair} = @findCurrentPair(@matchManager.pairedCharacters)
     if position
@@ -64,16 +63,29 @@ class BracketMatcherView
       if position
         matchPosition = @findMatchingStartPair(position, matchingPair, currentPair)
 
+    startRange = null
+    endRange = null
+    highlightTag = false
+    highlightPair = false
     if position? and matchPosition?
-      @startMarker = @createMarker([position, position.traverse([0, 1])])
-      @endMarker = @createMarker([matchPosition, matchPosition.traverse([0, 1])])
-      @pairHighlighted = true
+      startRange = Range(position, position.traverse(ONE_CHAR_FORWARD_TRAVERSAL))
+      endRange = Range(matchPosition, matchPosition.traverse(ONE_CHAR_FORWARD_TRAVERSAL))
+      highlightPair = true
     else
       if pair = @tagFinder.findMatchingTags()
-        @startMarker = @createMarker(pair.startRange)
-        @endMarker = @createMarker(pair.endRange)
-        @pairHighlighted = true
-        @tagHighlighted = true
+        startRange = pair.startRange
+        endRange = pair.endRange
+        highlightPair = true
+        highlightTag = true
+
+    return unless highlightTag or highlightPair
+    return if @editor.isFoldedAtCursorRow()
+    return if @isCursorOnCommentOrString()
+
+    @startMarker = @createMarker(startRange)
+    @endMarker = @createMarker(endRange)
+    @pairHighlighted = highlightPair
+    @tagHighlighted = highlightTag
 
   removeMatchingBrackets: ->
     return @editor.backspace() if @editor.hasMultipleCursors()
