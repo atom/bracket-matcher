@@ -1,7 +1,8 @@
 {Range} = require 'atom'
 _ = require 'underscore-plus'
-SelectorCache = require './selector-cache'
 SelfClosingTags = require './self-closing-tags'
+TAG_SELECTOR_REGEX = /(\b|\.)(meta\.tag|punctuation\.definition\.tag)/
+COMMENT_SELECTOR_REGEX = /(\b|\.)comment/
 
 # Helper to find the matching start/end tag for the start/end tag under the
 # cursor in XML, HTML, etc. editors.
@@ -10,23 +11,40 @@ class TagFinder
   constructor: (@editor) ->
     @tagPattern = /(<(\/?))([^\s>]+)([\s>]|$)/
     @wordRegex = /[^>\r\n]*/
-    @tagSelector = SelectorCache.get('meta.tag | punctuation.definition.tag')
-    @commentSelector = SelectorCache.get('comment.*')
 
   patternForTagName: (tagName) ->
     tagName = _.escapeRegExp(tagName)
     new RegExp("(<#{tagName}([\\s>]|$))|(</#{tagName}>)", 'gi')
 
   isRangeCommented: (range) ->
-    scopes = @editor.scopeDescriptorForBufferPosition(range.start).getScopesArray()
-    @commentSelector.matches(scopes)
+    @scopesForPositionMatchRegex(range.start, COMMENT_SELECTOR_REGEX)
 
   isTagRange: (range) ->
-    scopes = @editor.scopeDescriptorForBufferPosition(range.start).getScopesArray()
-    @tagSelector.matches(scopes)
+    @scopesForPositionMatchRegex(range.start, TAG_SELECTOR_REGEX)
 
   isCursorOnTag: ->
-    @tagSelector.matches(@editor.getLastCursor().getScopeDescriptor().getScopesArray())
+    @scopesForPositionMatchRegex(@editor.getCursorBufferPosition(), TAG_SELECTOR_REGEX)
+
+  scopesForPositionMatchRegex: (position, regex) ->
+    {tokenizedBuffer, buffer} = @editor
+    column = 0
+    lineLength = buffer.lineLengthForRow(position.row)
+    line = tokenizedBuffer.tokenizedLineForRow(position.row)
+    scopeIds = line.openScopes.slice()
+    for tag in line.tags by 1
+      if tag >= 0
+        nextColumn = column + tag
+        break if nextColumn > position.column or nextColumn is lineLength
+        column = nextColumn
+      else if (tag & 1) is 1
+        scopeIds.push(tag)
+      else
+        scopeIds.pop()
+
+    for scopeId in scopeIds by 1
+      scope = tokenizedBuffer.grammar.scopeForId(scopeId)
+      return true if regex.test(scope)
+    false
 
   findStartTag: (tagName, endPosition) ->
     scanRange = new Range([0, 0], endPosition)
