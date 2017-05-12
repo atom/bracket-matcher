@@ -27,6 +27,7 @@ class TagFinder
 
   scopesForPositionMatchRegex: (position, regex) ->
     {tokenizedBuffer, buffer} = @editor
+    {grammar} = tokenizedBuffer
     column = 0
     lineLength = buffer.lineLengthForRow(position.row)
     line = tokenizedBuffer.tokenizedLineForRow(position.row)
@@ -41,10 +42,7 @@ class TagFinder
       else
         scopeIds.pop()
 
-    for scopeId in scopeIds by 1
-      scope = tokenizedBuffer.grammar.scopeForId(scopeId)
-      return true if regex.test(scope)
-    false
+    scopeIds.some (scopeId) -> regex.test(grammar.scopeForId(scopeId))
 
   findStartTag: (tagName, endPosition) ->
     scanRange = new Range([0, 0], endPosition)
