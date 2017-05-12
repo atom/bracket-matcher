@@ -5,7 +5,9 @@ TagFinder = require './tag-finder'
 SelectorCache = require './selector-cache'
 
 MAX_ROWS_TO_SCAN = 10000
-ONE_CHAR_FORWARD_TRAVERSAL = Point(0, 1)
+ONE_CHAR_FORWARD_TRAVERSAL = Object.freeze(Point(0, 1))
+ONE_CHAR_BACKWARD_TRAVERSAL = Object.freeze(Point(0, -1))
+TWO_CHARS_BACKWARD_TRAVERSAL = Object.freeze(Point(0, -2))
 
 module.exports =
 class BracketMatcherView
@@ -110,7 +112,7 @@ class BracketMatcherView
           # if on the same line and the cursor is in front of an end pair
           # offset by one to make up for the missing character
           if position.row is matchPosition.row and @matchManager.pairedCharactersInverse.hasOwnProperty(currentPair)
-            position = position.traverse([0, -1])
+            position = position.traverse(ONE_CHAR_BACKWARD_TRAVERSAL)
           @editor.setCursorBufferPosition(position)
           @editor.delete()
         else
@@ -182,10 +184,13 @@ class BracketMatcherView
 
   findCurrentPair: (matches) ->
     position = @editor.getCursorBufferPosition()
-    currentPair = @editor.getTextInRange(Range.fromPointWithDelta(position, 0, 1))
+    lineLength = @editor.getBuffer().lineLengthForRow(position.row)
+    endPosition = Point(position.row, Math.min(position.column + 1, lineLength))
+    currentPair = @editor.getTextInRange(Range(position, endPosition))
     unless matches[currentPair]
-      position = position.traverse([0, -1])
-      currentPair = @editor.getTextInRange(Range.fromPointWithDelta(position, 0, 1))
+      endPosition = position
+      position = position.traverse(ONE_CHAR_BACKWARD_TRAVERSAL)
+      currentPair = @editor.getTextInRange(Range(position, endPosition))
     if matchingPair = matches[currentPair]
       {position, currentPair, matchingPair}
     else
@@ -203,9 +208,9 @@ class BracketMatcherView
         [startRange, endRange] = [endRange, startRange]
 
       # include the <
-      startRange = new Range(startRange.start.traverse([0, -1]), endRange.end.traverse([0, -1]))
+      startRange = new Range(startRange.start.traverse(ONE_CHAR_BACKWARD_TRAVERSAL), endRange.end.traverse(ONE_CHAR_BACKWARD_TRAVERSAL))
       # include the </
-      endRange = new Range(endRange.start.traverse([0, -2]), endRange.end.traverse([0, -2]))
+      endRange = new Range(endRange.start.traverse(TWO_CHARS_BACKWARD_TRAVERSAL), endRange.end.traverse(TWO_CHARS_BACKWARD_TRAVERSAL))
 
       if position.isLessThan(endRange.start)
         tagCharacterOffset = position.column - startRange.start.column
@@ -218,7 +223,7 @@ class BracketMatcherView
         tagCharacterOffset = Math.min(tagCharacterOffset, tagLength + 1) # include <
         @editor.setCursorBufferPosition(startRange.start.traverse([0, tagCharacterOffset]))
     else
-      previousPosition = position.traverse([0, -1])
+      previousPosition = position.traverse(ONE_CHAR_BACKWARD_TRAVERSAL)
       startPosition = @startMarker.getStartBufferPosition()
       endPosition = @endMarker.getStartBufferPosition()
 
@@ -252,7 +257,7 @@ class BracketMatcherView
 
       if @tagHighlighted
         startPosition = startRange.end
-        endPosition = endRange.start.traverse([0, -2]) # Don't select </
+        endPosition = endRange.start.traverse(TWO_CHARS_BACKWARD_TRAVERSAL) # Don't select </
       else
         startPosition = startRange.start
         endPosition = endRange.start
@@ -265,7 +270,7 @@ class BracketMatcherView
         if startRange.compare(endRange) > 0
           [startRange, endRange] = [endRange, startRange]
         startPosition = startRange.end
-        endPosition = endRange.start.traverse([0, -2]) # Don't select </
+        endPosition = endRange.start.traverse(TWO_CHARS_BACKWARD_TRAVERSAL) # Don't select </
 
     if startPosition? and endPosition?
       rangeToSelect = new Range(startPosition.traverse([0, 1]), endPosition)
