@@ -1192,3 +1192,106 @@ describe "bracket matching", ->
       atom.commands.dispatch(editorElement, 'bracket-matcher:close-tag')
 
       expect(editor.getCursorBufferPosition()).toEqual [13, 16]
+
+    it 'does not get confused in case of nested self closing tags', ->
+      waitsForPromise ->
+        atom.workspace.open('sample.xml')
+
+      runs ->
+        editor = atom.workspace.getActiveTextEditor()
+        editorElement = atom.views.getView(editor)
+
+        editor.setText """
+          <bar name="test">
+            <foo value="15"/>
+
+        """
+
+        editor.setCursorBufferPosition([2, 0])
+        atom.commands.dispatch(editorElement, 'bracket-matcher:close-tag')
+
+        expect(editor.getCursorBufferPosition().row).toEqual 2
+        expect(editor.getCursorBufferPosition().column).toEqual 6
+        expect(editor.getTextInRange([[2, 0], [2, 6]])).toEqual '</bar>'
+
+
+    it 'does not get confused in case of self closing tags after the cursor', ->
+      waitsForPromise ->
+        atom.workspace.open('sample.xml')
+
+      runs ->
+        editor = atom.workspace.getActiveTextEditor()
+        editorElement = atom.views.getView(editor)
+
+        editor.setText """
+          <bar>
+
+            <bar>
+              <bar value="foo"/>
+            </bar>
+          </bar>
+        """
+
+        editor.setCursorBufferPosition([1, 0])
+        atom.commands.dispatch(editorElement, 'bracket-matcher:close-tag')
+
+        expect(editor.getCursorBufferPosition().row).toEqual 1
+        expect(editor.getCursorBufferPosition().column).toEqual 0
+        expect(editor.getTextInRange([[1, 0], [1, Infinity]])).toEqual ''
+
+    it 'does not get confused in case of nested self closing tags with `>` in their attributes', ->
+      waitsForPromise ->
+        atom.workspace.open('sample.xml')
+
+      runs ->
+        editor = atom.workspace.getActiveTextEditor()
+        editorElement = atom.views.getView(editor)
+
+        editor.setText """
+          <bar name="test">
+            <foo bar="test>1" baz="<>" value="15"/>
+
+        """
+
+        editor.setCursorBufferPosition([2, 0])
+        atom.commands.dispatch(editorElement, 'bracket-matcher:close-tag')
+
+        expect(editor.getCursorBufferPosition().row).toEqual 2
+        expect(editor.getCursorBufferPosition().column).toEqual 6
+        expect(editor.getTextInRange([[2, 0], [2, 6]])).toEqual '</bar>'
+
+        editor.setText """
+          <foo value="/>">
+
+        """
+
+        editor.setCursorBufferPosition([1, 0])
+        atom.commands.dispatch(editorElement, 'bracket-matcher:close-tag')
+
+        expect(editor.getCursorBufferPosition().row).toEqual 1
+        expect(editor.getCursorBufferPosition().column).toEqual 6
+        expect(editor.getTextInRange([[1, 0], [1, 6]])).toEqual '</foo>'
+
+    it 'does not get confused in case of self closing tags with `>` in their attributes after the cursor', ->
+      waitsForPromise ->
+        atom.workspace.open('sample.xml')
+
+      runs ->
+        editor = atom.workspace.getActiveTextEditor()
+        editorElement = atom.views.getView(editor)
+
+        editor.setText """
+          <bar>
+
+            <bar>
+              <bar value="b>z"/>
+            </bar>
+          </bar>
+        """
+
+        editor.setCursorBufferPosition([1, 0])
+        atom.commands.dispatch(editorElement, 'bracket-matcher:close-tag')
+
+        expect(editor.getCursorBufferPosition().row).toEqual 1
+        expect(editor.getCursorBufferPosition().column).toEqual 0
+        expect(editor.getTextInRange([[1, 0], [1, Infinity]])).toEqual ''
