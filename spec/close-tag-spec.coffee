@@ -26,12 +26,6 @@ describe 'closeTag', ->
       tags = tagFinder.tagsNotClosedInFragment(fragment)
       expect(tags).toEqual(['html', 'body', 'h1'])
 
-    # Is this desirable? It results in malformed XML for closing tag insertions.
-    it 'detects an incomplete tag', ->
-      fragment = '<html<body<h1'
-      tags = tagFinder.tagsNotClosedInFragment(fragment)
-      expect(tags).toEqual(['html', 'body', 'h1'])
-
     it 'is not confused by tag attributes', ->
       fragment = '<html><head></head><body class="c"><h1 class="p"><p></p>'
       tags = tagFinder.tagsNotClosedInFragment(fragment)

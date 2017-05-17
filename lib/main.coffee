@@ -1,13 +1,11 @@
-BracketMatcherView = null
-BracketMatcher = null
+MatchManager = require './match-manager'
+BracketMatcherView = require './bracket-matcher-view'
+BracketMatcher = require './bracket-matcher'
 
 module.exports =
   activate: ->
     atom.workspace.observeTextEditors (editor) ->
       editorElement = atom.views.getView(editor)
-
-      BracketMatcherView ?= require './bracket-matcher-view'
-      new BracketMatcherView(editor, editorElement)
-
-      BracketMatcher ?= require './bracket-matcher'
-      new BracketMatcher(editor, editorElement)
+      matchManager = new MatchManager(editor, editorElement)
+      new BracketMatcherView(editor, editorElement, matchManager)
+      new BracketMatcher(editor, editorElement, matchManager)

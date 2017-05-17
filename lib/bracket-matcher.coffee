@@ -4,32 +4,7 @@ SelectorCache = require './selector-cache'
 
 module.exports =
 class BracketMatcher
-  pairsToIndent:
-    '(': ')'
-    '[': ']'
-    '{': '}'
-
-  defaultPairs:
-    '(': ')'
-    '[': ']'
-    '{': '}'
-    '"': '"'
-    "'": "'"
-    '`': '`'
-
-  smartQuotePairs:
-    "“": "”"
-    '‘': '’'
-    "«": "»"
-    "‹": "›"
-
-  toggleQuotes: (includeSmartQuotes) ->
-    if includeSmartQuotes
-      @pairedCharacters = _.extend({}, @defaultPairs, @smartQuotePairs)
-    else
-      @pairedCharacters = @defaultPairs
-
-  constructor: (@editor, editorElement) ->
+  constructor: (@editor, editorElement, @matchManager) ->
     @subscriptions = new CompositeDisposable
     @bracketMarkers = []
 
@@ -46,32 +21,39 @@ class BracketMatcher
     return true unless text
     return true if options?.select or options?.undo is 'skip'
 
-    @toggleQuotes(@getScopedSetting('bracket-matcher.autocompleteSmartQuotes'))
-
     return false if @wrapSelectionInBrackets(text)
     return true if @editor.hasMultipleCursors()
 
     cursorBufferPosition = @editor.getCursorBufferPosition()
-    previousCharacters = @editor.getTextInBufferRange([cursorBufferPosition.traverse([0, -2]), cursorBufferPosition])
+    previousCharacters = @editor.getTextInBufferRange([[cursorBufferPosition.row, 0], cursorBufferPosition])
     nextCharacter = @editor.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.traverse([0, 1])])
 
     previousCharacter = previousCharacters.slice(-1)
 
     hasWordAfterCursor = /\w/.test(nextCharacter)
     hasWordBeforeCursor = /\w/.test(previousCharacter)
-    hasQuoteBeforeCursor = previousCharacter is text[0]
-    hasEscapeSequenceBeforeCursor = previousCharacters.match(/\\/g)?.length >= 1 # To guard against the "\\" sequence
+    hasQuoteBeforeCursor = @isQuote(previousCharacter) and previousCharacter is text[0]
+    # Lone escape character - odd number of backslashes before cursor
+    hasEscapeCharacterBeforeCursor = previousCharacters.match(/(\\+)$/)?[1].length % 2 is 1
+    # Completed escape sequence - even number of backslashes or odd number of backslashes followed by a character before cursor
+    hasEscapeSequenceBeforeCursor = previousCharacters.match(/(\\+)[^\\]$/)?[1].length % 2 is 1 or previousCharacters.match(/(\\+)$/)?[1].length % 2 is 0
 
     if text is '#' and @isCursorOnInterpolatedString()
-      autoCompleteOpeningBracket = @getScopedSetting('bracket-matcher.autocompleteBrackets') and not hasEscapeSequenceBeforeCursor
+      autoCompleteOpeningBracket = @getScopedSetting('bracket-matcher.autocompleteBrackets') and not hasEscapeCharacterBeforeCursor
       text += '{'
       pair = '}'
     else
-      autoCompleteOpeningBracket = @getScopedSetting('bracket-matcher.autocompleteBrackets') and @isOpeningBracket(text) and not hasWordAfterCursor and not (@isQuote(text) and (hasWordBeforeCursor or hasQuoteBeforeCursor)) and not hasEscapeSequenceBeforeCursor
-      pair = @pairedCharacters[text]
+      autoCompleteOpeningBracket = (
+        @isOpeningBracket(text) and
+        not hasWordAfterCursor and
+        @getScopedSetting('bracket-matcher.autocompleteBrackets') and
+        not (@isQuote(text) and (hasWordBeforeCursor or hasQuoteBeforeCursor or hasEscapeSequenceBeforeCursor)) and
+        not hasEscapeCharacterBeforeCursor
+      )
+      pair = @matchManager.pairedCharacters[text]
 
     skipOverExistingClosingBracket = false
-    if @isClosingBracket(text) and nextCharacter is text and not hasEscapeSequenceBeforeCursor
+    if @isClosingBracket(text) and nextCharacter is text and not hasEscapeCharacterBeforeCursor
       if bracketMarker = _.find(@bracketMarkers, (marker) -> marker.isValid() and marker.getBufferRange().end.isEqual(cursorBufferPosition))
         skipOverExistingClosingBracket = true
 
@@ -91,16 +73,16 @@ class BracketMatcher
     return if @editor.hasMultipleCursors()
     return unless @editor.getLastSelection().isEmpty()
 
-    @toggleQuotes(@getScopedSetting('bracket-matcher.autocompleteSmartQuotes'))
-
     cursorBufferPosition = @editor.getCursorBufferPosition()
-    previousCharacters = @editor.getTextInBufferRange([cursorBufferPosition.traverse([0, -2]), cursorBufferPosition])
+    previousCharacters = @editor.getTextInBufferRange([[cursorBufferPosition.row, 0], cursorBufferPosition])
     nextCharacter = @editor.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.traverse([0, 1])])
 
     previousCharacter = previousCharacters.slice(-1)
 
-    hasEscapeSequenceBeforeCursor = previousCharacters.match(/\\/g)?.length >= 1 # To guard against the "\\" sequence
-    if @pairsToIndent[previousCharacter] is nextCharacter and not hasEscapeSequenceBeforeCursor
+    # Lone escape character - odd number of backslashes before cursor
+    hasEscapeCharacterBeforeCursor = previousCharacters.match(/(\\+)$/)?[1].length % 2 is 1
+
+    if @matchManager.pairsWithExtraNewline[previousCharacter] is nextCharacter and not hasEscapeCharacterBeforeCursor
       @editor.transact =>
         @editor.insertText "\n\n"
         @editor.moveUp()
@@ -113,16 +95,16 @@ class BracketMatcher
     return if @editor.hasMultipleCursors()
     return unless @editor.getLastSelection().isEmpty()
 
-    @toggleQuotes(@getScopedSetting('bracket-matcher.autocompleteSmartQuotes'))
-
     cursorBufferPosition = @editor.getCursorBufferPosition()
-    previousCharacters = @editor.getTextInBufferRange([cursorBufferPosition.traverse([0, -2]), cursorBufferPosition])
+    previousCharacters = @editor.getTextInBufferRange([[cursorBufferPosition.row, 0], cursorBufferPosition])
     nextCharacter = @editor.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.traverse([0, 1])])
 
     previousCharacter = previousCharacters.slice(-1)
 
-    hasEscapeSequenceBeforeCursor = previousCharacters.match(/\\/g)?.length >= 1 # To guard against the "\\" sequence
-    if (@pairedCharacters[previousCharacter] is nextCharacter) and not hasEscapeSequenceBeforeCursor and @getScopedSetting('bracket-matcher.autocompleteBrackets')
+    # Lone escape character - odd number of backslashes before cursor
+    hasEscapeCharacterBeforeCursor = previousCharacters.match(/(\\+)$/)?[1].length % 2 is 1
+
+    if (@matchManager.pairedCharacters[previousCharacter] is nextCharacter) and not hasEscapeCharacterBeforeCursor and @getScopedSetting('bracket-matcher.autocompleteBrackets')
       @editor.transact =>
         @editor.moveLeft()
         @editor.delete()
@@ -131,7 +113,6 @@ class BracketMatcher
 
   removeBrackets: ->
     bracketsRemoved = false
-    @toggleQuotes(@getScopedSetting('bracket-matcher.autocompleteSmartQuotes'))
     @editor.mutateSelectedText (selection) =>
       return unless @selectionIsWrappedByMatchingBrackets(selection)
 
@@ -150,15 +131,16 @@ class BracketMatcher
     bracketsRemoved
 
   wrapSelectionInBrackets: (bracket) ->
-    return false unless @getScopedSetting('bracket-matcher.wrapSelectionsInBrackets')
-
     if bracket is '#'
       return false unless @isCursorOnInterpolatedString()
       bracket = '#{'
       pair = '}'
     else
       return false unless @isOpeningBracket(bracket)
-      pair = @pairedCharacters[bracket]
+      pair = @matchManager.pairedCharacters[bracket]
+
+    return false unless @editor.selections.some((s) -> not s.isEmpty())
+    return false unless @getScopedSetting('bracket-matcher.wrapSelectionsInBrackets')
 
     selectionWrapped = false
     @editor.mutateSelectedText (selection) ->
@@ -200,29 +182,21 @@ class BracketMatcher
       @interpolatedStringSelector = SelectorCache.get(segments.join(' | '))
     @interpolatedStringSelector.matches(@editor.getLastCursor().getScopeDescriptor().getScopesArray())
 
-  getInvertedPairedCharacters: ->
-    return @invertedPairedCharacters if @invertedPairedCharacters
-
-    @invertedPairedCharacters = {}
-    for open, close of @pairedCharacters
-      @invertedPairedCharacters[close] = open
-    @invertedPairedCharacters
-
   isOpeningBracket: (string) ->
-    @pairedCharacters.hasOwnProperty(string)
+    @matchManager.pairedCharacters.hasOwnProperty(string)
 
   isClosingBracket: (string) ->
-    @getInvertedPairedCharacters().hasOwnProperty(string)
+    @matchManager.pairedCharactersInverse.hasOwnProperty(string)
 
   selectionIsWrappedByMatchingBrackets: (selection) ->
     return false if selection.isEmpty()
     selectedText = selection.getText()
     firstCharacter = selectedText[0]
     lastCharacter = selectedText[selectedText.length - 1]
-    @pairedCharacters[firstCharacter] is lastCharacter
+    @matchManager.pairedCharacters[firstCharacter] is lastCharacter
 
   unsubscribe: ->
     @subscriptions.dispose()
 
   getScopedSetting: (key) ->
-    atom.config.get(key, scope: @editor.getLastCursor().getScopeDescriptor())
+    atom.config.get(key, scope: @editor.getRootScopeDescriptor())
