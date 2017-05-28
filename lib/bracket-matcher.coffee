@@ -38,6 +38,10 @@ class BracketMatcher
     # Completed escape sequence - even number of backslashes or odd number of backslashes followed by a character before cursor
     hasEscapeSequenceBeforeCursor = previousCharacters.match(/(\\+)[^\\]$/)?[1].length % 2 is 1 or previousCharacters.match(/(\\+)$/)?[1].length % 2 is 0
 
+    # if we type { inside a newly created interpolation #{}, suppress opening brace
+    if text is '{' and previousCharacters is '#\{' and @isCursorOnInterpolatedString()
+      return false
+
     if text is '#' and @isCursorOnInterpolatedString()
       autoCompleteOpeningBracket = @getScopedSetting('bracket-matcher.autocompleteBrackets') and not hasEscapeCharacterBeforeCursor
       text += '{'
