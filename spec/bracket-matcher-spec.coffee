@@ -1,5 +1,5 @@
 describe "bracket matching", ->
-  [editorElement, editor, buffer] = []
+  [editorElement, editor, buffer, gutter] = []
 
   beforeEach ->
     atom.config.set 'bracket-matcher.autocompleteBrackets', true
@@ -20,6 +20,7 @@ describe "bracket matching", ->
       editor = atom.workspace.getActiveTextEditor()
       editorElement = atom.views.getView(editor)
       buffer = editor.getBuffer()
+      gutter = editor.gutterWithName('line-number')
 
   describe "matching bracket highlighting", ->
     expectNoHighlights = ->
@@ -28,10 +29,16 @@ describe "bracket matching", ->
 
     expectHighlights = (startBufferPosition, endBufferPosition) ->
       decorations = editor.getHighlightDecorations().filter (decoration) -> decoration.properties.class is 'bracket-matcher'
+      gutterDecorations = editor.getLineNumberDecorations().filter (gutterDecoration) -> gutterDecoration.properties.class is 'bracket-matcher'
+
       expect(decorations.length).toBe 2
+      expect(gutterDecorations.length).toBe 2
 
       expect(decorations[0].marker.getStartBufferPosition()).toEqual startBufferPosition
       expect(decorations[1].marker.getStartBufferPosition()).toEqual endBufferPosition
+
+      expect(gutterDecorations[0].marker.getStartBufferPosition()).toEqual startBufferPosition
+      expect(gutterDecorations[1].marker.getStartBufferPosition()).toEqual endBufferPosition
 
     describe "when the cursor is before a starting pair", ->
       it "highlights the starting pair and ending pair", ->
