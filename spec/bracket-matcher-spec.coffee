@@ -195,6 +195,14 @@ describe "bracket matching", ->
         editor.getLastCursor().destroy()
         expectHighlights([0, 28], [12, 0])
 
+    describe "when highlightMatchingLineNumber config is disabled", ->
+      it "does not highlight the gutter", ->
+        atom.config.set('bracket-matcher.highlightMatchingLineNumber', false)
+        editor.moveToEndOfLine()
+        editor.moveLeft()
+        gutterDecorations = editor.getLineNumberDecorations().filter (gutterDecoration) -> gutterDecoration.properties.class is 'bracket-matcher'
+        expect(gutterDecorations.length).toBe 0
+
     describe "when the cursor moves off (clears) a selection next to a starting or ending pair", ->
       it "highlights the starting pair and ending pair", ->
         editor.moveToEndOfLine()
