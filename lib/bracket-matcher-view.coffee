@@ -190,7 +190,7 @@ class BracketMatcherView
     marker = @editor.markBufferRange(bufferRange)
     @editor.decorateMarker(marker, type: 'highlight', class: 'bracket-matcher', deprecatedRegionClass: 'bracket-matcher')
     if atom.config.get('bracket-matcher.highlightMatchingLineNumber', scope: @editor.getRootScopeDescriptor()) and @gutter
-        @gutter.decorateMarker(marker, type: 'highlight', class: 'bracket-matcher', deprecatedRegionClass: 'bracket-matcher')
+      @gutter.decorateMarker(marker, type: 'highlight', class: 'bracket-matcher', deprecatedRegionClass: 'bracket-matcher')
     marker
 
   findCurrentPair: (matches) ->

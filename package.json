@@ -58,9 +58,9 @@
       "description": "Wrap selected text in brackets or quotes when the editor contains selections and the opening bracket or quote is typed."
     },
     "highlightMatchingLineNumber": {
-        "type": "boolean",
-        "default": true,
-        "description": "If the line number gutter is visible, highlight the line number of the matching bracket"
+      "type": "boolean",
+      "default": true,
+      "description": "If the line number gutter is visible, highlight the line number of the matching bracket"
     }
   }
 }
