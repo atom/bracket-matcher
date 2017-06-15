@@ -148,6 +148,12 @@ describe "bracket matching", ->
         editor.setCursorBufferPosition([0, 3])
         expectNoHighlights()
 
+    describe "when the start character and end character of the pair are equivalent", ->
+      it "does not attempt to highlight pairs", ->
+        editor.setText "'hello'"
+        editor.setCursorBufferPosition([0, 0])
+        expectNoHighlights()
+
     describe "when the cursor is moved off a pair", ->
       it "removes the starting pair and ending pair highlights", ->
         editor.moveToEndOfLine()
@@ -684,6 +690,43 @@ describe "bracket matching", ->
         expect(buffer.lineForRow(0)).toBe "''"
         expect(editor.getCursorBufferPosition()).toEqual([0, 1])
 
+    describe "when the cursor follows an escape character", ->
+      it "doesn't insert a quote to match the escaped quote and overwrites the end quote", ->
+        editor.buffer.setText('')
+        editor.insertText '"'
+        editor.insertText '\\'
+        editor.insertText '"'
+        editor.insertText '"'
+        expect(buffer.lineForRow(0)).toBe '"\\""'
+
+    describe "when the cursor follows an escape sequence", ->
+      it "inserts a matching quote and overwrites it", ->
+        editor.buffer.setText('')
+        editor.insertText '"'
+        editor.insertText '\\'
+        editor.insertText '\\'
+        editor.insertText '"'
+        expect(buffer.lineForRow(0)).toBe '"\\\\"'
+
+    describe "when the cursor follows a combination of escape characters", ->
+      it "correctly decides whether to match the quote or not", ->
+        editor.buffer.setText('')
+        editor.insertText '"'
+        editor.insertText '\\'
+        editor.insertText '\\'
+        editor.insertText '\\'
+        editor.insertText '"'
+        expect(buffer.lineForRow(0)).toBe '"\\\\\\""'
+
+        editor.buffer.setText('')
+        editor.insertText '"'
+        editor.insertText '\\'
+        editor.insertText '\\'
+        editor.insertText '\\'
+        editor.insertText '\\'
+        editor.insertText '"'
+        expect(buffer.lineForRow(0)).toBe '"\\\\\\\\"'
+
     describe "when the cursor is on a closing bracket and a closing bracket is inserted", ->
       describe "when the closing bracket was there previously", ->
         it "inserts a closing bracket", ->
@@ -825,7 +868,7 @@ describe "bracket matching", ->
           editor.insertText "'"
           expect(editor.getText()).toBe "abc'"
 
-      describe "when a backslash character is before the cursor", ->
+      describe "when an escape character is before the cursor", ->
         it "does not automatically insert the closing quote", ->
           editor.buffer.setText("\\")
           editor.moveToEndOfLine()
@@ -837,8 +880,6 @@ describe "bracket matching", ->
           editor.insertText "'"
           expect(editor.getText()).toBe "\\'"
 
-      describe "when an escape sequence is before the cursor", ->
-        it "does not automatically insert the closing quote", ->
           editor.buffer.setText('"\\"')
           editor.moveToEndOfLine()
           editor.insertText '"'
@@ -858,6 +899,50 @@ describe "bracket matching", ->
           editor.moveToEndOfLine()
           editor.insertText "'"
           expect(editor.getText()).toBe "'\\''"
+
+      describe "when an escape sequence is before the cursor", ->
+        it "does not create a new quote pair", ->
+          editor.buffer.setText('"\\\\"')
+          editor.moveToEndOfLine()
+          editor.insertText '"'
+          expect(editor.getText()).toBe '"\\\\""'
+
+          editor.buffer.setText("'\\\\'")
+          editor.moveToEndOfLine()
+          editor.insertText "'"
+          expect(editor.getText()).toBe "'\\\\''"
+
+      describe "when a combination of escape characters is before the cursor", ->
+        it "correctly determines whether it is an escape character or sequence", ->
+          editor.buffer.setText("\\\\\\")
+          editor.moveToEndOfLine()
+          editor.insertText '"'
+          expect(editor.getText()).toBe '\\\\\\"'
+
+          editor.buffer.setText("\\\\\\")
+          editor.moveToEndOfLine()
+          editor.insertText "'"
+          expect(editor.getText()).toBe "\\\\\\'"
+
+          editor.buffer.setText('"\\\\\\"')
+          editor.moveToEndOfLine()
+          editor.insertText '"'
+          expect(editor.getText()).toBe '"\\\\\\""'
+
+          editor.buffer.setText("\"\\\\\\'")
+          editor.moveToEndOfLine()
+          editor.insertText '"'
+          expect(editor.getText()).toBe "\"\\\\\\'\""
+
+          editor.buffer.setText("'\\\\\\\"")
+          editor.moveToEndOfLine()
+          editor.insertText "'"
+          expect(editor.getText()).toBe "'\\\\\\\"'"
+
+          editor.buffer.setText("'\\\\\\'")
+          editor.moveToEndOfLine()
+          editor.insertText "'"
+          expect(editor.getText()).toBe "'\\\\\\''"
 
       describe "when a quote is before the cursor", ->
         it "does not automatically insert the closing quote", ->
@@ -1110,3 +1195,106 @@ describe "bracket matching", ->
       atom.commands.dispatch(editorElement, 'bracket-matcher:close-tag')
 
       expect(editor.getCursorBufferPosition()).toEqual [13, 16]
+
+    it 'does not get confused in case of nested self closing tags', ->
+      waitsForPromise ->
+        atom.workspace.open('sample.xml')
+
+      runs ->
+        editor = atom.workspace.getActiveTextEditor()
+        editorElement = atom.views.getView(editor)
+
+        editor.setText """
+          <bar name="test">
+            <foo value="15"/>
+
+        """
+
+        editor.setCursorBufferPosition([2, 0])
+        atom.commands.dispatch(editorElement, 'bracket-matcher:close-tag')
+
+        expect(editor.getCursorBufferPosition().row).toEqual 2
+        expect(editor.getCursorBufferPosition().column).toEqual 6
+        expect(editor.getTextInRange([[2, 0], [2, 6]])).toEqual '</bar>'
+
+
+    it 'does not get confused in case of self closing tags after the cursor', ->
+      waitsForPromise ->
+        atom.workspace.open('sample.xml')
+
+      runs ->
+        editor = atom.workspace.getActiveTextEditor()
+        editorElement = atom.views.getView(editor)
+
+        editor.setText """
+          <bar>
+
+            <bar>
+              <bar value="foo"/>
+            </bar>
+          </bar>
+        """
+
+        editor.setCursorBufferPosition([1, 0])
+        atom.commands.dispatch(editorElement, 'bracket-matcher:close-tag')
+
+        expect(editor.getCursorBufferPosition().row).toEqual 1
+        expect(editor.getCursorBufferPosition().column).toEqual 0
+        expect(editor.getTextInRange([[1, 0], [1, Infinity]])).toEqual ''
+
+    it 'does not get confused in case of nested self closing tags with `>` in their attributes', ->
+      waitsForPromise ->
+        atom.workspace.open('sample.xml')
+
+      runs ->
+        editor = atom.workspace.getActiveTextEditor()
+        editorElement = atom.views.getView(editor)
+
+        editor.setText """
+          <bar name="test">
+            <foo bar="test>1" baz="<>" value="15"/>
+
+        """
+
+        editor.setCursorBufferPosition([2, 0])
+        atom.commands.dispatch(editorElement, 'bracket-matcher:close-tag')
+
+        expect(editor.getCursorBufferPosition().row).toEqual 2
+        expect(editor.getCursorBufferPosition().column).toEqual 6
+        expect(editor.getTextInRange([[2, 0], [2, 6]])).toEqual '</bar>'
+
+        editor.setText """
+          <foo value="/>">
+
+        """
+
+        editor.setCursorBufferPosition([1, 0])
+        atom.commands.dispatch(editorElement, 'bracket-matcher:close-tag')
+
+        expect(editor.getCursorBufferPosition().row).toEqual 1
+        expect(editor.getCursorBufferPosition().column).toEqual 6
+        expect(editor.getTextInRange([[1, 0], [1, 6]])).toEqual '</foo>'
+
+    it 'does not get confused in case of self closing tags with `>` in their attributes after the cursor', ->
+      waitsForPromise ->
+        atom.workspace.open('sample.xml')
+
+      runs ->
+        editor = atom.workspace.getActiveTextEditor()
+        editorElement = atom.views.getView(editor)
+
+        editor.setText """
+          <bar>
+
+            <bar>
+              <bar value="b>z"/>
+            </bar>
+          </bar>
+        """
+
+        editor.setCursorBufferPosition([1, 0])
+        atom.commands.dispatch(editorElement, 'bracket-matcher:close-tag')
+
+        expect(editor.getCursorBufferPosition().row).toEqual 1
+        expect(editor.getCursorBufferPosition().column).toEqual 0
+        expect(editor.getTextInRange([[1, 0], [1, Infinity]])).toEqual ''
