@@ -133,6 +133,30 @@ describe "bracket matching", ->
         editor.setCursorBufferPosition([0, 2])
         expectNoHighlights()
 
+    describe "when there are brackets inside code embedded in a string", ->
+      it "highlights the correct start/end pairs", ->
+        editor.setText "(`${(1+1)}`)"
+        editor.setCursorBufferPosition([0, 0])
+        expectHighlights([0, 0], [0, 11])
+
+        editor.setCursorBufferPosition([0, 12])
+        expectHighlights([0, 11], [0, 0])
+
+        editor.setCursorBufferPosition([0, 4])
+        expectHighlights([0, 4], [0, 8])
+
+    describe "when there are brackets inside a string inside code embedded in a string", ->
+      it "highlights the correct start/end pairs", ->
+        editor.setText "(`${('(1+1)')}`)"
+        editor.setCursorBufferPosition([0, 0])
+        expectHighlights([0, 0], [0, 15])
+
+        editor.setCursorBufferPosition([0, 16])
+        expectHighlights([0, 15], [0, 0])
+
+        editor.setCursorBufferPosition([0, 6])
+        expectNoHighlights()
+
     describe "when there are brackets in regular expressions", ->
       it "highlights the correct start/end pairs", ->
         editor.setText "(/[)]/)"

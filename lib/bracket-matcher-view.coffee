@@ -2,7 +2,6 @@
 _ = require 'underscore-plus'
 {Range, Point} = require 'atom'
 TagFinder = require './tag-finder'
-SelectorCache = require './selector-cache'
 
 MAX_ROWS_TO_SCAN = 10000
 ONE_CHAR_FORWARD_TRAVERSAL = Object.freeze(Point(0, 1))
@@ -18,7 +17,6 @@ class BracketMatcherView
     @tagFinder = new TagFinder(@editor)
     @pairHighlighted = false
     @tagHighlighted = false
-    @commentOrStringSelector = SelectorCache.get('comment.* | string.*')
 
     @subscriptions.add @editor.onDidTokenize(@updateMatch)
     @subscriptions.add @editor.getBuffer().onDidChangeText(@updateMatch)
@@ -295,7 +293,15 @@ class BracketMatcherView
       @editor.insertText("</#{tag}>")
 
   isCursorOnCommentOrString: ->
-    @commentOrStringSelector.matches(@editor.getLastCursor().getScopeDescriptor().getScopesArray())
+    @isScopeCommentedOrString(@editor.getLastCursor().getScopeDescriptor().getScopesArray())
 
   isRangeCommentedOrString: (range) ->
-    @commentOrStringSelector.matches(@editor.scopeDescriptorForBufferPosition(range.start).getScopesArray())
+    @isScopeCommentedOrString(@editor.scopeDescriptorForBufferPosition(range.start).getScopesArray())
+
+  isScopeCommentedOrString: (scopesArray) ->
+    for scope in scopesArray.reverse()
+      scope = scope.split('.')
+      return false if scope.includes('embedded') and scope.includes('source')
+      return true if scope.includes('comment') or scope.includes('string')
+
+    false
