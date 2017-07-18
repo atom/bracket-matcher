@@ -51,6 +51,25 @@ describe "bracket matching", ->
         editor.moveLeft()
         expectHighlights([12, 0], [0, 28])
 
+    describe "when closing multiple pairs", ->
+      it "always highlights the inner pair", ->
+        editor.setCursorBufferPosition([8, 53])
+        expectHighlights([8, 53], [8, 47])
+        editor.moveRight()
+        expectHighlights([8, 53], [8, 47])
+        editor.moveRight()
+        expectHighlights([8, 54], [8, 42])
+
+    describe "when opening multiple pairs", ->
+      it "always highlights the inner pair", ->
+        editor.setText '((1 + 1) * 2)'
+        editor.setCursorBufferPosition([0, 0])
+        expectHighlights([0, 0], [0, 12])
+        editor.moveRight()
+        expectHighlights([0, 1], [0, 7])
+        editor.moveRight()
+        expectHighlights([0, 1], [0, 7])
+
     describe "when the cursor is after an ending pair", ->
       it "highlights the starting pair and ending pair", ->
         editor.moveToBottom()
@@ -77,6 +96,9 @@ describe "bracket matching", ->
         expectHighlights([0, 0], [0, 1])
 
         editor.setCursorBufferPosition([0, 2])
+        expectHighlights([0, 1], [0, 0])
+
+        editor.setCursorBufferPosition([0, 3])
         expectNoHighlights()
 
     describe "when there are commented brackets", ->

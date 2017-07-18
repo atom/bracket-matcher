@@ -57,11 +57,11 @@ class BracketMatcherView
 
     return unless @editor.getLastSelection().isEmpty()
 
-    {position, currentPair, matchingPair} = @findCurrentPair(@matchManager.pairedCharacters)
+    {position, currentPair, matchingPair} = @findCurrentPair(false)
     if position
       matchPosition = @findMatchingEndPair(position, currentPair, matchingPair)
     else
-      {position, currentPair, matchingPair} = @findCurrentPair(@matchManager.pairedCharactersInverse)
+      {position, currentPair, matchingPair} = @findCurrentPair(true)
       if position
         matchPosition = @findMatchingStartPair(position, matchingPair, currentPair)
 
@@ -95,14 +95,15 @@ class BracketMatcherView
     @editor.transact =>
       @editor.selectLeft() if @editor.getLastSelection().isEmpty()
       text = @editor.getSelectedText()
+      @editor.moveRight()
 
       #check if the character to the left is part of a pair
       if @matchManager.pairedCharacters.hasOwnProperty(text) or @matchManager.pairedCharactersInverse.hasOwnProperty(text)
-        {position, currentPair, matchingPair} = @findCurrentPair(@matchManager.pairedCharacters)
+        {position, currentPair, matchingPair} = @findCurrentPair(false)
         if position
           matchPosition = @findMatchingEndPair(position, currentPair, matchingPair)
         else
-          {position, currentPair, matchingPair} = @findCurrentPair(@matchManager.pairedCharactersInverse)
+          {position, currentPair, matchingPair} = @findCurrentPair(true)
           if position
             matchPosition = @findMatchingStartPair(position, matchingPair, currentPair)
 
@@ -188,15 +189,20 @@ class BracketMatcherView
     @editor.decorateMarker(marker, type: 'highlight', class: 'bracket-matcher', deprecatedRegionClass: 'bracket-matcher')
     marker
 
-  findCurrentPair: (matches) ->
+  findCurrentPair: (isInverse) ->
     position = @editor.getCursorBufferPosition()
-    lineLength = @editor.getBuffer().lineLengthForRow(position.row)
-    endPosition = Point(position.row, Math.min(position.column + 1, lineLength))
-    currentPair = @editor.getTextInRange(Range(position, endPosition))
-    unless matches[currentPair]
-      endPosition = position
+    if isInverse
+      matches = @matchManager.pairedCharactersInverse
       position = position.traverse(ONE_CHAR_BACKWARD_TRAVERSAL)
-      currentPair = @editor.getTextInRange(Range(position, endPosition))
+    else
+      matches = @matchManager.pairedCharacters
+    currentPair = @editor.getTextInRange(Range.fromPointWithDelta(position, 0, 1))
+    unless matches[currentPair]
+      if isInverse
+        position = position.traverse(ONE_CHAR_FORWARD_TRAVERSAL)
+      else
+        position = position.traverse(ONE_CHAR_BACKWARD_TRAVERSAL)
+      currentPair = @editor.getTextInRange(Range.fromPointWithDelta(position, 0, 1))
     if matchingPair = matches[currentPair]
       {position, currentPair, matchingPair}
     else
