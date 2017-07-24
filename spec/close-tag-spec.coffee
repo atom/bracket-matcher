@@ -78,3 +78,8 @@ describe 'closeTag', ->
       preFragment = "<html><head></head><body><h1></h1><my-element>"
       postFragment = "</body></html>"
       expect(tagFinder.closingTagForFragments(preFragment, postFragment)).toBe("my-element")
+
+    it 'correctly closes tags when there are other tags with the same prefix', ->
+      preFragment = "<thead><th>"
+      postFragment = "</thead>"
+      expect(tagFinder.closingTagForFragments(preFragment, postFragment)).toBe("th")
