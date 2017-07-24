@@ -13,7 +13,7 @@ COMMENT_SELECTOR_REGEX = /(\b|\.)comment/
 # The resulting RegExp.
 generateTagStartOrEndRegex = (tagNameRegexStr) ->
   notSelfClosingTagEnd = "(?:[^>\\/\"']|\"[^\"]*\"|'[^']*')*>"
-  re = new RegExp("<(#{tagNameRegexStr})#{notSelfClosingTagEnd}|<\\/(#{tagNameRegexStr})")
+  re = new RegExp("<(#{tagNameRegexStr})#{notSelfClosingTagEnd}|<\\/(#{tagNameRegexStr})>")
 
 tagStartOrEndRegex = generateTagStartOrEndRegex("\\w[-\\w]*(?:\\:\\w[-\\w]*)?")
 
