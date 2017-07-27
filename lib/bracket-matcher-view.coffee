@@ -264,28 +264,29 @@ class BracketMatcherView
       startRange = @startMarker.getBufferRange()
       endRange = @endMarker.getBufferRange()
 
+      if @tagHighlighted
+        {startRange, endRange} = @tagFinder.findEnclosingTags(true)
+
       if startRange.compare(endRange) > 0
         [startRange, endRange] = [endRange, startRange]
 
-      if @tagHighlighted
-        startPosition = startRange.end
-        endPosition = endRange.start.traverse(TWO_CHARS_BACKWARD_TRAVERSAL) # Don't select </
-      else
-        startPosition = startRange.start
-        endPosition = endRange.start
+      startPosition = startRange.end
+      endPosition = endRange.start
     else
       if startPosition = @findAnyStartPair(@editor.getCursorBufferPosition())
         startPair = @editor.getTextInRange(Range.fromPointWithDelta(startPosition, 0, 1))
         endPosition = @findMatchingEndPair(startPosition, startPair, @matchManager.pairedCharacters[startPair])
-      else if pair = @tagFinder.findEnclosingTags()
+        startPosition = startPosition.traverse([0, 1])
+      else if pair = @tagFinder.findEnclosingTags(true)
         {startRange, endRange} = pair
         if startRange.compare(endRange) > 0
           [startRange, endRange] = [endRange, startRange]
+
         startPosition = startRange.end
-        endPosition = endRange.start.traverse(TWO_CHARS_BACKWARD_TRAVERSAL) # Don't select </
+        endPosition = endRange.start
 
     if startPosition? and endPosition?
-      rangeToSelect = new Range(startPosition.traverse(ONE_CHAR_FORWARD_TRAVERSAL), endPosition)
+      rangeToSelect = new Range(startPosition, endPosition)
       @editor.setSelectedBufferRange(rangeToSelect)
 
   # Insert at the current cursor position a closing tag if there exists an
