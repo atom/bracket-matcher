@@ -69,7 +69,7 @@ class TagFinder
 
     scopeIds.some (scopeId) -> regex.test(grammar.scopeForId(scopeId))
 
-  findStartTag: (tagName, endPosition) ->
+  findStartTag: (tagName, endPosition, fullRange=false) ->
     scanRange = new Range([0, 0], endPosition)
     pattern = @patternForTagName(tagName)
     startRange = null
@@ -85,17 +85,28 @@ class TagFinder
         unpairedCount--
         if unpairedCount < 0
           startRange = range
-          # Move the start past the initial <
-          startRange.start = startRange.start.translate([0, 1])
-          # End right after the tag name
-          startRange.end = startRange.start.translate([0, tagName.length])
+
+          unless fullRange
+            # Move the start past the initial <
+            startRange.start = startRange.start.translate([0, 1])
+
+            # End right after the tag name
+            startRange.end = startRange.start.translate([0, tagName.length])
+
+            #TODO: this was originial change in PR that doesn't work.
+            # Subtract < and tag name suffix from range
+            # startRange = range.translate([0, 1], [0, -(match[2].length + match[3].length)])
+
+          until startRange.end.column > 0 # if the tag spans multiple lines, the end.column is negative, so iterate until it's not.
+            startRange.end.row -= 1 # move the end up one row
+            startRange.end.column = @editor.getBuffer().lineLengthForRow(startRange.end.row) + startRange.end.column + 2 # and set the column
           stop()
       else
         unpairedCount++
 
     startRange
 
-  findEndTag: (tagName, startPosition) ->
+  findEndTag: (tagName, startPosition, fullRange=false) ->
     scanRange = new Range(startPosition, @editor.buffer.getEndPosition())
     pattern = @patternForTagName(tagName)
     endRange = null
@@ -112,12 +123,13 @@ class TagFinder
       else
         unpairedCount--
         if unpairedCount < 0
-          endRange = range.translate([0, 2], [0, -1]) # Subtract </ and > from range
+          endRange = range
+          endRange = range.translate([0, 2], [0, -1]) unless fullRange # Subtract </ and > from range
           stop()
 
     endRange
 
-  findStartEndTags: ->
+  findStartEndTags: (fullRange=false) ->
     ranges = null
     endPosition = @editor.getLastCursor().getCurrentWordBufferRange({wordRegex: @endOfTagRegex}).end
     @editor.backwardsScanInBufferRange @tagPattern, [[0, 0], endPosition], ({match, range, stop}) =>
@@ -134,19 +146,23 @@ class TagFinder
       else
         startRange = Range.fromObject([range.start.translate([0, prefix.length]), [range.start.row, Infinity]])
 
-      if isSelfClosingTag
-        endRange = startRange
-      else if isClosingTag
-        endRange = @findStartTag(tagName, startRange.start)
+      if isClosingTag
+        endRange = @findStartTag(tagName, startRange.start, fullRange)
       else
-        endRange = @findEndTag(tagName, startRange.end)
+        endRange = @findEndTag(tagName, startRange.end, fullRange)
+
+      if fullRange
+        startRange = range
 
       ranges = {startRange, endRange} if startRange? and endRange?
     ranges
 
-  findEnclosingTags: ->
-    if ranges = @findStartEndTags()
+  findEnclosingTags: (fullRange=false) ->
+    if ranges = @findStartEndTags(fullRange)
       if @isTagRange(ranges.startRange) and @isTagRange(ranges.endRange)
+        if ranges.startRange.start.row > ranges.endRange.start.row
+          # If the endRange occurs after the startRange in the buffer, switch them
+          [ranges.startRange, ranges.endRange] = [ranges.endRange, ranges.startRange]
         return ranges
 
     null
