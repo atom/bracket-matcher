@@ -569,20 +569,15 @@ describe "bracket matching", ->
 
       describe 'when the cursor is on an ending tag', ->
         it 'selects the text inside the starting/closing tag', ->
-          editor.setCursorBufferPosition([14, 9])
+          editor.setCursorBufferPosition([15, 8])
           atom.commands.dispatch(editorElement, "bracket-matcher:select-inside-brackets")
-          expect(editor.getSelectedBufferRange()).toEqual [[10, 9], [14, 4]]
+          expect(editor.getSelectedBufferRange()).toEqual [[1, 8], [15, 2]]
 
       describe 'when the cursor is inside a tag', ->
         it 'selects the text inside the starting/closing tag', ->
           editor.setCursorBufferPosition([12, 8])
           atom.commands.dispatch(editorElement, "bracket-matcher:select-inside-brackets")
           expect(editor.getSelectedBufferRange()).toEqual [[11, 11], [13, 6]]
-
-      it 'does not select attributes inside tags', ->
-        editor.setCursorBufferPosition([1, 10])
-        atom.commands.dispatch(editorElement, "bracket-matcher:select-inside-brackets")
-        expect(editor.getSelectedBufferRange()).toEqual [[1, 17], [15, 2]]
 
   describe "when bracket-matcher:remove-matching-brackets is triggered", ->
     describe "when the cursor is not in front of any pair", ->

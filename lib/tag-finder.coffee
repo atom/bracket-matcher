@@ -57,7 +57,7 @@ class TagFinder
 
     scopeIds.some (scopeId) -> regex.test(grammar.scopeForId(scopeId))
 
-  findStartTag: (tagName, endPosition, fullRange=false) ->
+  findStartTag: (tagName, endPosition) ->
     scanRange = new Range([0, 0], endPosition)
     pattern = @patternForTagName(tagName)
     startRange = null
@@ -68,11 +68,7 @@ class TagFinder
       if match[1]
         unpairedCount--
         if unpairedCount < 0
-          startRange = range
-          unless fullRange
-            # Subtract < and tag name suffix from range
-            startRange = range.translate([0, 1], [0, -(match[2].length + match[3].length)])
-
+          startRange = range.translate([0, 1], [0, -(match[2].length + match[3].length)]) # Subtract < and tag name suffix from range
           until startRange.end.column > 0 # if the tag spans multiple lines, the end.column is negative, so iterate until it's not.
             startRange.end.row -= 1 # move the end up one row
             startRange.end.column = @editor.getBuffer().lineLengthForRow(startRange.end.row) + startRange.end.column + 2 # and set the column
@@ -82,7 +78,7 @@ class TagFinder
 
     startRange
 
-  findEndTag: (tagName, startPosition, fullRange=false) ->
+  findEndTag: (tagName, startPosition) ->
     scanRange = new Range(startPosition, @editor.buffer.getEndPosition())
     pattern = @patternForTagName(tagName)
     endRange = null
@@ -95,13 +91,12 @@ class TagFinder
       else
         unpairedCount--
         if unpairedCount < 0
-          endRange = range
-          endRange = range.translate([0, 2], [0, -1]) unless fullRange # Subtract </ and > from range
+          endRange = range.translate([0, 2], [0, -1]) # Subtract </ and > from range
           stop()
 
     endRange
 
-  findStartEndTags: (fullRange=false) ->
+  findStartEndTags: ->
     ranges = null
     endPosition = @editor.getLastCursor().getCurrentWordBufferRange({@wordRegex}).end
     @editor.backwardsScanInBufferRange @tagPattern, [[0, 0], endPosition], ({match, range, stop}) =>
@@ -115,12 +110,9 @@ class TagFinder
         startRange = Range.fromObject([range.start.translate([0, prefix.length]), [range.start.row, tagName.length+1]])
 
       if isClosingTag
-        endRange = @findStartTag(tagName, startRange.start, fullRange)
+        endRange = @findStartTag(tagName, startRange.start)
       else
-        endRange = @findEndTag(tagName, startRange.end, fullRange)
-
-      if fullRange
-        startRange = range
+        endRange = @findEndTag(tagName, startRange.end)
 
       if isSelfClosingTag
         endRange = startRange
@@ -128,12 +120,13 @@ class TagFinder
       ranges = {startRange, endRange} if startRange? and endRange?
     ranges
 
-  findEnclosingTags: (fullRange=false) ->
-    if ranges = @findStartEndTags(fullRange)
+  findEnclosingTags: ->
+    if ranges = @findStartEndTags()
       if @isTagRange(ranges.startRange) and @isTagRange(ranges.endRange)
-        if ranges.startRange.start.row > ranges.endRange.start.row
-          # If the endRange occurs after the startRange in the buffer, switch them
-          [ranges.startRange, ranges.endRange] = [ranges.endRange, ranges.startRange]
+        if ranges.startRange.start.row > ranges.endRange.start.row # if the endRange occurs after the startRange in the buffer, switch them
+          tempRange = ranges.startRange
+          ranges.startRange = ranges.endRange
+          ranges.endRange = tempRange
         return ranges
 
     null
