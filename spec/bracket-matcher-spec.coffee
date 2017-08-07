@@ -294,46 +294,6 @@ describe "bracket matching", ->
           editor.setCursorBufferPosition([2, Infinity])
           expectHighlights([2, 14], [2, 3])
 
-        it "highlights the correct opening tag, skipping self-closing tags", ->
-          buffer.setText """
-            <test>
-              <test />
-            </test>
-          """
-
-          editor.setCursorBufferPosition([2, Infinity])
-          expectHighlights([2, 2], [0, 1])
-
-      describe "when on a self-closing tag", ->
-        it "highlights only the self-closing tag", ->
-          buffer.setText """
-            <test>
-              <test />
-            </test>
-          """
-
-          editor.setCursorBufferPosition([1, Infinity])
-          expectHighlights([1, 3], [1, 3])
-
-        it "highlights a self-closing tag without a space", ->
-          buffer.setText """
-            <test>
-              <test/>
-            </test>
-          """
-
-          editor.setCursorBufferPosition([1, Infinity])
-          expectHighlights([1, 3], [1, 3])
-
-        it "highlights a self-closing tag with many spaces", ->
-          buffer.setText """
-            <test>
-              <test          />
-            </test>
-          """
-
-          editor.setCursorBufferPosition([1, Infinity])
-          expectHighlights([1, 3], [1, 3])
 
       describe "when the tag spans multiple lines", ->
         it "highlights the opening and closing tag", ->
@@ -354,20 +314,6 @@ describe "bracket matching", ->
         it "highlights the opening and closing tags", ->
           buffer.setText """
             <test a="test">
-              text
-            </test>
-          """
-
-          editor.setCursorBufferPosition([2, 2])
-          expectHighlights([2, 2], [0, 1])
-
-          editor.setCursorBufferPosition([0, 7])
-          expectHighlights([0, 1], [2, 2])
-
-      describe "when the tag has an attribute with a value of '/'", ->
-        it "highlights the opening and closing tags", ->
-          buffer.setText """
-            <test a="/">
               text
             </test>
           """

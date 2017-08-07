@@ -22,12 +22,12 @@ tagStartOrEndRegex = generateTagStartOrEndRegex("\\w[-\\w]*(?:\\:\\w[-\\w]*)?")
 module.exports =
 class TagFinder
   constructor: (@editor) ->
-    @tagPattern = /(<(\/?))([^\/\s>]+)((?:[^\/>]|[^>](?!>))*)(\/?)(>)/
-    @wordRegex = /(?!$)[^>]*>/
+    @tagPattern = /(<(\/?))([^\s>]+)([\s>]|$)/
+    @wordRegex = /[^>\r\n]*/
 
   patternForTagName: (tagName) ->
     tagName = _.escapeRegExp(tagName)
-    new RegExp("(<#{tagName}((?:[^\/>]|[^>](?!>))*)(>))|(<\/#{tagName}>)", 'gi')
+    new RegExp("(<#{tagName}([\\s>]|$))|(</#{tagName}>)", 'gi')
 
   isRangeCommented: (range) ->
     @scopesForPositionMatchRegex(range.start, COMMENT_SELECTOR_REGEX)
@@ -68,10 +68,7 @@ class TagFinder
       if match[1]
         unpairedCount--
         if unpairedCount < 0
-          startRange = range.translate([0, 1], [0, -(match[2].length + match[3].length)]) # Subtract < and tag name suffix from range
-          until startRange.end.column > 0 # if the tag spans multiple lines, the end.column is negative, so iterate until it's not.
-            startRange.end.row -= 1 # move the end up one row
-            startRange.end.column = @editor.getBuffer().lineLengthForRow(startRange.end.row) + startRange.end.column + 2 # and set the column
+          startRange = range.translate([0, 1], [0, -match[2].length]) # Subtract < and tag name suffix from range
           stop()
       else
         unpairedCount++
@@ -102,20 +99,17 @@ class TagFinder
     @editor.backwardsScanInBufferRange @tagPattern, [[0, 0], endPosition], ({match, range, stop}) =>
       stop()
 
-      [entireMatch, prefix, isClosingTag, tagName, attributes, isSelfClosingTag, suffix] = match
+      [entireMatch, prefix, isClosingTag, tagName, suffix] = match
 
       if range.start.row is range.end.row
-        startRange = range.translate([0, prefix.length], [0, -(attributes.length + isSelfClosingTag.length + suffix.length)])
+        startRange = range.translate([0, prefix.length], [0, -suffix.length])
       else
-        startRange = Range.fromObject([range.start.translate([0, prefix.length]), [range.start.row, tagName.length+1]])
+        startRange = Range.fromObject([range.start.translate([0, prefix.length]), [range.start.row, Infinity]])
 
       if isClosingTag
         endRange = @findStartTag(tagName, startRange.start)
       else
         endRange = @findEndTag(tagName, startRange.end)
-
-      if isSelfClosingTag
-        endRange = startRange
 
       ranges = {startRange, endRange} if startRange? and endRange?
     ranges
@@ -123,10 +117,6 @@ class TagFinder
   findEnclosingTags: ->
     if ranges = @findStartEndTags()
       if @isTagRange(ranges.startRange) and @isTagRange(ranges.endRange)
-        if ranges.startRange.start.row > ranges.endRange.start.row # if the endRange occurs after the startRange in the buffer, switch them
-          tempRange = ranges.startRange
-          ranges.startRange = ranges.endRange
-          ranges.endRange = tempRange
         return ranges
 
     null
