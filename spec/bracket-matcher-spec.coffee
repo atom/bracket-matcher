@@ -335,6 +335,32 @@ describe "bracket matching", ->
           editor.setCursorBufferPosition([1, Infinity])
           expectHighlights([1, 3], [1, 3])
 
+        it "does not catastrophically backtrack when many attributes are present (regression)", ->
+          # https://github.com/atom/bracket-matcher/issues/303
+
+          buffer.setText """
+            <div style="display: flex; width: 500px; height: 100px; background: blue">
+              <div style="min-width: 1em; background: red">
+                <div style="background: yellow; position: absolute; left: 0; right: 0; height: 20px" />
+              </div>
+            </div>
+          """
+
+          editor.setCursorBufferPosition([0, 6])
+          expectHighlights([0, 1], [4, 2])
+
+          editor.setCursorBufferPosition([1, 6])
+          expectHighlights([1, 3], [3, 4])
+
+          editor.setCursorBufferPosition([2, 6])
+          expectHighlights([2, 5], [2, 5])
+
+          editor.setCursorBufferPosition([3, 6])
+          expectHighlights([3, 4], [1, 3])
+
+          editor.setCursorBufferPosition([4, 6])
+          expectHighlights([4, 2], [0, 1])
+
       describe "when the tag spans multiple lines", ->
         it "highlights the opening and closing tag", ->
           buffer.setText """
