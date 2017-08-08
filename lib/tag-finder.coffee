@@ -4,7 +4,6 @@ SelfClosingTags = require './self-closing-tags'
 TAG_SELECTOR_REGEX = /(\b|\.)(meta\.tag|punctuation\.definition\.tag)/
 COMMENT_SELECTOR_REGEX = /(\b|\.)comment/
 
-
 # Creates a regex to match opening tag with match[1] and closing tags with match[2]
 #
 # tagNameRegexStr - a regex string describing how to match the tagname.
@@ -22,12 +21,24 @@ tagStartOrEndRegex = generateTagStartOrEndRegex("\\w[-\\w]*(?:\\:\\w[-\\w]*)?")
 module.exports =
 class TagFinder
   constructor: (@editor) ->
-    @tagPattern = /(<(\/?))([^\s>]+)([\s>]|$)/
-    @wordRegex = /[^>\r\n]*/
+    # 1. Tag prefix
+    # 2. Closing tag (optional)
+    # 3. Tag name
+    # 4. Attributes (ids, classes, etc. - optional)
+    # 5. Tag suffix
+    # 6. Self-closing tag (optional)
+    @tagPattern = /(<(\/)?)(.+?)(\s+.*?)?((\/)?>)/
+    @endOfTagRegex = /(.|\s(?!\s*<))*?>/
 
   patternForTagName: (tagName) ->
     tagName = _.escapeRegExp(tagName)
-    new RegExp("(<#{tagName}([\\s>]|$))|(</#{tagName}>)", 'gi')
+    # 1. Start tag
+    # 2. Tag name
+    # 3. Attributes (optional)
+    # 4. Tag suffix
+    # 5. Self-closing tag (optional)
+    # 6. End tag
+    new RegExp("(<(#{tagName})(\\s+.*?)?((/)?>))|(</#{tagName}>)", 'gi')
 
   isRangeCommented: (range) ->
     @scopesForPositionMatchRegex(range.start, COMMENT_SELECTOR_REGEX)
@@ -65,10 +76,18 @@ class TagFinder
     @editor.backwardsScanInBufferRange pattern, scanRange, ({match, range, stop}) =>
       return if @isRangeCommented(range)
 
-      if match[1]
+      [entireMatch, isStartTag, tagName, attributes, suffix, isSelfClosingTag, isEndTag] = match
+
+      return if isSelfClosingTag
+
+      if isStartTag
         unpairedCount--
         if unpairedCount < 0
-          startRange = range.translate([0, 1], [0, -match[2].length]) # Subtract < and tag name suffix from range
+          startRange = range
+          # Move the start past the initial <
+          startRange.start = startRange.start.translate([0, 1])
+          # End right after the tag name
+          startRange.end = startRange.start.translate([0, tagName.length])
           stop()
       else
         unpairedCount++
@@ -83,7 +102,11 @@ class TagFinder
     @editor.scanInBufferRange pattern, scanRange, ({match, range, stop}) =>
       return if @isRangeCommented(range)
 
-      if match[1]
+      [entireMatch, isStartTag, tagName, attributes, suffix, isSelfClosingTag, isEndTag] = match
+
+      return if isSelfClosingTag
+
+      if isStartTag
         unpairedCount++
       else
         unpairedCount--
@@ -95,18 +118,24 @@ class TagFinder
 
   findStartEndTags: ->
     ranges = null
-    endPosition = @editor.getLastCursor().getCurrentWordBufferRange({@wordRegex}).end
+    endPosition = @editor.getLastCursor().getCurrentWordBufferRange({wordRegex: @endOfTagRegex}).end
     @editor.backwardsScanInBufferRange @tagPattern, [[0, 0], endPosition], ({match, range, stop}) =>
       stop()
 
-      [entireMatch, prefix, isClosingTag, tagName, suffix] = match
+      [entireMatch, prefix, isClosingTag, tagName, attributes, suffix, isSelfClosingTag] = match
 
       if range.start.row is range.end.row
-        startRange = range.translate([0, prefix.length], [0, -suffix.length])
+        startRange = range
+        # Move the start past the initial <
+        startRange.start = startRange.start.translate([0, prefix.length])
+        # End right after the tag name
+        startRange.end = startRange.start.translate([0, tagName.length])
       else
         startRange = Range.fromObject([range.start.translate([0, prefix.length]), [range.start.row, Infinity]])
 
-      if isClosingTag
+      if isSelfClosingTag
+        endRange = startRange
+      else if isClosingTag
         endRange = @findStartTag(tagName, startRange.start)
       else
         endRange = @findEndTag(tagName, startRange.end)
