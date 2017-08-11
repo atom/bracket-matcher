@@ -42,8 +42,9 @@ class TagFinder
     {tokenizedBuffer, buffer} = @editor
     {grammar} = tokenizedBuffer
     column = 0
-    lineLength = buffer.lineLengthForRow(position.row)
     line = tokenizedBuffer.tokenizedLineForRow(position.row)
+    return false unless line?
+    lineLength = buffer.lineLengthForRow(position.row)
     scopeIds = line.openScopes.slice()
     for tag in line.tags by 1
       if tag >= 0
