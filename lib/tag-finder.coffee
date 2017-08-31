@@ -97,9 +97,6 @@ class TagFinder
             # Subtract < and tag name suffix from range
             # startRange = range.translate([0, 1], [0, -(match[2].length + match[3].length)])
 
-          until startRange.end.column > 0 # if the tag spans multiple lines, the end.column is negative, so iterate until it's not.
-            startRange.end.row -= 1 # move the end up one row
-            startRange.end.column = @editor.getBuffer().lineLengthForRow(startRange.end.row) + startRange.end.column + 2 # and set the column
           stop()
       else
         unpairedCount++
@@ -160,9 +157,6 @@ class TagFinder
   findEnclosingTags: (fullRange=false) ->
     if ranges = @findStartEndTags(fullRange)
       if @isTagRange(ranges.startRange) and @isTagRange(ranges.endRange)
-        if ranges.startRange.start.row > ranges.endRange.start.row
-          # If the endRange occurs after the startRange in the buffer, switch them
-          [ranges.startRange, ranges.endRange] = [ranges.endRange, ranges.startRange]
         return ranges
 
     null
