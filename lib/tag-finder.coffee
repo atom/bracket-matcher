@@ -143,7 +143,9 @@ class TagFinder
       else
         startRange = Range.fromObject([range.start.translate([0, prefix.length]), [range.start.row, Infinity]])
 
-      if isClosingTag
+      if isSelfClosingTag
+        endRange = startRange
+      else if isClosingTag
         endRange = @findStartTag(tagName, startRange.start, fullRange)
       else
         endRange = @findEndTag(tagName, startRange.end, fullRange)
