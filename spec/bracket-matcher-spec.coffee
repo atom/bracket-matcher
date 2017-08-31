@@ -294,6 +294,72 @@ describe "bracket matching", ->
           editor.setCursorBufferPosition([2, Infinity])
           expectHighlights([2, 14], [2, 3])
 
+        it "highlights the correct opening tag, skipping self-closing tags", ->
+          buffer.setText """
+            <test>
+              <test />
+            </test>
+          """
+
+          editor.setCursorBufferPosition([2, Infinity])
+          expectHighlights([2, 2], [0, 1])
+
+      describe "when on a self-closing tag", ->
+        it "highlights only the self-closing tag", ->
+          buffer.setText """
+            <test>
+              <test />
+            </test>
+          """
+
+          editor.setCursorBufferPosition([1, Infinity])
+          expectHighlights([1, 3], [1, 3])
+
+        it "highlights a self-closing tag without a space", ->
+          buffer.setText """
+            <test>
+              <test/>
+            </test>
+          """
+
+          editor.setCursorBufferPosition([1, Infinity])
+          expectHighlights([1, 3], [1, 3])
+
+        it "highlights a self-closing tag with many spaces", ->
+          buffer.setText """
+            <test>
+              <test          />
+            </test>
+          """
+
+          editor.setCursorBufferPosition([1, Infinity])
+          expectHighlights([1, 3], [1, 3])
+
+        it "does not catastrophically backtrack when many attributes are present (regression)", ->
+          # https://github.com/atom/bracket-matcher/issues/303
+
+          buffer.setText """
+            <div style="display: flex; width: 500px; height: 100px; background: blue">
+              <div style="min-width: 1em; background: red">
+                <div style="background: yellow; position: absolute; left: 0; right: 0; height: 20px" />
+              </div>
+            </div>
+          """
+
+          editor.setCursorBufferPosition([0, 6])
+          expectHighlights([0, 1], [4, 2])
+
+          editor.setCursorBufferPosition([1, 6])
+          expectHighlights([1, 3], [3, 4])
+
+          editor.setCursorBufferPosition([2, 6])
+          expectHighlights([2, 5], [2, 5])
+
+          editor.setCursorBufferPosition([3, 6])
+          expectHighlights([3, 4], [1, 3])
+
+          editor.setCursorBufferPosition([4, 6])
+          expectHighlights([4, 2], [0, 1])
 
       describe "when the tag spans multiple lines", ->
         it "highlights the opening and closing tag", ->
@@ -314,6 +380,20 @@ describe "bracket matching", ->
         it "highlights the opening and closing tags", ->
           buffer.setText """
             <test a="test">
+              text
+            </test>
+          """
+
+          editor.setCursorBufferPosition([2, 2])
+          expectHighlights([2, 2], [0, 1])
+
+          editor.setCursorBufferPosition([0, 7])
+          expectHighlights([0, 1], [2, 2])
+
+      describe "when the tag has an attribute with a value of '/'", ->
+        it "highlights the opening and closing tags", ->
+          buffer.setText """
+            <test a="/">
               text
             </test>
           """
