@@ -59,8 +59,8 @@
     },
     "highlightMatchingLineNumber": {
       "type": "boolean",
-      "default": true,
-      "description": "If the line number gutter is visible, highlight the line number of the matching bracket"
+      "default": false,
+      "description": "Highlight the line number of the matching bracket."
     }
   }
 }
