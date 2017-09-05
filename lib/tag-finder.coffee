@@ -134,14 +134,15 @@ class TagFinder
 
       [entireMatch, prefix, isClosingTag, tagName, attributes, suffix, isSelfClosingTag] = match
 
-      if range.start.row is range.end.row
-        startRange = range
-        # Move the start past the initial <
-        startRange.start = startRange.start.translate([0, prefix.length])
-        # End right after the tag name
-        startRange.end = startRange.start.translate([0, tagName.length])
-      else
-        startRange = Range.fromObject([range.start.translate([0, prefix.length]), [range.start.row, Infinity]])
+      startRange = range
+      unless fullRange
+        if range.start.row is range.end.row
+          # Move the start past the initial <
+          startRange.start = startRange.start.translate([0, prefix.length])
+          # End right after the tag name
+          startRange.end = startRange.start.translate([0, tagName.length])
+        else
+          startRange = Range.fromObject([range.start.translate([0, prefix.length]), [range.start.row, Infinity]])
 
       if isSelfClosingTag
         endRange = startRange
@@ -149,9 +150,6 @@ class TagFinder
         endRange = @findStartTag(tagName, startRange.start, fullRange)
       else
         endRange = @findEndTag(tagName, startRange.end, fullRange)
-
-      if fullRange
-        startRange = range
 
       ranges = {startRange, endRange} if startRange? and endRange?
     ranges
