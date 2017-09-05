@@ -23,6 +23,9 @@ describe "bracket matching", ->
       gutter = editor.gutterWithName('line-number')
 
   describe "matching bracket highlighting", ->
+    beforeEach ->
+      atom.config.set 'bracket-matcher.highlightMatchingLineNumber', true
+
     expectNoHighlights = ->
       decorations = editor.getHighlightDecorations().filter (decoration) -> decoration.properties.class is 'bracket-matcher'
       expect(decorations.length).toBe 0
