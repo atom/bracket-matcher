@@ -84,20 +84,14 @@ class TagFinder
       if isStartTag
         unpairedCount--
         if unpairedCount < 0
+          stop()
           startRange = range
-
           unless fullRange
             # Move the start past the initial <
             startRange.start = startRange.start.translate([0, 1])
 
             # End right after the tag name
             startRange.end = startRange.start.translate([0, tagName.length])
-
-            #TODO: this was originial change in PR that doesn't work.
-            # Subtract < and tag name suffix from range
-            # startRange = range.translate([0, 1], [0, -(match[2].length + match[3].length)])
-
-          stop()
       else
         unpairedCount++
 
@@ -120,9 +114,9 @@ class TagFinder
       else
         unpairedCount--
         if unpairedCount < 0
+          stop()
           endRange = range
           endRange = range.translate([0, 2], [0, -1]) unless fullRange # Subtract </ and > from range
-          stop()
 
     endRange
 
