@@ -260,7 +260,7 @@ class BracketMatcherView
       {startRange, endRange} = pair
       if startRange.compare(endRange) > 0
         [startRange, endRange] = [endRange, startRange]
-      @editor.setCursorBufferPosition(pair.startRange.start)
+      @editor.setCursorBufferPosition(startRange.start)
 
   selectInsidePair: ->
     if @pairHighlighted
