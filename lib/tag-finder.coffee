@@ -27,8 +27,8 @@ class TagFinder
     # 4. Attributes (ids, classes, etc. - optional)
     # 5. Tag suffix
     # 6. Self-closing tag (optional)
-    @tagPattern = /(<(\/)?)(.+?)(\s+.*?)?((\/)?>)/
-    @endOfTagRegex = /[\W\w\s]*?>/ # Aka match everything until a > is reached
+    @tagPattern = /(<(\/)?)(.+?)(\s+.*?)?((\/)?>|$)/
+    @wordRegex = /.*?(>|$)/
 
   patternForTagName: (tagName) ->
     tagName = _.escapeRegExp(tagName)
@@ -121,13 +121,7 @@ class TagFinder
     ranges = null
     endPosition = null
     cursorPosition = @editor.getCursorBufferPosition()
-    # TODO: When JS has lookbehind support, add it to the endOfTagRegex and remove this conditional
-    # e.g. /(?<=>)|[\W\w\s]*?>/
-    if cursorPosition.column > 0 and
-    @editor.getTextInBufferRange([[cursorPosition.row, cursorPosition.column - 1], cursorPosition]) is '>'
-      endPosition = cursorPosition
-    else
-      endPosition = @editor.getLastCursor().getCurrentWordBufferRange({wordRegex: @endOfTagRegex}).end
+    endPosition = @editor.getLastCursor().getCurrentWordBufferRange({@wordRegex}).end
 
     @editor.backwardsScanInBufferRange @tagPattern, [[0, 0], endPosition], ({match, range, stop}) =>
       stop()
