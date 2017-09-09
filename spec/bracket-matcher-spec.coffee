@@ -595,6 +595,16 @@ describe "bracket matching", ->
         atom.commands.dispatch(editorElement, "bracket-matcher:select-inside-brackets")
         expect(editor.getSelectedBufferRange()).toEqual [[4, 29], [7, 4]]
 
+    describe 'when there are no brackets or tags', ->
+      it 'does not catastrophically backtrack (regression)', ->
+        buffer.setText "#{'a'.repeat(500)}\n".repeat(500)
+        editor.setCursorBufferPosition([0, 500])
+
+        start = Date.now()
+        atom.commands.dispatch(editorElement, "bracket-matcher:select-inside-brackets")
+        expect(editor.getSelectedBufferRange()).toEqual [[0, 500], [0, 500]]
+        expect(Date.now() - start).toBeLessThan(5000)
+
     describe 'HTML/XML text', ->
       beforeEach ->
         waitsForPromise ->
