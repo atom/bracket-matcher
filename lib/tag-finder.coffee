@@ -27,8 +27,8 @@ class TagFinder
     # 4. Attributes (ids, classes, etc. - optional)
     # 5. Tag suffix
     # 6. Self-closing tag (optional)
-    @tagPattern = /(<(\/)?)(.+?)(\s+.*?)?((\/)?>)/
-    @endOfTagRegex = /(.|\s(?!\s*<))*?>/
+    @tagPattern = /(<(\/)?)(.+?)(\s+.*?)?((\/)?>|$)/
+    @wordRegex = /.*?(>|$)/
 
   patternForTagName: (tagName) ->
     tagName = _.escapeRegExp(tagName)
@@ -119,7 +119,7 @@ class TagFinder
 
   findStartEndTags: ->
     ranges = null
-    endPosition = @editor.getLastCursor().getCurrentWordBufferRange({wordRegex: @endOfTagRegex}).end
+    endPosition = @editor.getLastCursor().getCurrentWordBufferRange({@wordRegex}).end
     @editor.backwardsScanInBufferRange @tagPattern, [[0, 0], endPosition], ({match, range, stop}) =>
       stop()
 
