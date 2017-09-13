@@ -148,8 +148,8 @@ class TagFinder
       ranges = {startRange, endRange} if startRange? and endRange?
     ranges
 
-  findEnclosingTags: (fullRange=false) ->
-    if ranges = @findStartEndTags(fullRange)
+  findEnclosingTags: ->
+    if ranges = @findStartEndTags()
       if @isTagRange(ranges.startRange) and @isTagRange(ranges.endRange)
         return ranges
 

@@ -268,7 +268,9 @@ class BracketMatcherView
       endRange = @endMarker.getBufferRange()
 
       if @tagHighlighted
-        {startRange, endRange} = @tagFinder.findEnclosingTags(true)
+        # NOTE: findEnclosingTags is not used as it has a scope check
+        # that will fail on very long lines
+        {startRange, endRange} = @tagFinder.findStartEndTags(true)
 
       if startRange.compare(endRange) > 0
         [startRange, endRange] = [endRange, startRange]
@@ -280,7 +282,9 @@ class BracketMatcherView
         startPair = @editor.getTextInRange(Range.fromPointWithDelta(startPosition, 0, 1))
         endPosition = @findMatchingEndPair(startPosition, startPair, @matchManager.pairedCharacters[startPair])
         startPosition = startPosition.traverse([0, 1])
-      else if pair = @tagFinder.findEnclosingTags(true)
+      else if pair = @tagFinder.findStartEndTags(true)
+        # NOTE: findEnclosingTags is not used as it has a scope check
+        # that will fail on very long lines
         {startRange, endRange} = pair
         if startRange.compare(endRange) > 0
           [startRange, endRange] = [endRange, startRange]
