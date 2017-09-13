@@ -56,6 +56,11 @@
       "type": "boolean",
       "default": true,
       "description": "Wrap selected text in brackets or quotes when the editor contains selections and the opening bracket or quote is typed."
+    },
+    "highlightMatchingLineNumber": {
+      "type": "boolean",
+      "default": false,
+      "description": "Highlight the line number of the matching bracket."
     }
   }
 }

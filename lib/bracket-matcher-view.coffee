@@ -13,6 +13,7 @@ MAX_ROWS_TO_SCAN_BACKWARD_TRAVERSAL = Object.freeze(Point(-MAX_ROWS_TO_SCAN, 0))
 module.exports =
 class BracketMatcherView
   constructor: (@editor, editorElement, @matchManager) ->
+    @gutter = @editor.gutterWithName('line-number')
     @subscriptions = new CompositeDisposable
     @tagFinder = new TagFinder(@editor)
     @pairHighlighted = false
@@ -187,6 +188,8 @@ class BracketMatcherView
   createMarker: (bufferRange) ->
     marker = @editor.markBufferRange(bufferRange)
     @editor.decorateMarker(marker, type: 'highlight', class: 'bracket-matcher', deprecatedRegionClass: 'bracket-matcher')
+    if atom.config.get('bracket-matcher.highlightMatchingLineNumber', scope: @editor.getRootScopeDescriptor()) and @gutter
+      @gutter.decorateMarker(marker, type: 'highlight', class: 'bracket-matcher', deprecatedRegionClass: 'bracket-matcher')
     marker
 
   findCurrentPair: (isInverse) ->
