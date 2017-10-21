@@ -180,7 +180,8 @@ class BracketMatcher
         'comment.documentation.heredoc.elixir'
       ]
       @interpolatedStringSelector = SelectorCache.get(segments.join(' | '))
-    @interpolatedStringSelector.matches(@editor.getLastCursor().getScopeDescriptor().getScopesArray())
+    if @interpolatedStringSelector.matches
+      @interpolatedStringSelector.matches(@editor.getLastCursor().getScopeDescriptor().getScopesArray())
 
   isOpeningBracket: (string) ->
     @matchManager.pairedCharacters.hasOwnProperty(string)
