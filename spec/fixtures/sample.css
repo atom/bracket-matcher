@@ -1,0 +1,14 @@
+
+.foo .bar {
+	border-bottom: 2px solid #000000;
+}
+
+.foo .bar:after {
+    content: "";
+    -webkit-animation-name: bracketanimation;
+    -webkit-animation-timeing-function: ease-out;
+    -webkit-animation-duration: .3s;
+    width: 200%;
+    height: 100%;
+    position: absolute;
+}
