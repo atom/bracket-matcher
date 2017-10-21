@@ -53,3 +53,47 @@ Example:
       "``"
     ]
 ```
+
+#### Styling
+Style can be modified using your custom Atom Stylesheet with the following CSS rules:
+
+__Main Menu > Atom > Stylesheet...__
+
+```css
+
+	/* Bracket Matching */
+	@-webkit-keyframes bracketanimation {
+	  from  {
+	      background-color: white;
+	  }
+	  50% {
+		  background-color: rgba(179, 234, 255, 1);
+	  }
+	  to {
+	      background-color: white;
+	  }
+	}
+
+ 	/* Actual brackets in code highlighting */
+	.bracket-matcher .region {
+		border-bottom: 2px solid #000000;
+	}
+
+	.bracket-matcher .region:after {
+	    content: "";
+	    -webkit-animation-name: bracketanimation;
+	    -webkit-animation-timeing-function: ease-out;
+	    -webkit-animation-duration: .3s;
+	    width: 316%;
+	    height: 100%;
+	    position: absolute;
+	}
+
+	/* Gutter / line number highlighting */
+	.line-number.bracket-matcher {
+		border-bottom : 2px solid #000000;
+		background-color : #f7f7f7;
+		//color : white;
+		width : 20%
+	}
+```
