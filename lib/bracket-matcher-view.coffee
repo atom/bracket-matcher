@@ -18,6 +18,9 @@ class BracketMatcherView
     @tagFinder = new TagFinder(@editor)
     @pairHighlighted = false
     @tagHighlighted = false
+    # ranges for possible selection
+    @bracket1Range = null
+    @bracket2Range = null
 
     @subscriptions.add @editor.onDidTokenize(@updateMatch)
     @subscriptions.add @editor.getBuffer().onDidChangeText(@updateMatch)
@@ -40,6 +43,9 @@ class BracketMatcherView
 
     @subscriptions.add atom.commands.add editorElement, 'bracket-matcher:remove-matching-brackets', =>
       @removeMatchingBrackets()
+
+    @subscriptions.add atom.commands.add editorElement, 'bracket-matcher:select-matching-brackets', =>
+      @selectMatchingBrackets()
 
     @subscriptions.add @editor.onDidDestroy @destroy
 
@@ -71,10 +77,12 @@ class BracketMatcherView
     highlightTag = false
     highlightPair = false
     if position? and matchPosition?
-      startRange = Range(position, position.traverse(ONE_CHAR_FORWARD_TRAVERSAL))
-      endRange = Range(matchPosition, matchPosition.traverse(ONE_CHAR_FORWARD_TRAVERSAL))
+      @bracket1Range = startRange = Range(position, position.traverse(ONE_CHAR_FORWARD_TRAVERSAL))
+      @bracket2Range = endRange = Range(matchPosition, matchPosition.traverse(ONE_CHAR_FORWARD_TRAVERSAL))
       highlightPair = true
     else
+      @bracket1Range = null
+      @bracket2Range = null
       if pair = @tagFinder.findMatchingTags()
         startRange = pair.startRange
         endRange = pair.endRange
@@ -89,6 +97,11 @@ class BracketMatcherView
     @endMarker = @createMarker(endRange)
     @pairHighlighted = highlightPair
     @tagHighlighted = highlightTag
+
+  selectMatchingBrackets: ->
+    return unless @bracket1Range or @bracket2Range
+    @editor.setSelectedBufferRanges([@bracket1Range, @bracket2Range])
+
 
   removeMatchingBrackets: ->
     return @editor.backspace() if @editor.hasMultipleCursors()

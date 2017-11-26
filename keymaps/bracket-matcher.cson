@@ -6,13 +6,16 @@
   'ctrl-cmd-m': 'bracket-matcher:select-inside-brackets'
   'alt-cmd-.': 'bracket-matcher:close-tag'
   'ctrl-backspace': 'bracket-matcher:remove-matching-brackets'
+  'ctrl-alt-c': 'bracket-matcher:select-matching-brackets'
 
 '.platform-linux atom-text-editor':
   'ctrl-alt-,': 'bracket-matcher:select-inside-brackets'
   'ctrl-alt-.': 'bracket-matcher:close-tag'
   'ctrl-alt-backspace': 'bracket-matcher:remove-matching-brackets'
+  'ctrl-alt-c': 'bracket-matcher:select-matching-brackets'
 
 '.platform-win32 atom-text-editor':
   'ctrl-alt-,': 'bracket-matcher:select-inside-brackets'
   'ctrl-alt-.': 'bracket-matcher:close-tag'
   'ctrl-alt-backspace': 'bracket-matcher:remove-matching-brackets'
+  'ctrl-alt-c': 'bracket-matcher:select-matching-brackets'
