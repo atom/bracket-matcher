@@ -38,8 +38,10 @@ class MatchManager
       @updateConfig()
     @subscriptions.add atom.config.observe 'bracket-matcher.pairsWithExtraNewline', {scope: @editor.getRootScopeDescriptor()}, (newConfig) =>
       @updateConfig()
-      
+
     @subscriptions.add @editor.onDidDestroy @destroy
+
+    @changeBracketsMode = false;
 
   destroy: =>
     @subscriptions.dispose()
