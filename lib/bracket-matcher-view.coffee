@@ -101,7 +101,7 @@ class BracketMatcherView
   selectMatchingBrackets: ->
     return unless @bracket1Range or @bracket2Range
     @editor.setSelectedBufferRanges([@bracket1Range, @bracket2Range])
-    @matchManager.changeBracketsMode = true;
+    @matchManager.changeBracketsMode = true
 
 
   removeMatchingBrackets: ->

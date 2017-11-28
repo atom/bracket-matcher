@@ -41,7 +41,7 @@ class MatchManager
 
     @subscriptions.add @editor.onDidDestroy @destroy
 
-    @changeBracketsMode = false;
+    @changeBracketsMode = false
 
   destroy: =>
     @subscriptions.dispose()
