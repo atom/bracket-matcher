@@ -1462,10 +1462,10 @@ describe "bracket matching", ->
         atom.commands.dispatch(editorElement, "bracket-matcher:select-matching-brackets")
 
       it "selects the brackets", ->
-        expect(editor.getSelectedBufferRanges()).toEqual [[[0, 28], [0,29]], [[12, 0], [12, 1]]]
+        expect(editor.getSelectedBufferRanges()).toEqual [[[0, 28], [0, 29]], [[12, 0], [12, 1]]]
       it "select and replace", ->
         editor.insertText("[")
-        expect(editor.getTextInRange([[0, 28], [0,29]])).toEqual '['
+        expect(editor.getTextInRange([[0, 28], [0, 29]])).toEqual '['
         expect(editor.getTextInRange([[12, 0], [12, 1]])).toEqual ']'
 
     describe "when the cursor on the right side of an opening bracket", ->
@@ -1484,11 +1484,11 @@ describe "bracket matching", ->
         editor.setCursorBufferPosition([12, 0])
         atom.commands.dispatch(editorElement, "bracket-matcher:select-matching-brackets")
       it "selects the brackets", ->
-        expect(editor.getSelectedBufferRanges()).toEqual [ [[12, 0], [12, 1]], [[0, 28], [0,29]] ]
+        expect(editor.getSelectedBufferRanges()).toEqual [ [[12, 0], [12, 1]], [[0, 28], [0, 29]] ]
       it "select and replace", ->
         editor.insertText("[")
         expect(editor.getTextInRange([[12, 0], [12, 1]])).toEqual ']'
-        expect(editor.getTextInRange([[0, 28], [0,29]])).toEqual '['
+        expect(editor.getTextInRange([[0, 28], [0, 29]])).toEqual '['
 
     describe "when the cursor isn't near to a bracket", ->
       beforeEach ->
