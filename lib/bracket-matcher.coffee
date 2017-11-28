@@ -34,8 +34,6 @@ class BracketMatcher
             selection.insertText( @matchManager.pairedCharacters[text] )
         return false
 
-
-
     return false if @wrapSelectionInBrackets(text)
     return true if @editor.hasMultipleCursors()
 
