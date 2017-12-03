@@ -1454,3 +1454,26 @@ describe "bracket matching", ->
         expect(editor.getCursorBufferPosition().row).toEqual 1
         expect(editor.getCursorBufferPosition().column).toEqual 0
         expect(editor.getTextInRange([[1, 0], [1, Infinity]])).toEqual ''
+
+  describe "skipping closed brackets", ->
+    beforeEach ->
+      editor.buffer.setText("")
+
+    it "skips over brackets", ->
+      editor.insertText("(")
+      expect(editor.buffer.getText()).toBe "()"
+      editor.insertText(")")
+      expect(editor.buffer.getText()).toBe "()"
+
+    it "does not skip over brackets that have already been skipped", ->
+      editor.insertText("()")
+      editor.moveLeft()
+      editor.insertText(")")
+      expect(editor.buffer.getText()).toBe "())"
+
+    it "does skip over brackets that have already been skipped when alwaysSkipClosingPairs is set", ->
+      atom.config.set("bracket-matcher.alwaysSkipClosingPairs", true)
+      editor.insertText("()")
+      editor.moveLeft()
+      editor.insertText(")")
+      expect(editor.buffer.getText()).toBe "()"
