@@ -61,6 +61,11 @@
       "type": "boolean",
       "default": false,
       "description": "Highlight the line number of the matching bracket."
+    },
+    "alwaysSkipClosingPairs": {
+      "type": "boolean",
+      "default": false,
+      "description": "Always skip closing pairs in front of the cursor."
     }
   }
 }
