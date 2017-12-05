@@ -54,7 +54,8 @@ class BracketMatcher
 
     skipOverExistingClosingBracket = false
     if @isClosingBracket(text) and nextCharacter is text and not hasEscapeCharacterBeforeCursor
-      if (bracketMarker = _.find(@bracketMarkers, (marker) -> marker.isValid() and marker.getBufferRange().end.isEqual(cursorBufferPosition))) or @getScopedSetting("bracket-matcher.alwaysSkipClosingPairs")
+      bracketMarker = _.find(@bracketMarkers, (marker) -> marker.isValid() and marker.getBufferRange().end.isEqual(cursorBufferPosition))
+      if bracketMarker or @getScopedSetting("bracket-matcher.alwaysSkipClosingPairs")
         skipOverExistingClosingBracket = true
 
     if skipOverExistingClosingBracket
