@@ -277,6 +277,9 @@ class BracketMatcherView
 
       startPosition = startRange.end
       endPosition = endRange.start
+
+      startPositionExternal = startRange.start
+      endPositionExternal = endRange.end
     else
       if startPosition = @findAnyStartPair(@editor.getCursorBufferPosition())
         startPositionExternal = startPosition
