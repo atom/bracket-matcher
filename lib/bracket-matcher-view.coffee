@@ -297,9 +297,13 @@ class BracketMatcherView
         startPosition = startRange.end
         endPosition = endRange.start
 
+        startPositionExternal = startRange.start
+        endPositionExternal = endRange.end
+
     if startPosition? and endPosition?
       rangeToSelect = new Range(startPosition, endPosition)
       if rangeToSelect.isEqual(@editor.getSelectedBufferRange())
+        # Expand selection
         rangeToSelect = new Range(startPositionExternal, endPositionExternal)
       @editor.setSelectedBufferRange(rangeToSelect)
 
