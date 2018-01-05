@@ -382,17 +382,20 @@ describe "bracket matching", ->
       describe "when the tag spans multiple lines", ->
         it "highlights the opening and closing tag", ->
           buffer.setText """
-            <test
-              a="test">
-              text
-            </test>
+            <div>
+              <div class="test"
+                title="test"
+              >
+                <div>test</div>
+              </div>
+            </div
+            >
           """
 
-          editor.setCursorBufferPosition([3, 2])
-          expectHighlights([3, 2], [0, 1])
-
           editor.setCursorBufferPosition([0, 1])
-          expectHighlights([0, 1], [3, 2])
+          expectHighlights([0, 1], [6, 2])
+          editor.setCursorBufferPosition([6, 2])
+          expectHighlights([6, 2], [0, 1])
 
       describe "when the tag has attributes", ->
         it "highlights the opening and closing tags", ->
