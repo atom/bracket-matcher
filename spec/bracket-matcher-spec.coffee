@@ -382,17 +382,20 @@ describe "bracket matching", ->
       describe "when the tag spans multiple lines", ->
         it "highlights the opening and closing tag", ->
           buffer.setText """
-            <test
-              a="test">
-              text
-            </test>
+            <div>
+              <div class="test"
+                title="test"
+              >
+                <div>test</div>
+              </div>
+            </div
+            >
           """
 
-          editor.setCursorBufferPosition([3, 2])
-          expectHighlights([3, 2], [0, 1])
-
           editor.setCursorBufferPosition([0, 1])
-          expectHighlights([0, 1], [3, 2])
+          expectHighlights([0, 1], [6, 2])
+          editor.setCursorBufferPosition([6, 2])
+          expectHighlights([6, 2], [0, 1])
 
       describe "when the tag has attributes", ->
         it "highlights the opening and closing tags", ->
@@ -1499,3 +1502,26 @@ describe "bracket matching", ->
       it "Don't select and replace the brackets", ->
         editor.insertText("[")
         expect(editor.getTextInRange([[1, 5], [1, 6]])).toEqual '['
+
+  describe "skipping closed brackets", ->
+    beforeEach ->
+      editor.buffer.setText("")
+
+    it "skips over brackets", ->
+      editor.insertText("(")
+      expect(editor.buffer.getText()).toBe "()"
+      editor.insertText(")")
+      expect(editor.buffer.getText()).toBe "()"
+
+    it "does not skip over brackets that have already been skipped", ->
+      editor.insertText("()")
+      editor.moveLeft()
+      editor.insertText(")")
+      expect(editor.buffer.getText()).toBe "())"
+
+    it "does skip over brackets that have already been skipped when alwaysSkipClosingPairs is set", ->
+      atom.config.set("bracket-matcher.alwaysSkipClosingPairs", true)
+      editor.insertText("()")
+      editor.moveLeft()
+      editor.insertText(")")
+      expect(editor.buffer.getText()).toBe "()"

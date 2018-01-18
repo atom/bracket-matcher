@@ -38,7 +38,7 @@ class TagFinder
     # 4. Tag suffix
     # 5. Self-closing tag (optional)
     # 6. End tag
-    new RegExp("(<(#{tagName})(\\s+.*?)?((/)?>))|(</#{tagName}>)", 'gi')
+    new RegExp("(<(#{tagName})(\\s+[^>]*?)?((/)?>))|(</#{tagName}[^>]*>)", 'gi')
 
   isRangeCommented: (range) ->
     @scopesForPositionMatchRegex(range.start, COMMENT_SELECTOR_REGEX)

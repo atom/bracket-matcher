@@ -1,6 +1,6 @@
 {
   "name": "bracket-matcher",
-  "version": "0.88.0",
+  "version": "0.88.3",
   "main": "./lib/main",
   "description": "Highlight the matching bracket for the `(){}[]` character under the cursor. Move the cursor to the matching bracket with `ctrl-m`.",
   "repository": "https://github.com/atom/bracket-matcher",
@@ -61,6 +61,11 @@
       "type": "boolean",
       "default": false,
       "description": "Highlight the line number of the matching bracket."
+    },
+    "alwaysSkipClosingPairs": {
+      "type": "boolean",
+      "default": false,
+      "description": "Always skip closing pairs in front of the cursor."
     }
   }
 }
