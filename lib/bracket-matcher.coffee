@@ -21,6 +21,19 @@ class BracketMatcher
     return true unless text
     return true if options?.select or options?.undo is 'skip'
 
+    if @matchManager.changeBracketsMode
+      @matchManager.changeBracketsMode = false
+      if @isClosingBracket( text )
+        text = @matchManager.pairedCharactersInverse[text]
+      if @isOpeningBracket( text )
+        @editor.mutateSelectedText (selection) =>
+          selectionText = selection.getText()
+          if @isOpeningBracket( selectionText )
+            selection.insertText(text)
+          if @isClosingBracket(selectionText)
+            selection.insertText( @matchManager.pairedCharacters[text] )
+        return false
+
     return false if @wrapSelectionInBrackets(text)
     return true if @editor.hasMultipleCursors()
 

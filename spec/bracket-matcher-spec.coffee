@@ -1458,6 +1458,51 @@ describe "bracket matching", ->
         expect(editor.getCursorBufferPosition().column).toEqual 0
         expect(editor.getTextInRange([[1, 0], [1, Infinity]])).toEqual ''
 
+  describe "when bracket-matcher:select-matching-brackets is triggered", ->
+    describe "when the cursor on the left side of an opening bracket", ->
+      beforeEach ->
+        editor.setCursorBufferPosition([0, 28])
+        atom.commands.dispatch(editorElement, "bracket-matcher:select-matching-brackets")
+
+      it "selects the brackets", ->
+        expect(editor.getSelectedBufferRanges()).toEqual [[[0, 28], [0, 29]], [[12, 0], [12, 1]]]
+      it "select and replace", ->
+        editor.insertText("[")
+        expect(editor.getTextInRange([[0, 28], [0, 29]])).toEqual '['
+        expect(editor.getTextInRange([[12, 0], [12, 1]])).toEqual ']'
+
+    describe "when the cursor on the right side of an opening bracket", ->
+      beforeEach ->
+        editor.setCursorBufferPosition([1, 30])
+        atom.commands.dispatch(editorElement, "bracket-matcher:select-matching-brackets")
+      it "selects the brackets", ->
+        expect(editor.getSelectedBufferRanges()).toEqual [[[1, 29], [1, 30]], [[9, 2], [9, 3]]]
+      it "select and replace", ->
+        editor.insertText("[")
+        expect(editor.getTextInRange([[1, 29], [1, 30]])).toEqual '['
+        expect(editor.getTextInRange([[9, 2], [9, 3]])).toEqual ']'
+
+    describe "when the cursor on the left side of an closing bracket", ->
+      beforeEach ->
+        editor.setCursorBufferPosition([12, 0])
+        atom.commands.dispatch(editorElement, "bracket-matcher:select-matching-brackets")
+      it "selects the brackets", ->
+        expect(editor.getSelectedBufferRanges()).toEqual [ [[12, 0], [12, 1]], [[0, 28], [0, 29]] ]
+      it "select and replace", ->
+        editor.insertText("[")
+        expect(editor.getTextInRange([[12, 0], [12, 1]])).toEqual ']'
+        expect(editor.getTextInRange([[0, 28], [0, 29]])).toEqual '['
+
+    describe "when the cursor isn't near to a bracket", ->
+      beforeEach ->
+        editor.setCursorBufferPosition([1, 5])
+        atom.commands.dispatch(editorElement, "bracket-matcher:select-matching-brackets")
+      it "Don't selects the brackets", ->
+        expect(editor.getSelectedBufferRanges()).toEqual [[[1, 5], [1, 5]]]
+      it "Don't select and replace the brackets", ->
+        editor.insertText("[")
+        expect(editor.getTextInRange([[1, 5], [1, 6]])).toEqual '['
+
   describe "skipping closed brackets", ->
     beforeEach ->
       editor.buffer.setText("")
