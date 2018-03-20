@@ -137,7 +137,7 @@ class BracketMatcherView
         @editor.backspace()
 
   findMatchingEndPair: (startPairPosition, startPair, endPair) ->
-    return if startPair is endPair
+    return if startPair is endPair or @isScopeCommentedOrString(@editor.scopeDescriptorForBufferPosition(startPairPosition).getScopesArray())
 
     scanRange = new Range(
       startPairPosition.traverse(ONE_CHAR_FORWARD_TRAVERSAL),
@@ -159,7 +159,7 @@ class BracketMatcherView
     endPairPosition
 
   findMatchingStartPair: (endPairPosition, startPair, endPair) ->
-    return if startPair is endPair
+    return if startPair is endPair or @isScopeCommentedOrString(@editor.scopeDescriptorForBufferPosition(endPairPosition).getScopesArray())
 
     scanRange = new Range(
       endPairPosition.traverse(MAX_ROWS_TO_SCAN_BACKWARD_TRAVERSAL),
