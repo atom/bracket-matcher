@@ -77,8 +77,9 @@ class BracketMatcher
       @editor.moveRight()
       false
     else if autoCompleteOpeningBracket
-      @editor.insertText(text + pair)
-      @editor.moveLeft()
+      @editor.transact =>
+        @editor.insertText(text + pair)
+        @editor.moveLeft()
       range = [cursorBufferPosition, cursorBufferPosition.traverse([0, text.length])]
       @bracketMarkers.push @editor.markBufferRange(range)
       false

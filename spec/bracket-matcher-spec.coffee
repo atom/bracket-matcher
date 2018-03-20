@@ -803,6 +803,18 @@ describe "bracket matching", ->
         expect(buffer.lineForRow(0)).toBe "<>"
         expect(editor.getCursorBufferPosition()).toEqual([0, 1])
 
+      it "emits a buffer change event after the cursor is in place", ->
+        atom.config.set 'bracket-matcher.autocompleteCharacters', ['<>'], scopeSelector: '.source.js'
+
+        lastPosition = null
+        sub = editor.getBuffer().onDidChange ->
+          expect(lastPosition).toBeNull()
+          lastPosition = editor.getLastCursor().getBufferPosition()
+
+        editor.setCursorBufferPosition([0, 0])
+        editor.insertText '<'
+        expect(lastPosition).toEqual([0, 1])
+
     describe "when there are multiple cursors", ->
       it "inserts ) at each cursor", ->
         editor.buffer.setText("()\nab\n[]\n12")
