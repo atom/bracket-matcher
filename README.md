@@ -1,22 +1,55 @@
-# Bracket Matcher package [![Build Status](https://travis-ci.org/atom/bracket-matcher.svg?branch=master)](https://travis-ci.org/atom/bracket-matcher)
+# Bracket Matcher package
+[![OS X Build Status](https://travis-ci.org/atom/bracket-matcher.svg?branch=master)](https://travis-ci.org/atom/bracket-matcher)
+[![Windows Build status](https://ci.appveyor.com/api/projects/status/rrsl2h7e0od26k54/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/bracket-matcher/branch/master) [![Dependency Status](https://david-dm.org/atom/bracket-matcher.svg)](https://david-dm.org/atom/bracket-matcher)
+
 
 Highlights and jumps between `[]`, `()`, and `{}`. Also highlights matching XML
 and HTML tags.
 
-Autocompletes `[]`, `()`, and `{}`, `""`, `''`, `“”`, `‘’`, `«»`, `‹›`, and
-backticks.
+Autocompletes `[]`, `()`, `{}`, `""`, `''`, `“”`, `‘’`, `«»`, `‹›`, and
+backticks by default.
 
-You can toggle whether English/French style quotation marks (`“”`, `‘’`, `«»`
-and `‹›`) are autocompleted via the *Autocomplete Smart Quotes*  setting in the
-settings view.
-
-Use `ctrl-m` to jump to the bracket matching the one adjacent to the cursor.
+Use <kbd>ctrl-m</kbd> to jump to the bracket matching the one adjacent to the cursor.
 It jumps to the nearest enclosing bracket when there's no adjacent bracket,
 
-Use `ctrl-cmd-m` to select all the text inside the current brackets.
+Use <kbd>ctrl-cmd-m</kbd> to select all the text inside the current brackets.
 
-Use `alt-cmd-.` to close the current XML/HTML tag.
+Use <kbd>alt-cmd-.</kbd> to close the current XML/HTML tag.
+
+---
+### Configuration
 
 Matching brackets and quotes are sensibly inserted for you. If you dislike this
 functionality, you can disable it from the Bracket Matcher section of the
-Settings view (`cmd-,`).
+Settings View.
+
+#### Custom Pairs
+
+You can customize matching pairs in Bracket Matcher at any time. You can do so either globally via the Settings View or at the scope level via your `config.cson`. Changes take effect immediately.
+
+* **Autocomplete Characters** - Comma-separated pairs that the editor will treat as brackets / quotes. Entries in this field override the package defaults.
+  * For example: `<>, (), []`
+
+* **Pairs With Extra Newline** - Comma-separated pairs that enhance the editor's auto indent feature. When used, a newline is automatically added between the pair when enter is pressed between them. Note: This feature is meant to be used in combination with brackets defined for indentation by the active language package (`increaseIndentPattern` / `decreaseIndentPattern`).
+Example:
+```
+fn main() {
+    | <---- Cursor positioned at one indent level higher
+}
+```
+
+#### Scoped settings
+In addition to the global settings, you are also able to add scope-specific modifications to Atom in your `config.cson`. This is especially useful for editor rule changes specific to each language. Scope-specific settings override package defaults _and_ global settings.
+Example:
+```cson
+".rust.source":
+  "bracket-matcher":
+    autocompleteCharacters: [
+      "()"
+      "[]"
+      "{}"
+      "<>"
+      "\"\""
+      "``"
+    ]
+```

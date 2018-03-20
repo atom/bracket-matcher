@@ -1,37 +1,33 @@
 {CompositeDisposable} = require 'atom'
 _ = require 'underscore-plus'
-{Range} = require 'atom'
+{Range, Point} = require 'atom'
 TagFinder = require './tag-finder'
 
-startPairMatches =
-  '(': ')'
-  '[': ']'
-  '{': '}'
-
-endPairMatches =
-  ')': '('
-  ']': '['
-  '}': '{'
-
-pairRegexes = {}
-for startPair, endPair of startPairMatches
-  pairRegexes[startPair] = new RegExp("[#{_.escapeRegExp(startPair + endPair)}]", 'g')
+MAX_ROWS_TO_SCAN = 10000
+ONE_CHAR_FORWARD_TRAVERSAL = Object.freeze(Point(0, 1))
+ONE_CHAR_BACKWARD_TRAVERSAL = Object.freeze(Point(0, -1))
+TWO_CHARS_BACKWARD_TRAVERSAL = Object.freeze(Point(0, -2))
+MAX_ROWS_TO_SCAN_FORWARD_TRAVERSAL = Object.freeze(Point(MAX_ROWS_TO_SCAN, 0))
+MAX_ROWS_TO_SCAN_BACKWARD_TRAVERSAL = Object.freeze(Point(-MAX_ROWS_TO_SCAN, 0))
 
 module.exports =
 class BracketMatcherView
-  constructor: (@editor, editorElement) ->
+  constructor: (@editor, editorElement, @matchManager) ->
+    @gutter = @editor.gutterWithName('line-number')
     @subscriptions = new CompositeDisposable
     @tagFinder = new TagFinder(@editor)
     @pairHighlighted = false
     @tagHighlighted = false
+    # ranges for possible selection
+    @bracket1Range = null
+    @bracket2Range = null
 
-    @subscriptions.add @editor.onDidChange =>
-      @updateMatch()
-
-    @subscriptions.add @editor.onDidChangeGrammar =>
-      @updateMatch()
-
-    @subscribeToCursor()
+    @subscriptions.add @editor.onDidTokenize(@updateMatch)
+    @subscriptions.add @editor.getBuffer().onDidChangeText(@updateMatch)
+    @subscriptions.add @editor.onDidChangeGrammar(@updateMatch)
+    @subscriptions.add @editor.onDidChangeSelectionRange(@updateMatch)
+    @subscriptions.add @editor.onDidAddCursor(@updateMatch)
+    @subscriptions.add @editor.onDidRemoveCursor(@updateMatch)
 
     @subscriptions.add atom.commands.add editorElement, 'bracket-matcher:go-to-matching-bracket', =>
       @goToMatchingPair()
@@ -48,22 +44,17 @@ class BracketMatcherView
     @subscriptions.add atom.commands.add editorElement, 'bracket-matcher:remove-matching-brackets', =>
       @removeMatchingBrackets()
 
+    @subscriptions.add atom.commands.add editorElement, 'bracket-matcher:select-matching-brackets', =>
+      @selectMatchingBrackets()
+
+    @subscriptions.add @editor.onDidDestroy @destroy
+
     @updateMatch()
 
-  subscribeToCursor: ->
-    cursor = @editor.getLastCursor()
-    return unless cursor?
+  destroy: =>
+    @subscriptions.dispose()
 
-    cursorSubscriptions = new CompositeDisposable
-    cursorSubscriptions.add cursor.onDidChangePosition =>
-      @updateMatch()
-
-    cursorSubscriptions.add cursor.onDidDestroy =>
-      cursorSubscriptions.dispose()
-      @subscribeToCursor()
-      @updateMatch() if @editor.isAlive()
-
-  updateMatch: ->
+  updateMatch: =>
     if @pairHighlighted
       @editor.destroyMarker(@startMarker.id)
       @editor.destroyMarker(@endMarker.id)
@@ -72,26 +63,46 @@ class BracketMatcherView
     @tagHighlighted = false
 
     return unless @editor.getLastSelection().isEmpty()
-    return if @editor.isFoldedAtCursorRow()
 
-    {position, currentPair, matchingPair} = @findCurrentPair(startPairMatches)
+    {position, currentPair, matchingPair} = @findCurrentPair(false)
     if position
       matchPosition = @findMatchingEndPair(position, currentPair, matchingPair)
     else
-      {position, currentPair, matchingPair} = @findCurrentPair(endPairMatches)
+      {position, currentPair, matchingPair} = @findCurrentPair(true)
       if position
         matchPosition = @findMatchingStartPair(position, matchingPair, currentPair)
 
+    startRange = null
+    endRange = null
+    highlightTag = false
+    highlightPair = false
     if position? and matchPosition?
-      @startMarker = @createMarker([position, position.traverse([0, 1])])
-      @endMarker = @createMarker([matchPosition, matchPosition.traverse([0, 1])])
-      @pairHighlighted = true
+      @bracket1Range = startRange = Range(position, position.traverse(ONE_CHAR_FORWARD_TRAVERSAL))
+      @bracket2Range = endRange = Range(matchPosition, matchPosition.traverse(ONE_CHAR_FORWARD_TRAVERSAL))
+      highlightPair = true
     else
+      @bracket1Range = null
+      @bracket2Range = null
       if pair = @tagFinder.findMatchingTags()
-        @startMarker = @createMarker(pair.startRange)
-        @endMarker = @createMarker(pair.endRange)
-        @pairHighlighted = true
-        @tagHighlighted = true
+        startRange = pair.startRange
+        endRange = pair.endRange
+        highlightPair = true
+        highlightTag = true
+
+    return unless highlightTag or highlightPair
+    return if @editor.isFoldedAtCursorRow()
+    return if @isCursorOnCommentOrString()
+
+    @startMarker = @createMarker(startRange)
+    @endMarker = @createMarker(endRange)
+    @pairHighlighted = highlightPair
+    @tagHighlighted = highlightTag
+
+  selectMatchingBrackets: ->
+    return unless @bracket1Range or @bracket2Range
+    @editor.setSelectedBufferRanges([@bracket1Range, @bracket2Range])
+    @matchManager.changeBracketsMode = true
+
 
   removeMatchingBrackets: ->
     return @editor.backspace() if @editor.hasMultipleCursors()
@@ -99,14 +110,15 @@ class BracketMatcherView
     @editor.transact =>
       @editor.selectLeft() if @editor.getLastSelection().isEmpty()
       text = @editor.getSelectedText()
+      @editor.moveRight()
 
       #check if the character to the left is part of a pair
-      if startPairMatches.hasOwnProperty(text) or endPairMatches.hasOwnProperty(text)
-        {position, currentPair, matchingPair} = @findCurrentPair(startPairMatches)
+      if @matchManager.pairedCharacters.hasOwnProperty(text) or @matchManager.pairedCharactersInverse.hasOwnProperty(text)
+        {position, currentPair, matchingPair} = @findCurrentPair(false)
         if position
           matchPosition = @findMatchingEndPair(position, currentPair, matchingPair)
         else
-          {position, currentPair, matchingPair} = @findCurrentPair(endPairMatches)
+          {position, currentPair, matchingPair} = @findCurrentPair(true)
           if position
             matchPosition = @findMatchingStartPair(position, matchingPair, currentPair)
 
@@ -115,8 +127,8 @@ class BracketMatcherView
           @editor.delete()
           # if on the same line and the cursor is in front of an end pair
           # offset by one to make up for the missing character
-          if position.row is matchPosition.row and endPairMatches.hasOwnProperty(currentPair)
-            position = position.traverse([0, -1])
+          if position.row is matchPosition.row and @matchManager.pairedCharactersInverse.hasOwnProperty(currentPair)
+            position = position.traverse(ONE_CHAR_BACKWARD_TRAVERSAL)
           @editor.setCursorBufferPosition(position)
           @editor.delete()
         else
@@ -125,10 +137,16 @@ class BracketMatcherView
         @editor.backspace()
 
   findMatchingEndPair: (startPairPosition, startPair, endPair) ->
-    scanRange = new Range(startPairPosition.traverse([0, 1]), @editor.buffer.getEndPosition())
+    return if startPair is endPair or @isScopeCommentedOrString(@editor.scopeDescriptorForBufferPosition(startPairPosition).getScopesArray())
+
+    scanRange = new Range(
+      startPairPosition.traverse(ONE_CHAR_FORWARD_TRAVERSAL),
+      startPairPosition.traverse(MAX_ROWS_TO_SCAN_FORWARD_TRAVERSAL)
+    )
     endPairPosition = null
     unpairedCount = 0
-    @editor.scanInBufferRange pairRegexes[startPair], scanRange, (result) ->
+    @editor.scanInBufferRange @matchManager.pairRegexes[startPair], scanRange, (result) =>
+      return if @isRangeCommentedOrString(result.range)
       switch result.match[0]
         when startPair
           unpairedCount++
@@ -141,10 +159,16 @@ class BracketMatcherView
     endPairPosition
 
   findMatchingStartPair: (endPairPosition, startPair, endPair) ->
-    scanRange = new Range([0, 0], endPairPosition)
+    return if startPair is endPair or @isScopeCommentedOrString(@editor.scopeDescriptorForBufferPosition(endPairPosition).getScopesArray())
+
+    scanRange = new Range(
+      endPairPosition.traverse(MAX_ROWS_TO_SCAN_BACKWARD_TRAVERSAL),
+      endPairPosition
+    )
     startPairPosition = null
     unpairedCount = 0
-    @editor.backwardsScanInBufferRange pairRegexes[startPair], scanRange, (result) ->
+    @editor.backwardsScanInBufferRange @matchManager.pairRegexes[startPair], scanRange, (result) =>
+      return if @isRangeCommentedOrString(result.range)
       switch result.match[0]
         when startPair
           unpairedCount--
@@ -156,15 +180,16 @@ class BracketMatcherView
     startPairPosition
 
   findAnyStartPair: (cursorPosition) ->
-    scanRange = new Range([0, 0], cursorPosition)
-    startPair = _.escapeRegExp(_.keys(startPairMatches).join(''))
-    endPair = _.escapeRegExp(_.keys(endPairMatches).join(''))
+    scanRange = new Range(Point.ZERO, cursorPosition)
+    startPair = _.escapeRegExp(_.keys(@matchManager.pairedCharacters).join(''))
+    endPair = _.escapeRegExp(_.keys(@matchManager.pairedCharactersInverse).join(''))
     combinedRegExp = new RegExp("[#{startPair}#{endPair}]", 'g')
     startPairRegExp = new RegExp("[#{startPair}]", 'g')
     endPairRegExp = new RegExp("[#{endPair}]", 'g')
     startPosition = null
     unpairedCount = 0
-    @editor.backwardsScanInBufferRange combinedRegExp, scanRange, (result) ->
+    @editor.backwardsScanInBufferRange combinedRegExp, scanRange, (result) =>
+      return if @isRangeCommentedOrString(result.range)
       if result.match[0].match(endPairRegExp)
         unpairedCount++
       else if result.match[0].match(startPairRegExp)
@@ -177,13 +202,23 @@ class BracketMatcherView
   createMarker: (bufferRange) ->
     marker = @editor.markBufferRange(bufferRange)
     @editor.decorateMarker(marker, type: 'highlight', class: 'bracket-matcher', deprecatedRegionClass: 'bracket-matcher')
+    if atom.config.get('bracket-matcher.highlightMatchingLineNumber', scope: @editor.getRootScopeDescriptor()) and @gutter
+      @gutter.decorateMarker(marker, type: 'highlight', class: 'bracket-matcher', deprecatedRegionClass: 'bracket-matcher')
     marker
 
-  findCurrentPair: (matches) ->
+  findCurrentPair: (isInverse) ->
     position = @editor.getCursorBufferPosition()
+    if isInverse
+      matches = @matchManager.pairedCharactersInverse
+      position = position.traverse(ONE_CHAR_BACKWARD_TRAVERSAL)
+    else
+      matches = @matchManager.pairedCharacters
     currentPair = @editor.getTextInRange(Range.fromPointWithDelta(position, 0, 1))
     unless matches[currentPair]
-      position = position.traverse([0, -1])
+      if isInverse
+        position = position.traverse(ONE_CHAR_FORWARD_TRAVERSAL)
+      else
+        position = position.traverse(ONE_CHAR_BACKWARD_TRAVERSAL)
       currentPair = @editor.getTextInRange(Range.fromPointWithDelta(position, 0, 1))
     if matchingPair = matches[currentPair]
       {position, currentPair, matchingPair}
@@ -202,9 +237,9 @@ class BracketMatcherView
         [startRange, endRange] = [endRange, startRange]
 
       # include the <
-      startRange = new Range(startRange.start.traverse([0, -1]), endRange.end.traverse([0, -1]))
+      startRange = new Range(startRange.start.traverse(ONE_CHAR_BACKWARD_TRAVERSAL), endRange.end.traverse(ONE_CHAR_BACKWARD_TRAVERSAL))
       # include the </
-      endRange = new Range(endRange.start.traverse([0, -2]), endRange.end.traverse([0, -2]))
+      endRange = new Range(endRange.start.traverse(TWO_CHARS_BACKWARD_TRAVERSAL), endRange.end.traverse(TWO_CHARS_BACKWARD_TRAVERSAL))
 
       if position.isLessThan(endRange.start)
         tagCharacterOffset = position.column - startRange.start.column
@@ -217,16 +252,16 @@ class BracketMatcherView
         tagCharacterOffset = Math.min(tagCharacterOffset, tagLength + 1) # include <
         @editor.setCursorBufferPosition(startRange.start.traverse([0, tagCharacterOffset]))
     else
-      previousPosition = position.traverse([0, -1])
+      previousPosition = position.traverse(ONE_CHAR_BACKWARD_TRAVERSAL)
       startPosition = @startMarker.getStartBufferPosition()
       endPosition = @endMarker.getStartBufferPosition()
 
       if position.isEqual(startPosition)
-        @editor.setCursorBufferPosition(endPosition.traverse([0, 1]))
+        @editor.setCursorBufferPosition(endPosition.traverse(ONE_CHAR_FORWARD_TRAVERSAL))
       else if previousPosition.isEqual(startPosition)
         @editor.setCursorBufferPosition(endPosition)
       else if position.isEqual(endPosition)
-        @editor.setCursorBufferPosition(startPosition.traverse([0, 1]))
+        @editor.setCursorBufferPosition(startPosition.traverse(ONE_CHAR_FORWARD_TRAVERSAL))
       else if previousPosition.isEqual(endPosition)
         @editor.setCursorBufferPosition(startPosition)
 
@@ -239,44 +274,62 @@ class BracketMatcherView
       {startRange, endRange} = pair
       if startRange.compare(endRange) > 0
         [startRange, endRange] = [endRange, startRange]
-      @editor.setCursorBufferPosition(pair.startRange.start)
+      @editor.setCursorBufferPosition(startRange.start)
 
   selectInsidePair: ->
     if @pairHighlighted
       startRange = @startMarker.getBufferRange()
       endRange = @endMarker.getBufferRange()
 
+      if @tagHighlighted
+        # NOTE: findEnclosingTags is not used as it has a scope check
+        # that will fail on very long lines
+        {startRange, endRange} = @tagFinder.findStartEndTags(true)
+
       if startRange.compare(endRange) > 0
         [startRange, endRange] = [endRange, startRange]
 
-      if @tagHighlighted
-        startPosition = startRange.end
-        endPosition = endRange.start.traverse([0, -2]) # Don't select </
-      else
-        startPosition = startRange.start
-        endPosition = endRange.start
+      startPosition = startRange.end
+      endPosition = endRange.start
     else
       if startPosition = @findAnyStartPair(@editor.getCursorBufferPosition())
         startPair = @editor.getTextInRange(Range.fromPointWithDelta(startPosition, 0, 1))
-        endPosition = @findMatchingEndPair(startPosition, startPair, startPairMatches[startPair])
-      else if pair = @tagFinder.findEnclosingTags()
+        endPosition = @findMatchingEndPair(startPosition, startPair, @matchManager.pairedCharacters[startPair])
+        startPosition = startPosition.traverse([0, 1])
+      else if pair = @tagFinder.findStartEndTags(true)
+        # NOTE: findEnclosingTags is not used as it has a scope check
+        # that will fail on very long lines
         {startRange, endRange} = pair
         if startRange.compare(endRange) > 0
           [startRange, endRange] = [endRange, startRange]
+
         startPosition = startRange.end
-        endPosition = endRange.start.traverse([0, -2]) # Don't select </
+        endPosition = endRange.start
 
     if startPosition? and endPosition?
-      rangeToSelect = new Range(startPosition.traverse([0, 1]), endPosition)
+      rangeToSelect = new Range(startPosition, endPosition)
       @editor.setSelectedBufferRange(rangeToSelect)
 
   # Insert at the current cursor position a closing tag if there exists an
   # open tag that is not closed afterwards.
   closeTag: ->
     cursorPosition = @editor.getCursorBufferPosition()
-    textLimits = @editor.getBuffer().getRange()
-    preFragment = @editor.getTextInBufferRange([[0, 0], cursorPosition])
-    postFragment = @editor.getTextInBufferRange([cursorPosition, [Infinity, Infinity]])
+    preFragment = @editor.getTextInBufferRange([Point.ZERO, cursorPosition])
+    postFragment = @editor.getTextInBufferRange([cursorPosition, Point.INFINITY])
 
     if tag = @tagFinder.closingTagForFragments(preFragment, postFragment)
       @editor.insertText("</#{tag}>")
+
+  isCursorOnCommentOrString: ->
+    @isScopeCommentedOrString(@editor.getLastCursor().getScopeDescriptor().getScopesArray())
+
+  isRangeCommentedOrString: (range) ->
+    @isScopeCommentedOrString(@editor.scopeDescriptorForBufferPosition(range.start).getScopesArray())
+
+  isScopeCommentedOrString: (scopesArray) ->
+    for scope in scopesArray.reverse()
+      scope = scope.split('.')
+      return false if scope.includes('embedded') and scope.includes('source')
+      return true if scope.includes('comment') or scope.includes('string')
+
+    false

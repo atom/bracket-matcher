@@ -1,34 +1,75 @@
 {Range} = require 'atom'
 _ = require 'underscore-plus'
-SelectorCache = require './selector-cache'
 SelfClosingTags = require './self-closing-tags'
+TAG_SELECTOR_REGEX = /(\b|\.)(meta\.tag|punctuation\.definition\.tag)/
+COMMENT_SELECTOR_REGEX = /(\b|\.)comment/
+
+# Creates a regex to match opening tag with match[1] and closing tags with match[2]
+#
+# tagNameRegexStr - a regex string describing how to match the tagname.
+#                   Should not contain capturing match groups.
+#
+# The resulting RegExp.
+generateTagStartOrEndRegex = (tagNameRegexStr) ->
+  notSelfClosingTagEnd = "(?:[^>\\/\"']|\"[^\"]*\"|'[^']*')*>"
+  re = new RegExp("<(#{tagNameRegexStr})#{notSelfClosingTagEnd}|<\\/(#{tagNameRegexStr})>")
+
+tagStartOrEndRegex = generateTagStartOrEndRegex("\\w[-\\w]*(?:\\:\\w[-\\w]*)?")
 
 # Helper to find the matching start/end tag for the start/end tag under the
 # cursor in XML, HTML, etc. editors.
 module.exports =
 class TagFinder
   constructor: (@editor) ->
-    @tagPattern = /(<(\/?))([^\s>]+)([\s>]|$)/
-    @wordRegex = /[^>\r\n]*/
-    @tagSelector = SelectorCache.get('meta.tag | punctuation.definition.tag')
-    @commentSelector = SelectorCache.get('comment.*')
+    # 1. Tag prefix
+    # 2. Closing tag (optional)
+    # 3. Tag name
+    # 4. Attributes (ids, classes, etc. - optional)
+    # 5. Tag suffix
+    # 6. Self-closing tag (optional)
+    @tagPattern = /(<(\/)?)(.+?)(\s+.*?)?((\/)?>|$)/
+    @wordRegex = /.*?(>|$)/
 
   patternForTagName: (tagName) ->
     tagName = _.escapeRegExp(tagName)
-    new RegExp("(<#{tagName}([\\s>]|$))|(</#{tagName}>)", 'gi')
+    # 1. Start tag
+    # 2. Tag name
+    # 3. Attributes (optional)
+    # 4. Tag suffix
+    # 5. Self-closing tag (optional)
+    # 6. End tag
+    new RegExp("(<(#{tagName})(\\s+[^>]*?)?((/)?>))|(</#{tagName}[^>]*>)", 'gi')
 
   isRangeCommented: (range) ->
-    scopes = @editor.scopeDescriptorForBufferPosition(range.start).getScopesArray()
-    @commentSelector.matches(scopes)
+    @scopesForPositionMatchRegex(range.start, COMMENT_SELECTOR_REGEX)
 
   isTagRange: (range) ->
-    scopes = @editor.scopeDescriptorForBufferPosition(range.start).getScopesArray()
-    @tagSelector.matches(scopes)
+    @scopesForPositionMatchRegex(range.start, TAG_SELECTOR_REGEX)
 
   isCursorOnTag: ->
-    @tagSelector.matches(@editor.getLastCursor().getScopeDescriptor().getScopesArray())
+    @scopesForPositionMatchRegex(@editor.getCursorBufferPosition(), TAG_SELECTOR_REGEX)
 
-  findStartTag: (tagName, endPosition) ->
+  scopesForPositionMatchRegex: (position, regex) ->
+    {tokenizedBuffer, buffer} = @editor
+    {grammar} = tokenizedBuffer
+    column = 0
+    line = tokenizedBuffer.tokenizedLineForRow(position.row)
+    return false unless line?
+    lineLength = buffer.lineLengthForRow(position.row)
+    scopeIds = line.openScopes.slice()
+    for tag in line.tags by 1
+      if tag >= 0
+        nextColumn = column + tag
+        break if nextColumn > position.column or nextColumn is lineLength
+        column = nextColumn
+      else if (tag & 1) is 1
+        scopeIds.push(tag)
+      else
+        scopeIds.pop()
+
+    scopeIds.some (scopeId) -> regex.test(grammar.scopeForId(scopeId))
+
+  findStartTag: (tagName, endPosition, fullRange=false) ->
     scanRange = new Range([0, 0], endPosition)
     pattern = @patternForTagName(tagName)
     startRange = null
@@ -36,17 +77,27 @@ class TagFinder
     @editor.backwardsScanInBufferRange pattern, scanRange, ({match, range, stop}) =>
       return if @isRangeCommented(range)
 
-      if match[1]
+      [entireMatch, isStartTag, tagName, attributes, suffix, isSelfClosingTag, isEndTag] = match
+
+      return if isSelfClosingTag
+
+      if isStartTag
         unpairedCount--
         if unpairedCount < 0
-          startRange = range.translate([0, 1], [0, -match[2].length]) # Subtract < and tag name suffix from range
           stop()
+          startRange = range
+          unless fullRange
+            # Move the start past the initial <
+            startRange.start = startRange.start.translate([0, 1])
+
+            # End right after the tag name
+            startRange.end = startRange.start.translate([0, tagName.length])
       else
         unpairedCount++
 
     startRange
 
-  findEndTag: (tagName, startPosition) ->
+  findEndTag: (tagName, startPosition, fullRange=false) ->
     scanRange = new Range(startPosition, @editor.buffer.getEndPosition())
     pattern = @patternForTagName(tagName)
     endRange = null
@@ -54,33 +105,45 @@ class TagFinder
     @editor.scanInBufferRange pattern, scanRange, ({match, range, stop}) =>
       return if @isRangeCommented(range)
 
-      if match[1]
+      [entireMatch, isStartTag, tagName, attributes, suffix, isSelfClosingTag, isEndTag] = match
+
+      return if isSelfClosingTag
+
+      if isStartTag
         unpairedCount++
       else
         unpairedCount--
         if unpairedCount < 0
-          endRange = range.translate([0, 2], [0, -1]) # Subtract </ and > from range
           stop()
+          endRange = range
+          endRange = range.translate([0, 2], [0, -1]) unless fullRange # Subtract </ and > from range
 
     endRange
 
-  findStartEndTags: ->
+  findStartEndTags: (fullRange=false) ->
     ranges = null
     endPosition = @editor.getLastCursor().getCurrentWordBufferRange({@wordRegex}).end
     @editor.backwardsScanInBufferRange @tagPattern, [[0, 0], endPosition], ({match, range, stop}) =>
       stop()
 
-      [entireMatch, prefix, isClosingTag, tagName, suffix] = match
+      [entireMatch, prefix, isClosingTag, tagName, attributes, suffix, isSelfClosingTag] = match
 
-      if range.start.row is range.end.row
-        startRange = range.translate([0, prefix.length], [0, -suffix.length])
-      else
-        startRange = Range.fromObject([range.start.translate([0, prefix.length]), [range.start.row, Infinity]])
+      startRange = range
+      unless fullRange
+        if range.start.row is range.end.row
+          # Move the start past the initial <
+          startRange.start = startRange.start.translate([0, prefix.length])
+          # End right after the tag name
+          startRange.end = startRange.start.translate([0, tagName.length])
+        else
+          startRange = Range.fromObject([range.start.translate([0, prefix.length]), [range.start.row, Infinity]])
 
-      if isClosingTag
-        endRange = @findStartTag(tagName, startRange.start)
+      if isSelfClosingTag
+        endRange = startRange
+      else if isClosingTag
+        endRange = @findStartTag(tagName, startRange.start, fullRange)
       else
-        endRange = @findEndTag(tagName, startRange.end)
+        endRange = @findEndTag(tagName, startRange.end, fullRange)
 
       ranges = {startRange, endRange} if startRange? and endRange?
     ranges
@@ -130,9 +193,10 @@ class TagFinder
   #
   # fragment - a string containing a fragment of html code.
   #
-  # Returns a string with the name of the most recent unclosed tag.
+  # Returns an array of strings. Each string is a tag that is still to be closed
+  # (the most recent non closed tag is at the end of the array).
   tagsNotClosedInFragment: (fragment) ->
-    @parseFragment fragment, [], /<(\w[-\w]*)|<\/(\w[-\w]*)/, -> true
+    @parseFragment fragment, [], tagStartOrEndRegex, -> true
 
   # Parses the given fragment of html code and returns true if the given tag
   # has a matching closing tag in it. If tag is reopened and reclosed in the
@@ -145,8 +209,7 @@ class TagFinder
     stackLength = stack.length
     tag = tags[tags.length-1]
     escapedTag = _.escapeRegExp(tag)
-    matchExpr = new RegExp("<(#{escapedTag})|<\/(#{escapedTag})")
-    stack = @parseFragment fragment, stack, matchExpr, (s) ->
+    stack = @parseFragment fragment, stack, generateTagStartOrEndRegex(escapedTag), (s) ->
       s.length >= stackLength or s[s.length-1] is tag
 
     stack.length > 0 and stack[stack.length-1] is tag

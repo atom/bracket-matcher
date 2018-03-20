@@ -31,6 +31,11 @@ describe 'closeTag', ->
       tags = tagFinder.tagsNotClosedInFragment(fragment)
       expect(tags).toEqual(['html', 'body', 'h1'])
 
+    it 'is not confused by namespace prefixes', ->
+      fragment = '<xhtml:html><xhtml:body><xhtml:h1>'
+      tags = tagFinder.tagsNotClosedInFragment(fragment)
+      expect(tags).toEqual(['xhtml:html', 'xhtml:body', 'xhtml:h1'])
+
   describe 'TagFinder::tagDoesNotCloseInFragment', ->
     it 'returns true if the given tag is not closed in the given fragment', ->
       fragment = "</other1></other2></html>"
@@ -73,3 +78,8 @@ describe 'closeTag', ->
       preFragment = "<html><head></head><body><h1></h1><my-element>"
       postFragment = "</body></html>"
       expect(tagFinder.closingTagForFragments(preFragment, postFragment)).toBe("my-element")
+
+    it 'correctly closes tags when there are other tags with the same prefix', ->
+      preFragment = "<thead><th>"
+      postFragment = "</thead>"
+      expect(tagFinder.closingTagForFragments(preFragment, postFragment)).toBe("th")
