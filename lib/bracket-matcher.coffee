@@ -196,7 +196,13 @@ class BracketMatcher
         'comment.documentation.heredoc.elixir'
       ]
       @interpolatedStringSelector = SelectorCache.get(segments.join(' | '))
-    @interpolatedStringSelector.matches(@editor.getLastCursor().getScopeDescriptor().getScopesArray())
+
+    lastCursor = @editor.getLastCursor()
+
+    return false if lastCursor.isAtBeginningOfLine() or lastCursor.isAtEndOfLine()
+
+    @interpolatedStringSelector.matches(lastCursor.getScopeDescriptor().getScopesArray()) and
+    @interpolatedStringSelector.matches(@editor.scopeDescriptorForBufferPosition([lastCursor.getBufferRow(), lastCursor.getBufferColumn() - 1]).getScopesArray())
 
   isOpeningBracket: (string) ->
     @matchManager.pairedCharacters.hasOwnProperty(string)
