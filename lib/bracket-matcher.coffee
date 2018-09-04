@@ -182,21 +182,30 @@ class BracketMatcher
     /['"`]/.test(string)
 
   isCursorOnInterpolatedString: ->
-    unless @interpolatedStringSelector?
-      segments = [
-        '*.*.*.interpolated.ruby'
-        'string.interpolated.ruby'
-        'string.regexp.interpolated.ruby'
-        'string.quoted.double.coffee'
-        'string.unquoted.heredoc.ruby'
-        'string.quoted.double.livescript'
-        'string.quoted.double.heredoc.livescript'
-        'string.quoted.double.elixir'
-        'string.quoted.double.heredoc.elixir'
-        'comment.documentation.heredoc.elixir'
-      ]
-      @interpolatedStringSelector = SelectorCache.get(segments.join(' | '))
-    @interpolatedStringSelector.matches(@editor.getLastCursor().getScopeDescriptor().getScopesArray())
+    cursor = @editor.getLastCursor()
+    languageMode = @editor.getBuffer().getLanguageMode()
+    if languageMode.getSyntaxNodeAtPosition?
+      node = languageMode.getSyntaxNodeAtPosition(
+        cursor.getBufferPosition(),
+        (node) -> /string|symbol/.test(node.type)
+      )
+      ['"', ':"', '%('].includes(node?.firstChild?.text)
+    else
+      unless @interpolatedStringSelector?
+        segments = [
+          '*.*.*.interpolated.ruby'
+          'string.interpolated.ruby'
+          'string.regexp.interpolated.ruby'
+          'string.quoted.double.coffee'
+          'string.unquoted.heredoc.ruby'
+          'string.quoted.double.livescript'
+          'string.quoted.double.heredoc.livescript'
+          'string.quoted.double.elixir'
+          'string.quoted.double.heredoc.elixir'
+          'comment.documentation.heredoc.elixir'
+        ]
+        @interpolatedStringSelector = SelectorCache.get(segments.join(' | '))
+      @interpolatedStringSelector.matches(@editor.getLastCursor().getScopeDescriptor().getScopesArray())
 
   isOpeningBracket: (string) ->
     @matchManager.pairedCharacters.hasOwnProperty(string)
