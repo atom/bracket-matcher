@@ -187,7 +187,8 @@ class BracketMatcher
     if languageMode.getSyntaxNodeAtPosition?
       node = languageMode.getSyntaxNodeAtPosition(
         cursor.getBufferPosition(),
-        (node) -> /string|symbol/.test(node.type)
+        (node, grammar) ->
+          grammar.scopeName is 'source.ruby' and /string|symbol/.test(node.type)
       )
       ['"', ':"', '%('].includes(node?.firstChild?.text)
     else
