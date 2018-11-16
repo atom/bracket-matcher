@@ -12,9 +12,6 @@
     "first-mate": "^7.0.1",
     "underscore-plus": "1.x"
   },
-  "devDependencies": {
-    "coffeelint": "^1.9.7"
-  },
   "configSchema": {
     "autocompleteCharacters": {
       "description": "Autocompleted characters treated as matching pairs, such as `()`, and `{}`.",
