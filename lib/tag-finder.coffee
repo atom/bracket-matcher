@@ -27,7 +27,7 @@ class TagFinder
     # 4. Attributes (ids, classes, etc. - optional)
     # 5. Tag suffix
     # 6. Self-closing tag (optional)
-    @tagPattern = /(<(\/)?)(.+?)(\s+.*?)?((\/)?>|$)/
+    @tagPattern = /(<(\/)?)(.+?)(\s+.*?)?((\/)?>|$)/g
     @wordRegex = /.*?(>|$)/
 
   patternForTagName: (tagName) ->
@@ -122,11 +122,36 @@ class TagFinder
 
   findStartEndTags: (fullRange=false) ->
     ranges = null
-    endPosition = @editor.getLastCursor().getCurrentWordBufferRange({@wordRegex}).end
+    unpairedCount = 0
+    endPosition = @editor.getCursorBufferPosition()
+    {scopes} = @editor.scopeDescriptorForBufferPosition(endPosition)
+    for scope in scopes
+      if scope.startsWith('meta.tag')
+        endPosition = @editor.getLastCursor().getCurrentWordBufferRange({wordRegex: /(.|\s)*?>/}).end
+        break
+
     @editor.backwardsScanInBufferRange @tagPattern, [[0, 0], endPosition], ({match, range, stop}) =>
-      stop()
+      return if @isRangeCommented(range)
 
       [entireMatch, prefix, isClosingTag, tagName, attributes, suffix, isSelfClosingTag] = match
+
+      if isSelfClosingTag or SelfClosingTags.includes(tagName)
+        if range.containsPoint(@editor.getCursorBufferPosition()) and not range.isEqual(@editor.getSelectedBufferRange())
+          stop()
+        else
+          return
+      else if isClosingTag
+        if range.start.isEqual(@editor.getCursorBufferPosition()) or range.containsPoint(@editor.getCursorBufferPosition(), true)
+          return
+
+        unpairedCount++
+        return
+      else
+        unpairedCount--
+        if unpairedCount < 0
+          stop()
+        else
+          return
 
       startRange = range
       unless fullRange
@@ -138,12 +163,39 @@ class TagFinder
         else
           startRange = Range.fromObject([range.start.translate([0, prefix.length]), [range.start.row, Infinity]])
 
-      if isSelfClosingTag
+      if isSelfClosingTag or SelfClosingTags.includes(tagName)
         endRange = startRange
       else if isClosingTag
         endRange = @findStartTag(tagName, startRange.start, fullRange)
       else
         endRange = @findEndTag(tagName, startRange.end, fullRange)
+
+      ranges = {startRange, endRange} if startRange? and endRange?
+    ranges
+
+  findCurrentTags: ->
+    ranges = null
+    endPosition = @editor.getLastCursor().getCurrentWordBufferRange({@wordRegex}).end
+    @editor.backwardsScanInBufferRange @tagPattern, [[0, 0], endPosition], ({match, range, stop}) =>
+      stop()
+
+      [entireMatch, prefix, isClosingTag, tagName, attributes, suffix, isSelfClosingTag] = match
+
+      startRange = range
+      if range.start.row is range.end.row
+        # Move the start past the initial <
+        startRange.start = startRange.start.translate([0, prefix.length])
+        # End right after the tag name
+        startRange.end = startRange.start.translate([0, tagName.length])
+      else
+        startRange = Range.fromObject([range.start.translate([0, prefix.length]), [range.start.row, Infinity]])
+
+      if isSelfClosingTag or SelfClosingTags.includes(tagName)
+        endRange = startRange
+      else if isClosingTag
+        endRange = @findStartTag(tagName, startRange.start)
+      else
+        endRange = @findEndTag(tagName, startRange.end)
 
       ranges = {startRange, endRange} if startRange? and endRange?
     ranges
@@ -156,7 +208,7 @@ class TagFinder
     null
 
   findMatchingTags: ->
-    @findStartEndTags() if @isCursorOnTag()
+    @findCurrentTags() if @isCursorOnTag()
 
   # Parses a fragment of html returning the stack (i.e., an array) of open tags
   #
