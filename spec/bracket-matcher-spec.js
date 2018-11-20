@@ -233,7 +233,7 @@ describe('bracket matching', () => {
         expectHighlights([0, 6], [0, 0])
 
         editor.setCursorBufferPosition([0, 3])
-        expectNoHighlights()
+        expectHighlights([0, 2], [0, 4])
       })
     })
 
