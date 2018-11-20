@@ -1,3 +1,5 @@
+const {Point, TextBuffer} = require('atom')
+
 describe('bracket matching', () => {
   let editorElement, editor, buffer
 
@@ -32,6 +34,14 @@ describe('bracket matching', () => {
     function expectHighlights (startBufferPosition, endBufferPosition) {
       const decorations = editor.getHighlightDecorations().filter(decoration => decoration.properties.class === 'bracket-matcher')
       const gutterDecorations = editor.getLineNumberDecorations().filter(gutterDecoration => gutterDecoration.properties.class === 'bracket-matcher')
+
+      startBufferPosition = Point.fromObject(startBufferPosition)
+      endBufferPosition = Point.fromObject(endBufferPosition)
+      if (startBufferPosition.isGreaterThan(endBufferPosition)) {
+        [startBufferPosition, endBufferPosition] = [endBufferPosition, startBufferPosition]
+      }
+      decorations.sort((a, b) => a.getMarker().compare(b.getMarker()))
+      gutterDecorations.sort((a, b) => a.getMarker().compare(b.getMarker()))
 
       expect(decorations.length).toBe(2)
       expect(gutterDecorations.length).toBe(2)
@@ -298,148 +308,152 @@ describe('bracket matching', () => {
       })
     })
 
-    describe('HTML/XML tag matching', () => {
-      beforeEach(() => {
-        waitsForPromise(() => atom.workspace.open('sample.xml'))
+    forEachLanguageWithTags(scopeName => {
+      describe(`${scopeName} tag matching`, () => {
+        beforeEach(() => {
+          waitsForPromise(() => atom.packages.activatePackage('language-html'))
+          waitsForPromise(() => atom.workspace.open('sample.xml'))
 
-        runs(() => {
-          editor = atom.workspace.getActiveTextEditor()
-          editorElement = atom.views.getView(editor)
-          buffer = editor.buffer
+          runs(() => {
+            editor = atom.workspace.getActiveTextEditor()
+            editorElement = atom.views.getView(editor)
+            buffer = editor.buffer
+            atom.grammars.assignLanguageMode(buffer, scopeName)
+            buffer.getLanguageMode().syncOperationLimit = Infinity
+          })
         })
-      })
 
-      describe('when on an opening tag', () => {
-        it('highlight the opening and closing tag', () => {
-          buffer.setText(`\
+        describe('when on an opening tag', () => {
+          it('highlight the opening and closing tag', () => {
+            buffer.setText(`\
 <test>
   <test>text</test>
   <!-- </test> -->
 </test>\
 `
-          )
+            )
 
-          editor.setCursorBufferPosition([0, 0])
-          expectHighlights([0, 1], [3, 2])
+            editor.setCursorBufferPosition([0, 0])
+            expectHighlights([0, 1], [3, 2])
 
-          editor.setCursorBufferPosition([0, 1])
-          expectHighlights([0, 1], [3, 2])
+            editor.setCursorBufferPosition([0, 1])
+            expectHighlights([0, 1], [3, 2])
+          })
         })
-      })
 
-      describe('when on a closing tag', () => {
-        it('highlight the opening and closing tag', () => {
-          buffer.setText(`\
+        describe('when on a closing tag', () => {
+          it('highlight the opening and closing tag', () => {
+            buffer.setText(`\
 <test>
   <!-- <test> -->
   <test>text</test>
 </test>\
 `
-          )
+            )
 
-          editor.setCursorBufferPosition([3, 0])
-          expectHighlights([3, 2], [0, 1])
+            editor.setCursorBufferPosition([3, 0])
+            expectHighlights([3, 2], [0, 1])
 
-          editor.setCursorBufferPosition([3, 2])
-          expectHighlights([3, 2], [0, 1])
+            editor.setCursorBufferPosition([3, 2])
+            expectHighlights([3, 2], [0, 1])
 
-          buffer.setText(`\
+            buffer.setText(`\
 <test>
   <test>text</test>
   <test>text</test>
 </test>\
 `
-          )
+            )
 
-          editor.setCursorBufferPosition([1, Infinity])
-          expectHighlights([1, 14], [1, 3])
+            editor.setCursorBufferPosition([1, Infinity])
+            expectHighlights([1, 14], [1, 3])
 
-          editor.setCursorBufferPosition([2, Infinity])
-          expectHighlights([2, 14], [2, 3])
-        })
+            editor.setCursorBufferPosition([2, Infinity])
+            expectHighlights([2, 14], [2, 3])
+          })
 
-        it('highlights the correct opening tag, skipping self-closing tags', () => {
-          buffer.setText(`\
+          it('highlights the correct opening tag, skipping self-closing tags', () => {
+            buffer.setText(`\
 <test>
   <test />
 </test>\
 `
-          )
+            )
 
-          editor.setCursorBufferPosition([2, Infinity])
-          expectHighlights([2, 2], [0, 1])
+            editor.setCursorBufferPosition([2, Infinity])
+            expectHighlights([2, 2], [0, 1])
+          })
         })
-      })
 
-      describe('when on a self-closing tag', () => {
-        it('highlights only the self-closing tag', () => {
-          buffer.setText(`\
+        describe('when on a self-closing tag', () => {
+          it('highlights only the self-closing tag', () => {
+            buffer.setText(`\
 <test>
   <test />
 </test>\
 `
-          )
+            )
 
-          editor.setCursorBufferPosition([1, Infinity])
-          expectHighlights([1, 3], [1, 3])
-        })
+            editor.setCursorBufferPosition([1, Infinity])
+            expectHighlights([1, 3], [1, 3])
+          })
 
-        it('highlights a self-closing tag without a space', () => {
-          buffer.setText(`\
+          it('highlights a self-closing tag without a space', () => {
+            buffer.setText(`\
 <test>
   <test/>
 </test>\
 `
-          )
+            )
 
-          editor.setCursorBufferPosition([1, Infinity])
-          expectHighlights([1, 3], [1, 3])
-        })
+            editor.setCursorBufferPosition([1, Infinity])
+            expectHighlights([1, 3], [1, 3])
+          })
 
-        it('highlights a self-closing tag with many spaces', () => {
-          buffer.setText(`\
+          it('highlights a self-closing tag with many spaces', () => {
+            buffer.setText(`\
 <test>
   <test          />
 </test>\
 `
-          )
+            )
 
-          editor.setCursorBufferPosition([1, Infinity])
-          expectHighlights([1, 3], [1, 3])
-        })
+            editor.setCursorBufferPosition([1, Infinity])
+            expectHighlights([1, 3], [1, 3])
+          })
 
-        it('does not catastrophically backtrack when many attributes are present (regression)', () => {
-          // https://github.com/atom/bracket-matcher/issues/303
+          it('does not catastrophically backtrack when many attributes are present (regression)', () => {
+            // https://github.com/atom/bracket-matcher/issues/303
 
-          buffer.setText(`\
+            buffer.setText(`\
 <div style="display: flex; width: 500px; height: 100px; background: blue">
   <div style="min-width: 1em; background: red">
     <div style="background: yellow; position: absolute; left: 0; right: 0; height: 20px" />
   </div>
 </div>\
 `
-          )
+            )
 
-          editor.setCursorBufferPosition([0, 6])
-          expectHighlights([0, 1], [4, 2])
+            editor.setCursorBufferPosition([0, 6])
+            expectHighlights([0, 1], [4, 2])
 
-          editor.setCursorBufferPosition([1, 6])
-          expectHighlights([1, 3], [3, 4])
+            editor.setCursorBufferPosition([1, 6])
+            expectHighlights([1, 3], [3, 4])
 
-          editor.setCursorBufferPosition([2, 6])
-          expectHighlights([2, 5], [2, 5])
+            editor.setCursorBufferPosition([2, 6])
+            expectHighlights([2, 5], [2, 5])
 
-          editor.setCursorBufferPosition([3, 6])
-          expectHighlights([3, 4], [1, 3])
+            editor.setCursorBufferPosition([3, 6])
+            expectHighlights([3, 4], [1, 3])
 
-          editor.setCursorBufferPosition([4, 6])
-          expectHighlights([4, 2], [0, 1])
+            editor.setCursorBufferPosition([4, 6])
+            expectHighlights([4, 2], [0, 1])
+          })
         })
-      })
 
-      describe('when the tag spans multiple lines', () => {
-        it('highlights the opening and closing tag', () => {
-          buffer.setText(`\
+        describe('when the tag spans multiple lines', () => {
+          it('highlights the opening and closing tag', () => {
+            buffer.setText(`\
 <div>
   <div class="test"
     title="test"
@@ -449,58 +463,59 @@ describe('bracket matching', () => {
 </div
 >\
 `
-          )
+            )
 
-          editor.setCursorBufferPosition([0, 1])
-          expectHighlights([0, 1], [6, 2])
-          editor.setCursorBufferPosition([6, 2])
-          expectHighlights([6, 2], [0, 1])
+            editor.setCursorBufferPosition([0, 1])
+            expectHighlights([0, 1], [6, 2])
+            editor.setCursorBufferPosition([6, 2])
+            expectHighlights([6, 2], [0, 1])
+          })
         })
-      })
 
-      describe('when the tag has attributes', () => {
-        it('highlights the opening and closing tags', () => {
-          buffer.setText(`\
+        describe('when the tag has attributes', () => {
+          it('highlights the opening and closing tags', () => {
+            buffer.setText(`\
 <test a="test">
   text
 </test>\
 `
-          )
+            )
 
-          editor.setCursorBufferPosition([2, 2])
-          expectHighlights([2, 2], [0, 1])
+            editor.setCursorBufferPosition([2, 2])
+            expectHighlights([2, 2], [0, 1])
 
-          editor.setCursorBufferPosition([0, 7])
-          expectHighlights([0, 1], [2, 2])
+            editor.setCursorBufferPosition([0, 7])
+            expectHighlights([0, 1], [2, 2])
+          })
         })
-      })
 
-      describe("when the tag has an attribute with a value of '/'", () => {
-        it('highlights the opening and closing tags', () => {
-          buffer.setText(`\
+        describe("when the tag has an attribute with a value of '/'", () => {
+          it('highlights the opening and closing tags', () => {
+            buffer.setText(`\
 <test a="/">
   text
 </test>\
 `
-          )
+            )
 
-          editor.setCursorBufferPosition([2, 2])
-          expectHighlights([2, 2], [0, 1])
+            editor.setCursorBufferPosition([2, 2])
+            expectHighlights([2, 2], [0, 1])
 
-          editor.setCursorBufferPosition([0, 7])
-          expectHighlights([0, 1], [2, 2])
+            editor.setCursorBufferPosition([0, 7])
+            expectHighlights([0, 1], [2, 2])
+          })
         })
-      })
 
-      describe('when the opening and closing tags are on the same line', () => {
-        it('highlight the opening and closing tags', () => {
-          buffer.setText('<test>text</test>')
+        describe('when the opening and closing tags are on the same line', () => {
+          it('highlight the opening and closing tags', () => {
+            buffer.setText('<test>text</test>')
 
-          editor.setCursorBufferPosition([0, 2])
-          expectHighlights([0, 1], [0, 12])
+            editor.setCursorBufferPosition([0, 2])
+            expectHighlights([0, 1], [0, 12])
 
-          editor.setCursorBufferPosition([0, 12])
-          expectHighlights([0, 12], [0, 1])
+            editor.setCursorBufferPosition([0, 12])
+            expectHighlights([0, 12], [0, 1])
+          })
         })
       })
     })
@@ -557,102 +572,106 @@ describe('bracket matching', () => {
         })
       })
 
-      describe('in HTML/XML files', () => {
-        beforeEach(() => {
-          waitsForPromise(() => atom.workspace.open('sample.xml'))
+      forEachLanguageWithTags(scopeName => {
+        describe(`in ${scopeName} files`, () => {
+          beforeEach(() => {
+            waitsForPromise(() => atom.workspace.open('sample.xml'))
 
-          runs(() => {
-            editor = atom.workspace.getActiveTextEditor()
-            editorElement = atom.views.getView(editor)
-            buffer = editor.buffer
+            runs(() => {
+              editor = atom.workspace.getActiveTextEditor()
+              editorElement = atom.views.getView(editor)
+              buffer = editor.buffer
+              atom.grammars.assignLanguageMode(buffer, scopeName)
+              buffer.getLanguageMode().syncOperationLimit = Infinity
+            })
           })
-        })
 
-        describe('when within a <tag></tag> pair', () => {
-          it('moves the cursor to the starting tag', () => {
-            editor.setCursorBufferPosition([5, 10])
-            atom.commands.dispatch(editorElement, 'bracket-matcher:go-to-matching-bracket')
-            expect(editor.getCursorBufferPosition()).toEqual([4, 9])
+          describe('when within a <tag></tag> pair', () => {
+            it('moves the cursor to the starting tag', () => {
+              editor.setCursorBufferPosition([5, 10])
+              atom.commands.dispatch(editorElement, 'bracket-matcher:go-to-matching-bracket')
+              expect(editor.getCursorBufferPosition()).toEqual([4, 9])
+            })
           })
-        })
 
-        describe('when on a starting <tag>', () => {
-          it('moves the cursor to the end </tag>', () => {
-            editor.setCursorBufferPosition([1, 2])
-            atom.commands.dispatch(editorElement, 'bracket-matcher:go-to-matching-bracket')
-            expect(editor.getCursorBufferPosition()).toEqual([15, 2])
+          describe('when on a starting <tag>', () => {
+            it('moves the cursor to the end </tag>', () => {
+              editor.setCursorBufferPosition([1, 2])
+              atom.commands.dispatch(editorElement, 'bracket-matcher:go-to-matching-bracket')
+              expect(editor.getCursorBufferPosition()).toEqual([15, 2])
 
-            editor.setCursorBufferPosition([1, 3])
-            atom.commands.dispatch(editorElement, 'bracket-matcher:go-to-matching-bracket')
-            expect(editor.getCursorBufferPosition()).toEqual([15, 4])
+              editor.setCursorBufferPosition([1, 3])
+              atom.commands.dispatch(editorElement, 'bracket-matcher:go-to-matching-bracket')
+              expect(editor.getCursorBufferPosition()).toEqual([15, 4])
 
-            editor.setCursorBufferPosition([1, 4])
-            atom.commands.dispatch(editorElement, 'bracket-matcher:go-to-matching-bracket')
-            expect(editor.getCursorBufferPosition()).toEqual([15, 5])
+              editor.setCursorBufferPosition([1, 4])
+              atom.commands.dispatch(editorElement, 'bracket-matcher:go-to-matching-bracket')
+              expect(editor.getCursorBufferPosition()).toEqual([15, 5])
 
-            editor.setCursorBufferPosition([1, 5])
-            atom.commands.dispatch(editorElement, 'bracket-matcher:go-to-matching-bracket')
-            expect(editor.getCursorBufferPosition()).toEqual([15, 6])
+              editor.setCursorBufferPosition([1, 5])
+              atom.commands.dispatch(editorElement, 'bracket-matcher:go-to-matching-bracket')
+              expect(editor.getCursorBufferPosition()).toEqual([15, 6])
 
-            editor.setCursorBufferPosition([1, 6])
-            atom.commands.dispatch(editorElement, 'bracket-matcher:go-to-matching-bracket')
-            expect(editor.getCursorBufferPosition()).toEqual([15, 7])
+              editor.setCursorBufferPosition([1, 6])
+              atom.commands.dispatch(editorElement, 'bracket-matcher:go-to-matching-bracket')
+              expect(editor.getCursorBufferPosition()).toEqual([15, 7])
 
-            editor.setCursorBufferPosition([1, 7])
-            atom.commands.dispatch(editorElement, 'bracket-matcher:go-to-matching-bracket')
-            expect(editor.getCursorBufferPosition()).toEqual([15, 8])
+              editor.setCursorBufferPosition([1, 7])
+              atom.commands.dispatch(editorElement, 'bracket-matcher:go-to-matching-bracket')
+              expect(editor.getCursorBufferPosition()).toEqual([15, 8])
 
-            editor.setCursorBufferPosition([1, 8])
-            atom.commands.dispatch(editorElement, 'bracket-matcher:go-to-matching-bracket')
-            expect(editor.getCursorBufferPosition()).toEqual([15, 8])
+              editor.setCursorBufferPosition([1, 8])
+              atom.commands.dispatch(editorElement, 'bracket-matcher:go-to-matching-bracket')
+              expect(editor.getCursorBufferPosition()).toEqual([15, 8])
 
-            editor.setCursorBufferPosition([1, 9])
-            atom.commands.dispatch(editorElement, 'bracket-matcher:go-to-matching-bracket')
-            expect(editor.getCursorBufferPosition()).toEqual([15, 8])
+              editor.setCursorBufferPosition([1, 9])
+              atom.commands.dispatch(editorElement, 'bracket-matcher:go-to-matching-bracket')
+              expect(editor.getCursorBufferPosition()).toEqual([15, 8])
 
-            editor.setCursorBufferPosition([1, 10])
-            atom.commands.dispatch(editorElement, 'bracket-matcher:go-to-matching-bracket')
-            expect(editor.getCursorBufferPosition()).toEqual([15, 8])
+              editor.setCursorBufferPosition([1, 10])
+              atom.commands.dispatch(editorElement, 'bracket-matcher:go-to-matching-bracket')
+              expect(editor.getCursorBufferPosition()).toEqual([15, 8])
 
-            editor.setCursorBufferPosition([1, 16])
-            atom.commands.dispatch(editorElement, 'bracket-matcher:go-to-matching-bracket')
-            expect(editor.getCursorBufferPosition()).toEqual([15, 8])
+              editor.setCursorBufferPosition([1, 16])
+              atom.commands.dispatch(editorElement, 'bracket-matcher:go-to-matching-bracket')
+              expect(editor.getCursorBufferPosition()).toEqual([15, 8])
+            })
           })
-        })
 
-        describe('when on an ending </tag>', () => {
-          it('moves the cursor to the start <tag>', () => {
-            editor.setCursorBufferPosition([15, 2])
-            atom.commands.dispatch(editorElement, 'bracket-matcher:go-to-matching-bracket')
-            expect(editor.getCursorBufferPosition()).toEqual([1, 2])
+          describe('when on an ending </tag>', () => {
+            it('moves the cursor to the start <tag>', () => {
+              editor.setCursorBufferPosition([15, 2])
+              atom.commands.dispatch(editorElement, 'bracket-matcher:go-to-matching-bracket')
+              expect(editor.getCursorBufferPosition()).toEqual([1, 2])
 
-            editor.setCursorBufferPosition([15, 3])
-            atom.commands.dispatch(editorElement, 'bracket-matcher:go-to-matching-bracket')
-            expect(editor.getCursorBufferPosition()).toEqual([1, 3])
+              editor.setCursorBufferPosition([15, 3])
+              atom.commands.dispatch(editorElement, 'bracket-matcher:go-to-matching-bracket')
+              expect(editor.getCursorBufferPosition()).toEqual([1, 3])
 
-            editor.setCursorBufferPosition([15, 4])
-            atom.commands.dispatch(editorElement, 'bracket-matcher:go-to-matching-bracket')
-            expect(editor.getCursorBufferPosition()).toEqual([1, 3])
+              editor.setCursorBufferPosition([15, 4])
+              atom.commands.dispatch(editorElement, 'bracket-matcher:go-to-matching-bracket')
+              expect(editor.getCursorBufferPosition()).toEqual([1, 3])
 
-            editor.setCursorBufferPosition([15, 5])
-            atom.commands.dispatch(editorElement, 'bracket-matcher:go-to-matching-bracket')
-            expect(editor.getCursorBufferPosition()).toEqual([1, 4])
+              editor.setCursorBufferPosition([15, 5])
+              atom.commands.dispatch(editorElement, 'bracket-matcher:go-to-matching-bracket')
+              expect(editor.getCursorBufferPosition()).toEqual([1, 4])
 
-            editor.setCursorBufferPosition([15, 6])
-            atom.commands.dispatch(editorElement, 'bracket-matcher:go-to-matching-bracket')
-            expect(editor.getCursorBufferPosition()).toEqual([1, 5])
+              editor.setCursorBufferPosition([15, 6])
+              atom.commands.dispatch(editorElement, 'bracket-matcher:go-to-matching-bracket')
+              expect(editor.getCursorBufferPosition()).toEqual([1, 5])
 
-            editor.setCursorBufferPosition([15, 7])
-            atom.commands.dispatch(editorElement, 'bracket-matcher:go-to-matching-bracket')
-            expect(editor.getCursorBufferPosition()).toEqual([1, 6])
+              editor.setCursorBufferPosition([15, 7])
+              atom.commands.dispatch(editorElement, 'bracket-matcher:go-to-matching-bracket')
+              expect(editor.getCursorBufferPosition()).toEqual([1, 6])
 
-            editor.setCursorBufferPosition([15, 8])
-            atom.commands.dispatch(editorElement, 'bracket-matcher:go-to-matching-bracket')
-            expect(editor.getCursorBufferPosition()).toEqual([1, 7])
+              editor.setCursorBufferPosition([15, 8])
+              atom.commands.dispatch(editorElement, 'bracket-matcher:go-to-matching-bracket')
+              expect(editor.getCursorBufferPosition()).toEqual([1, 7])
 
-            editor.setCursorBufferPosition([15, 9])
-            atom.commands.dispatch(editorElement, 'bracket-matcher:go-to-matching-bracket')
-            expect(editor.getCursorBufferPosition()).toEqual([1, 7])
+              editor.setCursorBufferPosition([15, 9])
+              atom.commands.dispatch(editorElement, 'bracket-matcher:go-to-matching-bracket')
+              expect(editor.getCursorBufferPosition()).toEqual([1, 7])
+            })
           })
         })
       })
@@ -714,45 +733,47 @@ describe('bracket matching', () => {
       })
     })
 
-    describe('HTML/XML text', () => {
-      beforeEach(() => {
-        waitsForPromise(() => atom.workspace.open('sample.xml'))
+    forEachLanguageWithTags(scopeName => {
+      describe(`${scopeName} tag matching`, () => {
+        beforeEach(() => {
+          waitsForPromise(() => atom.workspace.open('sample.xml'))
 
-        runs(() => {
-          editor = atom.workspace.getActiveTextEditor()
-          editorElement = atom.views.getView(editor)
-          buffer = editor.buffer
+          runs(() => {
+            editor = atom.workspace.getActiveTextEditor()
+            editorElement = atom.views.getView(editor)
+            buffer = editor.buffer
+          })
         })
-      })
 
-      describe('when the cursor is on a starting tag', () => {
-        it('selects the text inside the starting/closing tag', () => {
-          editor.setCursorBufferPosition([4, 9])
+        describe('when the cursor is on a starting tag', () => {
+          it('selects the text inside the starting/closing tag', () => {
+            editor.setCursorBufferPosition([4, 9])
+            atom.commands.dispatch(editorElement, 'bracket-matcher:select-inside-brackets')
+            expect(editor.getSelectedBufferRange()).toEqual([[4, 13], [6, 8]])
+          })
+        })
+
+        describe('when the cursor is on an ending tag', () => {
+          it('selects the text inside the starting/closing tag', () => {
+            editor.setCursorBufferPosition([14, 9])
+            atom.commands.dispatch(editorElement, 'bracket-matcher:select-inside-brackets')
+            expect(editor.getSelectedBufferRange()).toEqual([[10, 9], [14, 4]])
+          })
+        })
+
+        describe('when the cursor is inside a tag', () => {
+          it('selects the text inside the starting/closing tag', () => {
+            editor.setCursorBufferPosition([12, 8])
+            atom.commands.dispatch(editorElement, 'bracket-matcher:select-inside-brackets')
+            expect(editor.getSelectedBufferRange()).toEqual([[11, 11], [13, 6]])
+          })
+        })
+
+        it('does not select attributes inside tags', () => {
+          editor.setCursorBufferPosition([1, 10])
           atom.commands.dispatch(editorElement, 'bracket-matcher:select-inside-brackets')
-          expect(editor.getSelectedBufferRange()).toEqual([[4, 13], [6, 8]])
+          expect(editor.getSelectedBufferRange()).toEqual([[1, 17], [15, 2]])
         })
-      })
-
-      describe('when the cursor is on an ending tag', () => {
-        it('selects the text inside the starting/closing tag', () => {
-          editor.setCursorBufferPosition([14, 9])
-          atom.commands.dispatch(editorElement, 'bracket-matcher:select-inside-brackets')
-          expect(editor.getSelectedBufferRange()).toEqual([[10, 9], [14, 4]])
-        })
-      })
-
-      describe('when the cursor is inside a tag', () => {
-        it('selects the text inside the starting/closing tag', () => {
-          editor.setCursorBufferPosition([12, 8])
-          atom.commands.dispatch(editorElement, 'bracket-matcher:select-inside-brackets')
-          expect(editor.getSelectedBufferRange()).toEqual([[11, 11], [13, 6]])
-        })
-      })
-
-      it('does not select attributes inside tags', () => {
-        editor.setCursorBufferPosition([1, 10])
-        atom.commands.dispatch(editorElement, 'bracket-matcher:select-inside-brackets')
-        expect(editor.getSelectedBufferRange()).toEqual([[1, 17], [15, 2]])
       })
     })
   })
@@ -1816,4 +1837,15 @@ describe('bracket matching', () => {
       expect(editor.buffer.getText()).toBe('()')
     })
   })
+
+  var hasNewTextBufferVersion = (new TextBuffer()).getLanguageMode().bufferDidFinishTransaction
+
+  function forEachLanguageWithTags (callback) {
+    // TODO: remove this conditional after 1.33 stable is released.
+    if (hasNewTextBufferVersion) {
+      ['text.html.basic', 'text.xml'].forEach(callback)
+    } else {
+      callback('text.xml')
+    }
+  }
 })
