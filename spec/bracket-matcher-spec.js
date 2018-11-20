@@ -1,5 +1,7 @@
 const {Point, TextBuffer} = require('atom')
 
+const HAS_NEW_TEXT_BUFFER_VERSION = (new TextBuffer()).getLanguageMode().bufferDidFinishTransaction
+
 describe('bracket matching', () => {
   let editorElement, editor, buffer
 
@@ -515,6 +517,14 @@ describe('bracket matching', () => {
 
             editor.setCursorBufferPosition([0, 12])
             expectHighlights([0, 12], [0, 1])
+          })
+        })
+
+        describe('when the closing tag is missing', () => {
+          it('does not highlight anything', () => {
+            buffer.setText('<test>\ntext\n')
+            editor.setCursorBufferPosition([0, 10])
+            expectNoHighlights()
           })
         })
       })
@@ -1838,11 +1848,9 @@ describe('bracket matching', () => {
     })
   })
 
-  var hasNewTextBufferVersion = (new TextBuffer()).getLanguageMode().bufferDidFinishTransaction
-
   function forEachLanguageWithTags (callback) {
     // TODO: remove this conditional after 1.33 stable is released.
-    if (hasNewTextBufferVersion) {
+    if (HAS_NEW_TEXT_BUFFER_VERSION) {
       ['text.html.basic', 'text.xml'].forEach(callback)
     } else {
       callback('text.xml')
