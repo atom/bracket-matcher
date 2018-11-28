@@ -326,7 +326,7 @@ describe('bracket matching', () => {
         })
 
         describe('when on an opening tag', () => {
-          it('highlight the opening and closing tag', () => {
+          it('highlights the opening and closing tag', () => {
             buffer.setText(`\
 <test>
   <test>text</test>
@@ -344,7 +344,7 @@ describe('bracket matching', () => {
         })
 
         describe('when on a closing tag', () => {
-          it('highlight the opening and closing tag', () => {
+          it('highlights the opening and closing tag', () => {
             buffer.setText(`\
 <test>
   <!-- <test> -->
@@ -524,6 +524,14 @@ describe('bracket matching', () => {
           it('does not highlight anything', () => {
             buffer.setText('<test>\ntext\n')
             editor.setCursorBufferPosition([0, 10])
+            expectNoHighlights()
+          })
+        })
+
+        describe('when between the opening and closing tag', () => {
+          it('does not highlight anything', () => {
+            buffer.setText('<div>\nhi\n</div>\n')
+            editor.setCursorBufferPosition([1, 0])
             expectNoHighlights()
           })
         })
