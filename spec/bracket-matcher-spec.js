@@ -751,6 +751,13 @@ describe('bracket matching', () => {
       })
     })
 
+    it('does not error when a bracket is already highlighted (regression)', () => {
+      atom.grammars.assignLanguageMode(editor, null)
+      editor.setText("(ok)")
+      editor.selectAll()
+      atom.commands.dispatch(editorElement, 'bracket-matcher:select-inside-brackets')
+    })
+
     forEachLanguageWithTags(scopeName => {
       describe(`${scopeName} tag matching`, () => {
         beforeEach(() => {
