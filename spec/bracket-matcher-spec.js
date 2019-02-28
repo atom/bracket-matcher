@@ -712,6 +712,14 @@ describe('bracket matching', () => {
         expect(editor.getCursorBufferPosition()).toEqual([2, 7])
       })
     })
+
+    describe('when not within a pair', () => {
+      it('does not do anything', () => {
+        editor.setCursorBufferPosition([0, 3])
+        atom.commands.dispatch(editorElement, 'bracket-matcher:go-to-enclosing-bracket')
+        expect(editor.getCursorBufferPosition()).toEqual([0, 3])
+      })
+    })
   })
 
   describe('when bracket-match:select-inside-brackets is triggered', () => {
