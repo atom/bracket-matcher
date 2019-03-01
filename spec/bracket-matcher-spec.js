@@ -1,6 +1,6 @@
-const {Point, TextBuffer} = require('atom')
+const {Point} = require('atom')
 
-const HAS_NEW_TEXT_BUFFER_VERSION = (new TextBuffer()).getLanguageMode().bufferDidFinishTransaction
+const TAG_LANGUAGES = ['text.html.basic', 'text.xml']
 
 describe('bracket matching', () => {
   let editorElement, editor, buffer
@@ -197,7 +197,7 @@ describe('bracket matching', () => {
 
     describe('when there are brackets inside code embedded in a string', () => {
       it('highlights the correct start/end pairs', () => {
-        editor.setText('(`${(1+1)}`)')
+        editor.setText('(`${(1+1)}`)') // eslint-disable-line no-template-curly-in-string
         editor.setCursorBufferPosition([0, 0])
         expectHighlights([0, 0], [0, 11])
 
@@ -211,7 +211,7 @@ describe('bracket matching', () => {
 
     describe('when there are brackets inside a string inside code embedded in a string', () => {
       it('highlights the correct start/end pairs', () => {
-        editor.setText("(`${('(1+1)')}`)")
+        editor.setText("(`${('(1+1)')}`)") // eslint-disable-line no-template-curly-in-string
         editor.setCursorBufferPosition([0, 0])
         expectHighlights([0, 0], [0, 15])
 
@@ -310,7 +310,7 @@ describe('bracket matching', () => {
       })
     })
 
-    forEachLanguageWithTags(scopeName => {
+    for (const scopeName of TAG_LANGUAGES) {
       describe(`${scopeName} tag matching`, () => {
         beforeEach(() => {
           waitsForPromise(() => atom.packages.activatePackage('language-html'))
@@ -536,7 +536,7 @@ describe('bracket matching', () => {
           })
         })
       })
-    })
+    }
   })
 
   describe('when bracket-matcher:go-to-matching-bracket is triggered', () => {
@@ -590,7 +590,7 @@ describe('bracket matching', () => {
         })
       })
 
-      forEachLanguageWithTags(scopeName => {
+      for (const scopeName of TAG_LANGUAGES) {
         describe(`in ${scopeName} files`, () => {
           beforeEach(() => {
             waitsForPromise(() => atom.workspace.open('sample.xml'))
@@ -692,7 +692,7 @@ describe('bracket matching', () => {
             })
           })
         })
-      })
+      }
     })
   })
 
@@ -761,12 +761,12 @@ describe('bracket matching', () => {
 
     it('does not error when a bracket is already highlighted (regression)', () => {
       atom.grammars.assignLanguageMode(editor, null)
-      editor.setText("(ok)")
+      editor.setText('(ok)')
       editor.selectAll()
       atom.commands.dispatch(editorElement, 'bracket-matcher:select-inside-brackets')
     })
 
-    forEachLanguageWithTags(scopeName => {
+    for (const scopeName of TAG_LANGUAGES) {
       describe(`${scopeName} tag matching`, () => {
         beforeEach(() => {
           waitsForPromise(() => atom.workspace.open('sample.xml'))
@@ -808,7 +808,7 @@ describe('bracket matching', () => {
           expect(editor.getSelectedBufferRange()).toEqual([[1, 17], [15, 2]])
         })
       })
-    })
+    }
   })
 
   describe('when bracket-matcher:remove-matching-brackets is triggered', () => {
@@ -1031,6 +1031,8 @@ describe('bracket matching', () => {
         editor.setCursorBufferPosition([0, 0])
         editor.insertText('<')
         expect(lastPosition).toEqual([0, 1])
+
+        sub.dispose()
       })
     })
 
@@ -1870,13 +1872,4 @@ describe('bracket matching', () => {
       expect(editor.buffer.getText()).toBe('()')
     })
   })
-
-  function forEachLanguageWithTags (callback) {
-    // TODO: remove this conditional after 1.33 stable is released.
-    if (HAS_NEW_TEXT_BUFFER_VERSION) {
-      ['text.html.basic', 'text.xml'].forEach(callback)
-    } else {
-      callback('text.xml')
-    }
-  }
 })

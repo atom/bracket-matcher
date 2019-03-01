@@ -5,7 +5,7 @@ describe('closeTag', () => {
   describe('TagFinder::parseFragment', () => {
     let fragment = ''
 
-    beforeEach(() => fragment = '<html><head><body></body>')
+    beforeEach(() => { fragment = '<html><head><body></body>' })
 
     it('returns the last not closed elem in fragment, matching a given pattern', () => {
       const stack = tagFinder.parseFragment(fragment, [], /<(\w+)|<\/(\w*)/, () => true)
