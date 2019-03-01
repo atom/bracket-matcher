@@ -27,6 +27,9 @@
     ],
     "globals": [
       "atom"
+    ],
+    "ignore": [
+      "/spec/fixtures/"
     ]
   },
   "configSchema": {
