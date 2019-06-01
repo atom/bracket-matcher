@@ -6,7 +6,7 @@
 Highlights and jumps between `[]`, `()`, and `{}`. Also highlights matching XML
 and HTML tags.
 
-Autocompletes `[]`, `()`, `{}`, `""`, `''`, `“”`, `‘’`, `«»`, `‹›`, and
+Autocompletes `[]`, `()`, `{}`, `""`, `''`, `“”`, `‘’`, `«»`, `‹›`, `„“`, `‚‘` and
 backticks by default.
 
 Use <kbd>ctrl-m</kbd> to jump to the bracket matching the one adjacent to the cursor.
