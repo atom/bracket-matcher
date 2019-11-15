@@ -9,7 +9,7 @@
     "atom": "*"
   },
   "dependencies": {
-    "first-mate": "^7.0.1",
+    "first-mate": "^7.4.1",
     "underscore-plus": "1.x"
   },
   "configSchema": {
