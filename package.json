@@ -1,6 +1,6 @@
 {
   "name": "bracket-matcher",
-  "version": "0.91.1",
+  "version": "0.91.2",
   "main": "./lib/main",
   "description": "Highlight the matching bracket for the `(){}[]` character under the cursor. Move the cursor to the matching bracket with `ctrl-m`.",
   "repository": "https://github.com/atom/bracket-matcher",
@@ -9,7 +9,7 @@
     "atom": "*"
   },
   "dependencies": {
-    "first-mate": "^7.0.1",
+    "first-mate": "^7.4.1",
     "underscore-plus": "1.x"
   },
   "configSchema": {
