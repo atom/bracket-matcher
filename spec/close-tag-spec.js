@@ -96,6 +96,43 @@ describe('closeTag', () => {
       expect(tagFinder.closingTagForFragments(preFragment, postFragment)).toBe('my-element')
     })
 
+    it('correctly closes tags containing attributes', () => {
+      const preFragment = '<html><head></head><body class="foo bar"><div>'
+      const postFragment = '</body></html>'
+      expect(tagFinder.closingTagForFragments(preFragment, postFragment)).toBe('div')
+    })
+
+    it('correctly closes tags containing an XML namespace', () => {
+      const preFragment = '<html><head></head><body><custom:tag>'
+      const postFragment = '</body></html>'
+      expect(tagFinder.closingTagForFragments(preFragment, postFragment)).toBe('custom:tag')
+    })
+
+    it('correctly closes tags containing multiple XML namespaces', () => {
+      // This is not exactly valid syntax but it can't hurt to support it
+      const preFragment = '<html><head></head><body><custom:custom2:tag>'
+      const postFragment = '</body></html>'
+      expect(tagFinder.closingTagForFragments(preFragment, postFragment)).toBe('custom:custom2:tag')
+    })
+
+    it('correctly closes tags in the present of JSX tags containing member accesses', () => {
+        const preFragment = '<Foo><Bar.Baz></Bar.Baz>'
+        const postFragment = ''
+        expect(tagFinder.closingTagForFragments(preFragment, postFragment)).toBe('Foo')
+    })
+
+    it('correctly closes JSX tags containing member accesses', () => {
+        const preFragment = '<Foo.Bar><div></div>'
+        const postFragment = ''
+        expect(tagFinder.closingTagForFragments(preFragment, postFragment)).toBe('Foo.Bar')
+    })
+
+    it('correctly closes JSX tags containing deep member accesses', () => {
+        const preFragment = '<Foo.Bar.Baz><div></div>'
+        const postFragment = ''
+        expect(tagFinder.closingTagForFragments(preFragment, postFragment)).toBe('Foo.Bar.Baz')
+    })
+
     it('correctly closes tags when there are other tags with the same prefix', () => {
       const preFragment = '<thead><th>'
       const postFragment = '</thead>'
