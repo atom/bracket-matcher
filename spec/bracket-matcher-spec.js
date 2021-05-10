@@ -766,6 +766,36 @@ describe('bracket matching', () => {
       atom.commands.dispatch(editorElement, 'bracket-matcher:select-inside-brackets')
     })
 
+    describe('when there are multiple cursors', () => {
+      beforeEach(() => {
+        waitsForPromise(() => atom.workspace.open('multiplecursor.md'))
+        runs(() => {
+          editor = atom.workspace.getActiveTextEditor()
+          editorElement = atom.views.getView(editor)
+        })
+      })
+      it('selects text inside the multiple cursors', () => {
+        editor.addCursorAtBufferPosition([0, 6])
+        editor.addCursorAtBufferPosition([1, 6])
+        editor.addCursorAtBufferPosition([2, 6])
+        editor.addCursorAtBufferPosition([3, 6])
+        editor.addCursorAtBufferPosition([4, 6])
+
+        atom.commands.dispatch(editorElement, 'bracket-matcher:select-inside-brackets')
+
+        const selectedRanges = editor.getSelectedBufferRanges();
+        expect(selectedRanges.length).toBe(6)
+        expect(selectedRanges).toEqual([
+          [[0, 0], [0, 0]],
+          [[0, 1], [0, 7]],
+          [[1, 1], [1, 15]],
+          [[2, 1], [2, 19]],
+          [[3, 1], [3, 13]],
+          [[4, 1], [4, 15]],
+        ])
+      })
+    })
+
     forEachLanguageWithTags(scopeName => {
       describe(`${scopeName} tag matching`, () => {
         beforeEach(() => {
