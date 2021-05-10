@@ -1,7 +1,5 @@
 # Bracket Matcher package
-[![OS X Build Status](https://travis-ci.org/atom/bracket-matcher.svg?branch=master)](https://travis-ci.org/atom/bracket-matcher)
-[![Windows Build status](https://ci.appveyor.com/api/projects/status/rrsl2h7e0od26k54/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/bracket-matcher/branch/master) [![Dependency Status](https://david-dm.org/atom/bracket-matcher.svg)](https://david-dm.org/atom/bracket-matcher)
-
+[![CI](https://github.com/atom/bracket-matcher/actions/workflows/ci.yml/badge.svg)](https://github.com/atom/bracket-matcher/actions/workflows/ci.yml)
 
 Highlights and jumps between `[]`, `()`, and `{}`. Also highlights matching XML
 and HTML tags.
